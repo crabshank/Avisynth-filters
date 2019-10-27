@@ -375,7 +375,7 @@ if (!params)
    v = avs_new_value_clip(new_clip);
 
    avs_release_clip(new_clip);
-  free(params);
+  // free(params);
    return v;
 }
 
