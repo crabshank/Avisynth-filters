@@ -1,34 +1,35 @@
 #include <stdlib.h>
-#include <stdbool.h>
 #include <math.h>
 #include "avisynth_c.h"
 #include "functions_c.h"
 
-typedef struct WhitePoint {
+typedef struct Merge {
       double step;
       double start;
       double sensitivity;
       int debug;
       int fails;
-} WhitePoint;
+  //int sample;
+} Merge;
 
 AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 {
- WhitePoint* params = (WhitePoint*) fi->user_data;
+ Merge* params = (Merge*) fi->user_data;
 
    AVS_VideoFrame* src = avs_get_frame(fi->child, n);
 
 
 
-   int row_size, height, src_pitch,x, y, p,dbg,fail;
+   int row_size, height, src_pitch,x, y, p,q,avgCountAll,dbg,fail;
    BYTE* srcp;
-   double CIEx,CIEy,rOG,bOG,gOG,stp,strt,sns,HWblack,grey_metric,mn,mx,sat;
+   double CIEx,CIEy,rOG,bOG,gOG,stp,strt,sns;
 
 stp =   params->step;
 strt=params->start;
 dbg=params->debug;
 sns=params->sensitivity;
 fail=params->fails;
+   //smp =   params->sample;
 
    CIEx= 0.312727;
       CIEy= 0.329023;
@@ -60,11 +61,14 @@ for (p=0; p<stp; p++){
 */
 double avrg[]={0,0,0,0,0,0};
 
+
+double meanSat,mn,mx,mnL,mxL,sat,satL,distGrey,rTSL,gTSL;
 double bestSSD;
 double bestx=0.312727;
 double besty=0.329023;
 double best_x=0;
 double best_y=0;
+
 
 double curr=strt;
 
@@ -105,12 +109,12 @@ bOG=currBlue/255.0;     // B
 sat=(mx==0)?0:(mx-mn)/mx;
 
 
-HWblack=1-mx;
+double HWblack=1-mx;
 //double HwhiteB=(1-sat)*mx;
-grey_metric=1-(sat*HWblack);
+double grey_metric=1-(sat*HWblack);
 
 
-        double currTst=(sns==1)?curr:pow(curr,sns);
+        double currTst=pow(curr,sns);
 
  if(grey_metric>=currTst&&(grey_metric<=strt) && (grey_metric<1)){
 double rgbxyY[]={rOG,gOG,bOG};
@@ -195,6 +199,8 @@ if(loopCount>=2){
 
 }
 
+
+
 avrg[0]=0;
 avrg[1]=0;
 avrg[2]=0;
@@ -215,7 +221,7 @@ curr-=stp;
 
 
 //AVERAGE RGB to grey xy/////////////////////////////////////////
-double XYZ_orig[3];
+    double XYZ_orig[3];
 double XYZ_conv2grey[3];
 double XYZ_Forgrey_xy[3];
 
@@ -226,8 +232,8 @@ xy2XYZ(xyForGrey,XYZ_orig);
 WPconv2Grey(XYZ_orig,XYZ_grey,XYZ_conv2grey);
 XYZ2xyY_Grey(XYZ_conv2grey,XYZ_Forgrey_xy);
 
-bestx=XYZ_Forgrey_xy[0];
-besty=XYZ_Forgrey_xy[1];
+ bestx=XYZ_Forgrey_xy[0];
+  besty=XYZ_Forgrey_xy[1];
 
 
 
@@ -309,9 +315,9 @@ sat=(mx==0)?0:(mx-mn)/mx;
 
 
 
-HWblack=1-mx;
-//double HwhiteB=(1-sat)*mx;
-grey_metric=1-(sat*HWblack);
+double HWblack=1-mx;
+double HwhiteB=(1-sat)*mx;
+double grey_metric=1-(sat*HWblack);
 
 if(grey_metric>strt){
                 srcp[x] = MAX(MIN(round(0*255),255),0);
@@ -347,7 +353,7 @@ AVS_Value AVSC_CC create_WhitePoint(AVS_ScriptEnvironment* env, AVS_Value args, 
 
    AVS_Clip* new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
 
-WhitePoint *params = (WhitePoint*)malloc(sizeof(WhitePoint));
+Merge *params = (Merge*)malloc(sizeof(Merge));
 
 if (!params)
       return avs_void;
