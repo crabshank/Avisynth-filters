@@ -81,6 +81,12 @@ double last_ssd_g=0;
 double last_sum_b=0;
 double last_ssd_b=0;
 
+double max_x=0.312727;
+double max_y=0.329023;
+
+double min_x=0.312727;
+double min_y=0.329023;
+
 int run_fail=0;
 
 if (dbg!=1){
@@ -116,6 +122,12 @@ grey_metric=1-(sat*HWblack);
 double rgbxyY[]={rOG,gOG,bOG};
 double xyY[3];
 rgb2xyY(rgbxyY,xyY);
+max_x=(xyY[0]>max_x)?xyY[0]:max_x;
+
+max_y=(xyY[1]>max_y)?xyY[1]:max_y;
+min_x=(xyY[0]<min_x)?xyY[0]:min_x;
+
+min_y=(xyY[1]<min_y)?xyY[1]:min_y;
      avrg[0]+=xyY[0];
       avrg[1]+=xyY[1];
 
@@ -167,8 +179,8 @@ count_ssd++;
 
 /////////////POLL FRAME END///////////////////////
 
-double lpx=(avrg[2]==0)?bestx:avrg[0]/avrg[2];
-double lpy=(avrg[2]==0)?besty:avrg[1]/avrg[2];
+double lpx=(avrg[2]==0)?bestx:(min_x+max_x)*0.5;
+double lpy=(avrg[2]==0)?besty:(min_y+max_y)*0.5;
 double lpSSDr=avrg[3];
 double lpSSDb=avrg[4];
 double lpSSDg=avrg[5];
