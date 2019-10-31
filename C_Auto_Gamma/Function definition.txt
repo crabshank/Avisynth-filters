@@ -1,0 +1,7 @@
+(
+clip,
+float "a"=0 (lowest value to check),
+float "b"=12 (highest value to check),
+int "tolerance"=2 (number of decimal places of accuracy),
+bool "limitedRange"=false (remap output to 16-235)
+)
