@@ -328,7 +328,7 @@ if (!params)
 
        params->debug = avs_defined(avs_array_elt(args, 3))?avs_as_bool(avs_array_elt(args, 3)):false;
         params->start = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):1;
-         params->iterations = avs_defined(avs_array_elt(args, 1))?avs_as_int(avs_array_elt(args, 1)):2;
+         params->iterations = avs_defined(avs_array_elt(args, 1))?avs_as_int(avs_array_elt(args, 1)):50;
 
 
 
