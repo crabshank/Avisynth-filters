@@ -5,11 +5,9 @@
 #include "functions_c.h"
 
 typedef struct WhitePoint {
-      double step;
+      int iterations;
       double start;
-      double sensitivity;
       int debug;
-      int fails;
 } WhitePoint;
 
 AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
@@ -20,15 +18,14 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 
 
 
-   int row_size, height, src_pitch,x, y, p,dbg,fail;
+   int row_size, height, src_pitch,x, y, p,dbg,itr,bestEl;
    BYTE* srcp;
-   double CIEx,CIEy,rOG,bOG,gOG,stp,strt,sns,HWblack,grey_metric,mn,mx,sat,currTst;
+   double CIEx,CIEy,rOG,bOG,gOG,strt,HWblack,grey_metric,mn,mx,sat,cumulSSD,dblItr,dblP,bestSSD;
 
-stp =   params->step;
+itr =   params->iterations;
 strt=params->start;
 dbg=params->debug;
-sns=params->sensitivity;
-fail=params->fails;
+
 
    CIEx= 0.312727;
       CIEy= 0.329023;
@@ -41,58 +38,54 @@ p=0;
       src_pitch = avs_get_pitch_p(src, planes[p]);
       row_size = avs_get_row_size_p(src, planes[p]);
       height = avs_get_height_p(src, planes[p]);
-/*
-double **avrg;
 
-avrg = (double**)malloc(stp*sizeof(double));
-for(p = 0; p < stp; p++)
-{
-    avrg[p] = (double*)malloc(10*sizeof(double));
 
+      double sum_x[itr];
+double sum_y[itr];
+double count_ssd[itr];
+double last_ssd_r[itr];
+double last_ssd_g[itr];
+double last_ssd_b[itr];
+double min_x[itr];
+double min_y[itr];
+double max_x[itr];
+double max_y[itr];
+double last_sum_r[itr];
+double last_sum_g[itr];
+double last_sum_b[itr];
+double curr_thr[itr];
+
+
+for (p=0; p<itr; p++){
+
+sum_x[p]=0;
+sum_y[p]=0;
+count_ssd[p]=0;
+last_ssd_r[p]=0;
+last_ssd_g[p]=0;
+last_ssd_b[p]=0;
+last_sum_r[p]=0;
+last_sum_g[p]=0;
+last_sum_b[p]=0;
+dblP=(double)p;
+dblItr=(double)itr;
+curr_thr[p]=strt-(strt/dblItr)*(dblP+1);
+min_x[p]=CIEx;
+max_x[p]=CIEx;
+min_y[p]=CIEy;
+max_y[p]=CIEy;
 }
 
-for (p=0; p<stp; p++){
-        for (q=0; q<10; q++){
 
-                avrg[p][q]=0;
-}
-}
-*/
-double avrg[]={0,0,0,0,0,0};
 
-double bestSSD;
-double bestx=0.312727;
-double besty=0.329023;
-double best_x=0;
-double best_y=0;
 
-double curr=strt;
-
-int count_ssd=0;
-
-int loopCount=1;
-
-double last_ssd_r=0;
-double last_sum_r=0;
-
-double last_sum_g=0;
-double last_ssd_g=0;
-
-double last_sum_b=0;
-double last_ssd_b=0;
-
-double max_x=0.312727;
-double max_y=0.329023;
-
-double min_x=0.312727;
-double min_y=0.329023;
-
-int run_fail=0;
+double best_x=CIEx;
+double best_y=CIEy;
 
 if (dbg!=1){
 
 
-while(curr>0){
+
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -115,118 +108,99 @@ HWblack=1-mx;
 //double HwhiteB=(1-sat)*mx;
 grey_metric=1-(sat*HWblack);
 
-
-         currTst=(sns==1)?curr:pow(curr,sns);
-
- if(grey_metric>=currTst&&(grey_metric<=strt) && (grey_metric<1)){
 double rgbxyY[]={rOG,gOG,bOG};
 double xyY[3];
 rgb2xyY(rgbxyY,xyY);
-max_x=(xyY[0]>max_x)?xyY[0]:max_x;
-
-max_y=(xyY[1]>max_y)?xyY[1]:max_y;
-min_x=(xyY[0]<min_x)?xyY[0]:min_x;
-
-min_y=(xyY[1]<min_y)?xyY[1]:min_y;
-     avrg[0]+=xyY[0];
-      avrg[1]+=xyY[1];
 
 double dist_r=sqrt(pow(0.64-xyY[0],2)+pow(0.33-xyY[1],2));
 double dist_g=sqrt(pow(0.3-xyY[0],2)+pow(0.6-xyY[1],2));
 double dist_b=sqrt(pow(0.15-xyY[0],2)+pow(0.06-xyY[1],2));
 
-if(count_ssd<1){
-last_sum_r=dist_r;
-last_sum_g=dist_g;
-last_sum_b=dist_b;
+
+for(p=0; p<itr;p++){
+
+ if(grey_metric>=curr_thr[p]&&(grey_metric<=strt) && (grey_metric<1)){
+
+
+
+    if (xyY[1]>max_y[p]){
+        max_y[p]=xyY[1];
+    }
+
+    if (xyY[0]<min_x[p]){
+        min_x[p]=xyY[0];
+    }
+
+    if (xyY[1]<min_y[p]){
+        min_y[p]=xyY[1];
+    }
+
+    if(xyY[0]>max_x[p]){
+        max_x[p]=xyY[0];
+    }
+
+
+
+if(count_ssd[p]<1){ //If first eligible pixel, add current dist to sum
+last_sum_r[p]=dist_r;
+last_sum_g[p]=dist_g;
+last_sum_b[p]=dist_b;
 
 }else{
-last_ssd_r+=(dist_r-((last_sum_r+dist_r)/(count_ssd+1)))*(dist_r-(last_sum_r/count_ssd));
-last_sum_r+=dist_r;
+last_ssd_r[p]+=(dist_r-((last_sum_r[p]+dist_r)/(count_ssd[p]+1)))*(dist_r-(last_sum_r[p]/count_ssd[p]));
+last_sum_r[p]+=dist_r;
 
-last_ssd_g+=(dist_g-((last_sum_g+dist_g)/(count_ssd+1)))*(dist_g-(last_sum_g/count_ssd));
-last_sum_g+=dist_g;
+last_ssd_g[p]+=(dist_g-((last_sum_g[p]+dist_g)/(count_ssd[p]+1)))*(dist_g-(last_sum_g[p]/count_ssd[p]));
+last_sum_g[p]+=dist_g;
 
-last_ssd_b+=(dist_b-((last_sum_b+dist_b)/(count_ssd+1)))*(dist_b-(last_sum_b/count_ssd));
-last_sum_b+=dist_b;
+last_ssd_b[p]+=(dist_b-((last_sum_b[p]+dist_b)/(count_ssd[p]+1)))*(dist_b-(last_sum_b[p]/count_ssd[p]));
+last_sum_b[p]+=dist_b;
 
-
-
-     avrg[3]=last_ssd_r;
-           avrg[4]=last_ssd_g;
-avrg[5]=last_ssd_b;
 
 }
-count_ssd++;
+sum_x[p]+=xyY[0];
+sum_y[p]+=xyY[1];
+        count_ssd[p]++;
 
-
-
-
-       avrg[2]+=1;
    }
 
-        x=x+3;
-
-      }
-
-
-
 
 
       }
-//y+=smp;
 
+
+
+
+   x=x+3;
+      }
+
+      }
 
 /////////////POLL FRAME END///////////////////////
 
-double lpx=(avrg[2]==0)?bestx:(min_x+max_x)*0.5;
-double lpy=(avrg[2]==0)?besty:(min_y+max_y)*0.5;
-double lpSSDr=avrg[3];
-double lpSSDb=avrg[4];
-double lpSSDg=avrg[5];
-double cumulSSD=lpSSDr+lpSSDb+lpSSDg;
+for(p=0; p<itr;p++){ //Bessel correct standard deviations
+    last_ssd_r[p]*=(count_ssd[p])/(count_ssd[p]-1);
+    last_ssd_g[p]*=(count_ssd[p])/(count_ssd[p]-1);
+    last_ssd_b[p]*=(count_ssd[p])/(count_ssd[p]-1);
+    }
 
-if(loopCount>=2){
-            if(cumulSSD<=bestSSD ){
-                run_fail=0;
-                if (avrg[2]>=2){
-                bestSSD=cumulSSD;
-                best_x=lpx;
-                best_y=lpy;
-                }
-
-            }else{
-                run_fail++;
-                curr=(run_fail>=fail)?0:curr; //Early termination if no. of consecutive fails achieved
-            }
-
-}else{
-        bestSSD=6;
-        best_x=lpx;
-        best_y=lpy;
-
-}
-
-avrg[0]=0;
-avrg[1]=0;
-avrg[2]=0;
-avrg[3]=0;
-avrg[4]=0;
-avrg[5]=0;
-count_ssd=0;
-loopCount++;
-last_sum_r=0;
-last_ssd_r=0;
-last_sum_g=0;
-last_ssd_g=0;
-last_sum_b=0;
-last_ssd_b=0;
-
-curr-=stp;
-}
+bestSSD=last_ssd_r[itr-1]+last_ssd_g[itr-1]+last_ssd_b[itr-1];
+bestEl=-1;
+for(p=0; p<itr;p++){
+  cumulSSD= last_ssd_r[p]+last_ssd_g[p]+last_ssd_b[p];
+           if(cumulSSD<bestSSD && (count_ssd[p]>=2)){
+           bestSSD=cumulSSD;
+           bestEl=p;
+		   }
+    }
 
 
-//AVERAGE RGB to grey xy/////////////////////////////////////////
+
+best_x=(bestEl==-1)?CIEx:0.5*(max_x[bestEl]+min_x[bestEl]);//sum_x[bestEl]/count_ssd[bestEl];
+best_y=(bestEl==-1)?CIEy:0.5*(max_y[bestEl]+min_y[bestEl]);//sum_x[bestEl]/count_ssd[bestEl];
+
+
+
 double XYZ_orig[3];
 double XYZ_conv2grey[3];
 double XYZ_Forgrey_xy[3];
@@ -238,14 +212,10 @@ xy2XYZ(xyForGrey,XYZ_orig);
 WPconv2Grey(XYZ_orig,XYZ_grey,XYZ_conv2grey);
 XYZ2xyY_Grey(XYZ_conv2grey,XYZ_Forgrey_xy);
 
-bestx=XYZ_Forgrey_xy[0];
-besty=XYZ_Forgrey_xy[1];
-
-
-
-///////////////////////////////////////////////////////
-/////////////SET RGB AVGS END///////////////////////
-
+double Customxy[2]={XYZ_Forgrey_xy[0],XYZ_Forgrey_xy[1]};
+double CustomXYZ[3];
+double D65XYZ[3]={0.95047,1,1.08883};
+xy2XYZ(Customxy,CustomXYZ);
 
 ///////////////ACTUALLY DRAW PIXELS///////////////////////////////////////
       for (y=0; y<height; y++) {
@@ -259,15 +229,9 @@ besty=XYZ_Forgrey_xy[1];
 bOG=currBlue/255.0;     // B
        gOG=currGreen/255.0;   //G
          rOG=currRed/255.0;  // R
-CIEx=bestx;
-CIEy=besty;
+
 ///////////TO CHANGE WHITE POINT////////////////////////
 
-double Customxy[2]={CIEx,CIEy};
-double CustomXYZ[3];
-double D65XYZ[3]={0.95047,1,1.08883};
-
-xy2XYZ(Customxy,CustomXYZ);
 
 double OGrgb[3]={rOG,gOG,bOG};
 double rgbxyY[3];
@@ -289,19 +253,17 @@ xyY2rgb(WPConvXYZ_xyY,WPchgRGB);
         srcp[x+2] = MAX(MIN(round(WPchgRGB[0]*255),255),0);
 
 
-/*
 
-                srcp[x] = MAX(MIN(round(bestSSD*255),255),0);
-             srcp[x+1] =MAX(MIN(round(best_x*255),255),0);
-        srcp[x+2] = MAX(MIN(round(best_y*255),255),0);
-*/
-             x=x+3;
+x+=3;
       }
             srcp += src_pitch;
       } //END OF IMAGE DRAWING LOOP
 
 /////////////////DRAW PIXELS END/////////////////////////////////
+
 }else{
+
+
     for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
@@ -322,9 +284,7 @@ HWblack=1-mx;
 //double HwhiteB=(1-sat)*mx;
 grey_metric=1-(sat*HWblack);
 
-currTst=(sns==1)?strt:pow(strt,sns);
-
-if(grey_metric>currTst){
+if(grey_metric>strt){
                 srcp[x] = MAX(MIN(round(0*255),255),0);
              srcp[x+1] =MAX(MIN(round(0*255),255),0);
         srcp[x+2] = MAX(MIN(round(0*255),255),0);
@@ -334,20 +294,14 @@ if(grey_metric>currTst){
       }
              srcp += src_pitch;
 }
+
+
 }
 
 
-/*
-for (p = 0; p < stp; p++){
-    free(avrg[p]);
-}
-free(avrg);
-*/
- avs_release_frame(src);
 
    return src;
 }
-
 
 
 AVS_Value AVSC_CC create_WhitePoint(AVS_ScriptEnvironment* env, AVS_Value args, void* user_data)
@@ -371,12 +325,11 @@ if (!params)
 
 
 
-           params->fails = (avs_as_int(avs_array_elt(args, 5)))?avs_as_int(avs_array_elt(args, 5)):1;
 
-       params->debug = avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):false;
+       params->debug = avs_defined(avs_array_elt(args, 3))?avs_as_bool(avs_array_elt(args, 3)):false;
         params->start = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):1;
-         params->step = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):1;
-                 params->sensitivity = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.02;
+         params->iterations = avs_defined(avs_array_elt(args, 1))?avs_as_int(avs_array_elt(args, 1)):2;
+
 
 
    fi->user_data = (void*) params;
@@ -392,6 +345,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[step]f[start]f[sensitivity]f[debug]b[fails]i", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[iterations]i[start]f[debug]b", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
