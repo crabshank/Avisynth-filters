@@ -1,8 +1,6 @@
 (
       clip,
-      float "step"=0.02 (0 to 1),
+      int "iterations"=50(# of consecutive suboptimal samples collected before early termination),
       float "start"=1 (1 to 0),
-      float "sensitivity"=1 (current (grey_metric or start)^sensitivity),
-      bool "debug"=false,
-      int "fails"=1 (# of consecutive suboptimal samples collected before early termination),
+      bool "debug"=false
 )
