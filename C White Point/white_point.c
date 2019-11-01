@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include "avisynth_c.h"
+#include "../avisynth_c.h"
 #include "functions_c.h"
 
 typedef struct WhitePoint {
