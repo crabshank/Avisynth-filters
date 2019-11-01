@@ -4,11 +4,11 @@ project (cwhitepoint)
 FILE(GLOB cwhitepoint_sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "functions_c.h"
     "white_point.c"
-    "avisynth_c.h"
-    "avs/*.h"
+    "../avisynth_c.h"
+    "../avs/*.h"
 )
 
-link_directories(${CMAKE_SOURCE_DIR}/lib)
+link_directories(${CMAKE_SOURCE_DIR}/../lib)
 add_library("cwhitepoint" SHARED "${cwhitepoint_sources}")
 set_target_properties("cwhitepoint" PROPERTIES "OUTPUT_NAME" "cwhitepoint")
 if (MINGW)
