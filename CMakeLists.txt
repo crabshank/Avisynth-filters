@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.4)
-project(avsfilters C CXX)
+project(avsfilters)
 
 option(BUILD_WHITEPOINT "Build WhitePoint plugin" YES)
 option(BUILD_AUTOGAMMA "Build AutoGamma plugin" YES)
