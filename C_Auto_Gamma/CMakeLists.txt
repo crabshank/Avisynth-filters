@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.4)
-project (autogamma)
+project(autogamma)
 
 FILE(GLOB autogamma_sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "functions_c.h"
@@ -8,9 +8,10 @@ FILE(GLOB autogamma_sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "../avs/*.h"
 )
 
-link_directories(${CMAKE_SOURCE_DIR}/../lib)
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/../lib)
 add_library("autogamma" SHARED "${autogamma_sources}")
 set_target_properties("autogamma" PROPERTIES "OUTPUT_NAME" "autogamma")
+set_target_properties("autogamma" PROPERTIES LINKER_LANGUAGE CXX)
 if (MINGW)
     set_target_properties("autogamma" PROPERTIES PREFIX "")
     set_target_properties("autogamma" PROPERTIES IMPORT_PREFIX "")
