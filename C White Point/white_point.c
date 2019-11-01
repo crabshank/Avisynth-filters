@@ -121,7 +121,17 @@ for(p=0; p<itr;p++){
 
  if(grey_metric>=curr_thr[p]&&(grey_metric<=strt) && (grey_metric<1)){
 
+if(x==0 && y==0){
 
+max_y[p]=xyY[1];
+
+min_x[p]=xyY[0];
+
+min_y[p]=xyY[1];
+
+max_x[p]=xyY[0];
+
+}else{
 
     if (xyY[1]>max_y[p]){
         max_y[p]=xyY[1];
@@ -139,7 +149,7 @@ for(p=0; p<itr;p++){
         max_x[p]=xyY[0];
     }
 
-
+ }
 
 if(count_ssd[p]<1){ //If first eligible pixel, add current dist to sum
 last_sum_r[p]=dist_r;
@@ -186,7 +196,7 @@ for(p=0; p<itr;p++){ //Bessel correct standard deviations
 
 bestSSD=last_ssd_r[itr-1]+last_ssd_g[itr-1]+last_ssd_b[itr-1];
 bestEl=-1;
-for(p=0; p<itr;p++){
+for(p=0; p<itr;p++){ //Search for sample withe lowest standard deviation and at least 2 points
   cumulSSD= last_ssd_r[p]+last_ssd_g[p]+last_ssd_b[p];
            if(cumulSSD<bestSSD && (count_ssd[p]>=2)){
            bestSSD=cumulSSD;
@@ -199,7 +209,10 @@ for(p=0; p<itr;p++){
 best_x=(bestEl==-1)?CIEx:0.5*(max_x[bestEl]+min_x[bestEl]);//sum_x[bestEl]/count_ssd[bestEl];
 best_y=(bestEl==-1)?CIEy:0.5*(max_y[bestEl]+min_y[bestEl]);//sum_x[bestEl]/count_ssd[bestEl];
 
+//best_x=CIEx;
+//best_y=CIEy;
 
+if (best_x !=CIEx || best_y !=CIEy) {
 
 double XYZ_orig[3];
 double XYZ_conv2grey[3];
@@ -260,6 +273,26 @@ x+=3;
       } //END OF IMAGE DRAWING LOOP
 
 /////////////////DRAW PIXELS END/////////////////////////////////
+}
+
+/*else{
+          for (y=0; y<height; y++) {
+      for (x=0; x<row_size; x++) {
+
+
+                srcp[x] = srcp[x];
+             srcp[x+1] = srcp[x+1];
+        srcp[x+2] = srcp[x+2];
+
+
+
+x+=3;
+      }
+            srcp += src_pitch;
+      }
+
+}
+*/
 
 }else{
 
