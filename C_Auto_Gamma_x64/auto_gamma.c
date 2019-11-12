@@ -53,12 +53,24 @@ count=0;
 bOG=currBlue/255.0;     // B
        gOG=currGreen/255.0;   //G
          rOG=currRed/255.0;  // R
-double ogRGB[3];
+double ogRGB[3]={bOG,gOG,rOG};
 double lnRGB[3];
+
+   double      mn=MIN(rOG,MIN(gOG,bOG));
+ double mx=MAX(rOG,MAX(gOG,bOG));
+
+double sat=(mx==0)?0:(mx-mn)/mx;
+
+
+double HWblack=1-mx;
+double HwhiteB=(1-sat)*mx;
+//grey_metric=1-(sat*HWblack);
+double weight=1+(1-(sqrt(pow(HwhiteB,2)+pow(HWblack,2)))/sqrt((2)));
 sRGB2Linear(ogRGB,lnRGB);
-runTot_r+=lnRGB[0];
-runTot_g+=lnRGB[1];
-runTot_b+=lnRGB[2];
+
+runTot_r+=lnRGB[0]*weight;
+runTot_g+=lnRGB[1]*weight;
+runTot_b+=lnRGB[2]*weight;
 count+=1;
 
         x=x+3;
@@ -121,6 +133,7 @@ R=lerp(pow(rOG,gamma_low),pow(rOG,gamma_high),rOG);
 G=lerp(pow(gOG,gamma_low),pow(gOG,gamma_high),gOG);
 B=lerp(pow(bOG,gamma_low),pow(bOG,gamma_high),bOG);
 
+
 if(lmr==1){
     R=(( R*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
      G=(( G*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
@@ -130,11 +143,11 @@ if(lmr==1){
          }
 
 ////////////////////////////////////////////////////
-if (x_shift>0.5){
+//if (x_shift>0.5){
                 srcp[x] = MAX(MIN(round(B*255),255),0);
              srcp[x+1] =MAX(MIN(round(G*255),255),0);
         srcp[x+2] = MAX(MIN(round(R*255),255),0);
-}
+//}
              x=x+3;
       }
             srcp += src_pitch;
