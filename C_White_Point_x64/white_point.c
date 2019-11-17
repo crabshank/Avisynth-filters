@@ -1,9 +1,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include "../avisynth_c.h"
+#include "avisynth_c.h"
 #include "functions_c.h"
-
 
 typedef struct WhitePoint {
       int iterations;
@@ -107,7 +106,7 @@ sat=(mx==0)?0:(mx-mn)/mx;
 
 HWblack=1-mx;
 //double HwhiteB=(1-sat)*mx;
-grey_metric=(1-(sat*HWblack))*(1-sat);
+grey_metric=1-(sat*HWblack);
 
 double rgbxyY[]={rOG,gOG,bOG};
 double xyY[3];
@@ -316,7 +315,7 @@ sat=(mx==0)?0:(mx-mn)/mx;
 
 HWblack=1-mx;
 //double HwhiteB=(1-sat)*mx;
-grey_metric=(1-(sat*HWblack))*(1-sat);
+grey_metric=1-(sat*HWblack);
 
 if(grey_metric>strt){
                 srcp[x] = MAX(MIN(round(0*255),255),0);
