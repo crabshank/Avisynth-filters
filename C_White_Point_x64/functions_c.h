@@ -1,5 +1,120 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define PI  3.14159265358979323846
+#define lerp(a,b,t) ( (a) + (t) * ((b) - (a)))
+
+void f_gammaLow(double col, double gamma,double gamma_hi, double target, double dist){
+
+gamma_hi=(log10(pow(col,gamma+1)-pow(col,gamma))-log10(col))/log10(col);
+double outcol=(pow(col,gamma)-pow(col,1+gamma)+pow(col,1+gamma_hi));
+
+dist=abs(outcol-target);
+
+}
+
+
+void rgb2hsv (double rgb[3],double hsv[3])
+{
+
+double r=rgb[0];
+double g=rgb[1];
+double b=rgb[2];
+
+
+    double max = MAX(r,MAX(g, b));
+    double min = MIN(r,MIN(g, b));
+
+    double diff=max-min;
+
+    hsv[2] = max;
+
+    if (max == 0.0f) {
+        hsv[1] = 0;
+        hsv[0] = 0;
+    }
+
+   else  if (diff == 0.0f) {
+        hsv[1] = 0;
+        hsv[0] = 0;
+    }
+
+    else {
+        hsv[1] = diff / max;
+
+        if (max == r) {
+            hsv[0] = (g-b)/diff;
+        }
+        else if (max == g) {
+            hsv[0] = 2+(b-r)/diff;
+        }
+        else {
+            hsv[0] = 4+(r-g)/diff;
+    }
+
+
+    if(hsv[0]!=0){
+    hsv[0]/=6;
+hsv[0]=hsv[0]-(double)floor(hsv[0]);
+    }
+
+    hsv[0]=(hsv[0] < 0)?hsv[0]+1:hsv[0];
+
+    }
+
+}
+
+
+
+void hsv2rgb(double hsv[3], double rgb[3])
+{
+double h=hsv[0];
+double s=hsv[1];
+double v=hsv[2];
+
+
+   int i = floor(h * 6);
+   double f = h * 6 - i;
+   double p = v * (1 - s);
+    double q = v * (1 - f * s);
+   double t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: rgb[0] = v, rgb[1] = t, rgb[2] = p; break;
+        case 1: rgb[0] = q, rgb[1] = v, rgb[2] = p; break;
+        case 2: rgb[0] = p, rgb[1] = v, rgb[2] = t; break;
+        case 3: rgb[0] = p, rgb[1] = q, rgb[2] = v; break;
+        case 4: rgb[0] = t, rgb[1] = p, rgb[2] = v; break;
+        case 5: rgb[0] = v, rgb[1] = p, rgb[2] = q; break;
+    }
+
+
+}
+
+void hwb2hsv( double hwb[3],double hsv[3])
+{
+double h=hwb[0];
+double w=hwb[1];
+double b=hwb[2];
+
+if(w+b>1){
+w=w/(w+b);
+b=b/(w+b);
+}
+
+hsv[0]=h;
+hsv[1]=1-(w/(1-b));
+hsv[2]=1-b;
+
+}
+
+void hsv2hwb( double hsv[3],double hwb[3])
+{
+
+hwb[0]=hsv[0];
+hwb[1]=1-hsv[2];
+hwb[2]=(1-hsv[1])*hsv[2];
+
+
+}
 
 
 void zeroMatrix( int rows_a, int cols_a, void* ma){
@@ -157,6 +272,23 @@ mul(3,3,1,convBrad,XYZ,outp);
 
 }
 
+void sRGB2Linear(double rgb[3],double outp[3]){
+
+	for (int p=0;p<3;p++){
+        outp[p]=(rgb[p] > 0.0404482362771082 )?pow(fabs((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
+}
+
+}
+
+void Linear2sRGB(double rgb[3],double outp[3]){
+
+
+for (int p=0; p<3; p++){
+
+  outp[p]=(rgb[p]> 0.00313066844250063)?1.055 * pow(rgb[p],1/2.4) - 0.055:12.92 *rgb[p];
+}
+
+}
 
 void rgb2xyY(double rgb[3],double outp[3]){
 
@@ -270,6 +402,37 @@ for (int i=0;i<3;i++){
 //Source: http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
 
+
+void rgb2Other_XYZ (double rgb[3], double rgbTo[3], double XYZog[3],double XYZnew[3]){
+
+	  double rgbLin[3];
+	  double rgbNew[3];
+
+	for (int p=0;p<3;p++){
+        rgbLin[p]=(rgb[p] > 0.0404482362771082 )?pow(fabs((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
+        rgbNew[p]=(rgbTo[p] > 0.0404482362771082 )?pow(fabs((rgbTo[p]+0.055)/1.055),2.4):rgbTo[p]/12.92;
+}
+
+
+
+double v1[3]={0.4124564,0.3575761, 0.1804375};
+double v2[3]={0.2126729,0.7151522,0.072175};
+double v3[3]={0.0193339,0.119192,0.9503041};
+
+XYZog[0]=v1[0]*rgbLin[0]+v1[1]*rgbLin[1]+v1[2]*rgbLin[2];
+XYZog[1]=v2[0]*rgbLin[0]+v2[1]*rgbLin[1]+v2[2]*rgbLin[2];
+XYZog[2]=v3[0]*rgbLin[0]+v3[1]*rgbLin[1]+v3[2]*rgbLin[2];
+
+XYZnew[0]=v1[0]*rgbNew[0]+v1[1]*rgbNew[1]+v1[2]*rgbNew[2];
+XYZnew[1]=v2[0]*rgbNew[0]+v2[1]*rgbNew[1]+v2[2]*rgbNew[2];
+XYZnew[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
+
+		/*	return XYZ2xyY_Grey(
+                         WPconv2Grey(XYZog,XYZnew)
+                         ).xy;*/ //HLSL next steps
+
+}
+
 void rgb2Grey_XYZ (double rgb[3], double XYZog[3],double XYZnew[3]){
 
 	  double rgbLin[3];
@@ -308,6 +471,74 @@ void xy2XYZ(double xyCoord[2],double outp[3]){
         outp[2]= (1*pow(xyCoord[1],-1))*(1-xyCoord[0]-xyCoord[1]);
 }
 
+
+void XYZ2Lab(double XYZ[3], double WP_XYZ[3], double Lab[3]){
+
+
+double XYZadj[3];
+
+ XYZadj[0]  = XYZ[0] / WP_XYZ[0];
+ XYZadj[1] = XYZ[1]/WP_XYZ[1];
+ XYZadj[2] = XYZ[2] /WP_XYZ[2];
+
+for (int p=0; p<3; p++){
+        XYZadj[p]=(XYZadj[p] > 0.008856)?pow(XYZadj[p],1/3):7.787*XYZadj[p] + 16/116;
+}
+
+Lab[0] = ( 116 * XYZadj[1] ) - 16;
+Lab[1] = 500 * ( XYZadj[0] - XYZadj[1] );
+Lab[2] = 200 * ( XYZadj[1] - XYZadj[2] );
+
+// {0 to 100,-1 to 1 , -1 to 1}
+
+}
+
+void Lab2Lch(double Lab[3],double Lch[3]){
+
+double L=Lab[0]/100;
+double a=2*(Lab[1]+1); //Rescale for [0-1]
+double b=2*(Lab[2]+1); //Rescale for [0-1]
+
+Lch[0]=L;
+
+Lch[1]=sqrt(a*a+b*b)/sqrt(2);
+
+Lch[2]=atan2(b,a)/(0.5*PI);
+
+}
+//Source: http://wiki.nuaj.net/index.php/Color_Transforms#XYZ_.E2.86.92_L.2Aa.2Ab.2A
+
+
+void hsv2hsl(double hsv[3],double hsl[3]){
+
+	hsl[0]=hsv[0];
+
+    hsl[2] = (2 - hsv[1]) * hsv[2] / 2;
+
+    if (hsl[2]  != 0) {
+        if ( hsl[2]  == 1) {
+            hsl[1] = 0;
+        } else if ( hsl[2]  < 0.5) {
+            hsl[1] = hsv[1] * hsv[1] / (hsl[2] * 2);
+        } else {
+            hsl[1] = hsv[1] * hsv[2] / (2 - hsl[2] * 2);
+        }
+    }
+
+}
+
+
+void RGB2HSI(double rgb[3],double HSI[3]){
+
+HSI[2]=(rgb[0]+rgb[1]+rgb[2])/3;
+
+HSI[1]=1-3*MIN(rgb[0],MIN(rgb[1],rgb[2]))/HSI[2];
+
+HSI[0]=acos(((rgb[0]-rgb[1])+(rgb[0]-rgb[2]))/(2*sqrt((rgb[0]-rgb[1])*(rgb[0]-rgb[1])+(rgb[0]-rgb[2])*(rgb[1]-rgb[2]))))/PI;
+
+}
+
+//Source: http://fourier.eng.hmc.edu/e161/lectures/ColorProcessing/node2.html
 
 /* HLSL NESTED FUNCTIONS
 float3 WPChangeRGB(float3 color, float3 from, float3 to){

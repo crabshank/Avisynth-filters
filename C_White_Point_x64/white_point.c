@@ -1,14 +1,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include "avisynth_c.h"
+#include "../avisynth_c.h"
 #include "functions_c.h"
 
 typedef struct WhitePoint {
-      int iterations;
-      double start;
-      int debug;
+      double desat;
+    int debug;
+        double start;
 } WhitePoint;
+
 
 AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 {
@@ -18,17 +19,20 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 
 
 
-   int row_size, height, src_pitch,x, y, p,dbg,itr,bestEl;
+   int row_size, height, src_pitch,x, y, p,dbg,itr,lmr,bestEl;
    BYTE* srcp;
-   double CIEx,CIEy,rOG,bOG,gOG,strt,HWblack,grey_metric,mn,mx,sat,cumulSSD,dblItr,dblP,bestSSD;
+   double CIEx,CIEy,rOG,bOG,gOG,strt,HWblack,grey_metric,mn,mx,sat,cumulSSD,dblItr,dblP,bestSSD,man_x,man_y,a_OG,b_OG,tol,a,b,c,f_a,f_c,dst;
 
-itr =   params->iterations;
-strt=params->start;
+
+dst=params->desat;
 dbg=params->debug;
+strt=params->start;
+
 
 
    CIEx= 0.312727;
       CIEy= 0.329023;
+      double D65XYZ[3]={0.95047,1,1.08883};
             int planes[] ={AVS_CS_BGR32};
 src = avs_get_frame(fi->child, n);
    avs_make_writable(fi->env, &src);
@@ -40,201 +44,32 @@ p=0;
       height = avs_get_height_p(src, planes[p]);
 
 
-      double sum_x[itr];
-double sum_y[itr];
-double count_ssd[itr];
-double last_ssd_r[itr];
-double last_ssd_g[itr];
-double last_ssd_b[itr];
-double min_x[itr];
-double min_y[itr];
-double max_x[itr];
-double max_y[itr];
-double last_sum_r[itr];
-double last_sum_g[itr];
-double last_sum_b[itr];
-double curr_thr[itr];
 
+double r_desat_sum= 0;
+double g_desat_sum= 0;
+double b_desat_sum= 0;
 
-for (p=0; p<itr; p++){
-
-sum_x[p]=0;
-sum_y[p]=0;
-count_ssd[p]=0;
-last_ssd_r[p]=0;
-last_ssd_g[p]=0;
-last_ssd_b[p]=0;
-last_sum_r[p]=0;
-last_sum_g[p]=0;
-last_sum_b[p]=0;
-dblP=(double)p;
-dblItr=(double)itr;
-curr_thr[p]=strt-(strt/dblItr)*(dblP+1);
-min_x[p]=CIEx;
-max_x[p]=CIEx;
-min_y[p]=CIEy;
-max_y[p]=CIEy;
-}
+double r_tint_sum= 0;
+double g_tint_sum= 0;
+double b_tint_sum= 0;
 
 
 
+double r_avg_sum= 0;
+double g_avg_sum= 0;
+double b_avg_sum= 0;
 
-double best_x=CIEx;
-double best_y=CIEy;
+double counter=0;
 
-if (dbg!=1){
-
-
-
-//POLL FRAME/////////////////////////////////////////////////////////
-      for (y=0; y<height; y++) {
-      for (x=0; x<row_size; x++) {
-
-                 double currBlue=(double)srcp[x];
-                double currGreen=(double)srcp[x+1];
-                double currRed=(double)srcp[x+2];
-
-bOG=currBlue/255.0;     // B
-       gOG=currGreen/255.0;   //G
-         rOG=currRed/255.0;  // R
-
-         mn=MIN(rOG,MIN(gOG,bOG));
- mx=MAX(rOG,MAX(gOG,bOG));
-
-sat=(mx==0)?0:(mx-mn)/mx;
-
-
-HWblack=1-mx;
-//double HwhiteB=(1-sat)*mx;
-grey_metric=1-(sat*HWblack);
-
-double rgbxyY[]={rOG,gOG,bOG};
-double xyY[3];
-rgb2xyY(rgbxyY,xyY);
-
-double dist_r=sqrt(pow(0.64-xyY[0],2)+pow(0.33-xyY[1],2));
-double dist_g=sqrt(pow(0.3-xyY[0],2)+pow(0.6-xyY[1],2));
-double dist_b=sqrt(pow(0.15-xyY[0],2)+pow(0.06-xyY[1],2));
-
-
-for(p=0; p<itr;p++){
-
- if(grey_metric>=curr_thr[p]&&(grey_metric<=strt) && (grey_metric<1)){
-
-if(x==0 && y==0){
-
-max_y[p]=xyY[1];
-
-min_x[p]=xyY[0];
-
-min_y[p]=xyY[1];
-
-max_x[p]=xyY[0];
-
-}else{
-
-    if (xyY[1]>max_y[p]){
-        max_y[p]=xyY[1];
-    }
-
-    if (xyY[0]<min_x[p]){
-        min_x[p]=xyY[0];
-    }
-
-    if (xyY[1]<min_y[p]){
-        min_y[p]=xyY[1];
-    }
-
-    if(xyY[0]>max_x[p]){
-        max_x[p]=xyY[0];
-    }
-
- }
-
-if(count_ssd[p]<1){ //If first eligible pixel, add current dist to sum
-last_sum_r[p]=dist_r;
-last_sum_g[p]=dist_g;
-last_sum_b[p]=dist_b;
-
-}else{
-last_ssd_r[p]+=(dist_r-((last_sum_r[p]+dist_r)/(count_ssd[p]+1)))*(dist_r-(last_sum_r[p]/count_ssd[p]));
-last_sum_r[p]+=dist_r;
-
-last_ssd_g[p]+=(dist_g-((last_sum_g[p]+dist_g)/(count_ssd[p]+1)))*(dist_g-(last_sum_g[p]/count_ssd[p]));
-last_sum_g[p]+=dist_g;
-
-last_ssd_b[p]+=(dist_b-((last_sum_b[p]+dist_b)/(count_ssd[p]+1)))*(dist_b-(last_sum_b[p]/count_ssd[p]));
-last_sum_b[p]+=dist_b;
-
-
-}
-sum_x[p]+=xyY[0];
-sum_y[p]+=xyY[1];
-        count_ssd[p]++;
-
-   }
-
-
-
-      }
-
-
-
-
-   x=x+3;
-      }
-
-      }
-
-/////////////POLL FRAME END///////////////////////
-
-for(p=0; p<itr;p++){ //Bessel correct standard deviations
-    last_ssd_r[p]*=(count_ssd[p])/(count_ssd[p]-1);
-    last_ssd_g[p]*=(count_ssd[p])/(count_ssd[p]-1);
-    last_ssd_b[p]*=(count_ssd[p])/(count_ssd[p]-1);
-    }
-
-bestSSD=last_ssd_r[itr-1]+last_ssd_g[itr-1]+last_ssd_b[itr-1];
-bestEl=-1;
-for(p=0; p<itr;p++){ //Search for sample withe lowest standard deviation and at least 2 points
-  cumulSSD= last_ssd_r[p]+last_ssd_g[p]+last_ssd_b[p];
-           if(cumulSSD<bestSSD && (count_ssd[p]>=2)){
-           bestSSD=cumulSSD;
-           bestEl=p;
-		   }
-    }
-
-
-
-best_x=(bestEl==-1)?CIEx:0.5*(max_x[bestEl]+min_x[bestEl]);//sum_x[bestEl]/count_ssd[bestEl];
-best_y=(bestEl==-1)?CIEy:0.5*(max_y[bestEl]+min_y[bestEl]);//sum_x[bestEl]/count_ssd[bestEl];
-
-//best_x=CIEx;
-//best_y=CIEy;
-
-if (best_x !=CIEx || best_y !=CIEy) {
-
-double XYZ_orig[3];
-double XYZ_conv2grey[3];
-double XYZ_Forgrey_xy[3];
-
-
-double xyForGrey[]={best_x,best_y};
-double XYZ_grey[]={0.95047,1,1.08883};
-xy2XYZ(xyForGrey,XYZ_orig);
-WPconv2Grey(XYZ_orig,XYZ_grey,XYZ_conv2grey);
-XYZ2xyY_Grey(XYZ_conv2grey,XYZ_Forgrey_xy);
-
-double Customxy[2]={XYZ_Forgrey_xy[0],XYZ_Forgrey_xy[1]};
-double CustomXYZ[3];
-double D65XYZ[3]={0.95047,1,1.08883};
-xy2XYZ(Customxy,CustomXYZ);
 
 ///////////////ACTUALLY DRAW PIXELS///////////////////////////////////////
+
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
 
+
+double x_shift=(double)x/(double)row_size;
                  double currBlue=(double)srcp[x];
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
@@ -245,27 +80,232 @@ bOG=currBlue/255.0;     // B
 
 ///////////TO CHANGE WHITE POINT////////////////////////
 
+double curr_rgb_dst[3]={rOG,gOG,bOG};
 
-double OGrgb[3]={rOG,gOG,bOG};
-double rgbxyY[3];
-rgb2xyY(OGrgb,rgbxyY);
-double rgbXYZ[3];
-xyY2XYZ(rgbxyY,rgbXYZ);
-double WPConvXYZ[3];
-WPconv(rgbXYZ,D65XYZ,CustomXYZ,WPConvXYZ);
-double WPConvXYZ_xyY[3];
-XYZ2xyY(WPConvXYZ,WPConvXYZ_xyY);
+double curr_rgbLin_dst[3];
+sRGB2Linear(curr_rgb_dst,curr_rgbLin_dst);
+double rgb_hsi_dst[3];
+RGB2HSI(curr_rgbLin_dst,rgb_hsi_dst);
+double rgb_hsv_dst[3];
+rgb2hsv(curr_rgbLin_dst,rgb_hsv_dst);
+double rgb_hsv_dst_hwb[3];
+hsv2hwb(rgb_hsv_dst,rgb_hsv_dst_hwb);
+double rgb_hsv_dst_hsl[3];
+hsv2hsl(rgb_hsv_dst,rgb_hsv_dst_hsl);
+double curr_rgbLin_dst_xyY[3];
+rgb2xyY(curr_rgbLin_dst,curr_rgbLin_dst_xyY);
+double curr_rgbLin_dst_XYZ[3];
+xyY2XYZ(curr_rgbLin_dst_xyY,curr_rgbLin_dst_XYZ);
+double curr_rgbLin_dst_Lab[3];
+xyY2XYZ(curr_rgbLin_dst_xyY,curr_rgbLin_dst_Lab);
+double curr_rgbLin_dst_Lch[3];
+xyY2XYZ(curr_rgbLin_dst_xyY,curr_rgbLin_dst_Lch);
 
-double WPchgRGB[3]; //FINAL OUTPUT
-xyY2rgb(WPConvXYZ_xyY,WPchgRGB);
 
+double satSc=(1-rgb_hsv_dst[1])+1;
+double hSc=(1-curr_rgbLin_dst_Lch[2])+1;
+double sat_lSc=(1-rgb_hsv_dst_hsl[1])+1;
+
+double cSc=(1-curr_rgbLin_dst_Lch[1])+1;
+
+double wSc=(rgb_hsv_dst_hwb[1])+1;
+double bSc=(rgb_hsv_dst_hwb[2])+1;
+
+double sat_hsiSc=(1-rgb_hsi_dst[1])+1;
+
+double YSc=(curr_rgbLin_dst_xyY[2])+1;
+
+float ChromaSc=(rgb_hsv_dst[1]*rgb_hsv_dst[2])+1;
+
+double grey_metric_dst=grey_metric=(satSc*sat_hsiSc*wSc*bSc*ChromaSc-1)/(2*2*2*2*2-1);
+ grey_metric_dst*=YSc*0.5;
+
+
+//float lerper=grey_metric;
+
+rgb_hsv_dst[1]=MAX(MIN(rgb_hsv_dst[1]-lerp(0,dst,grey_metric_dst),1),0);
+
+double curr_rgb_desat[3];
+hsv2rgb(rgb_hsv_dst,curr_rgb_desat);
+
+//float4 c1Lin=c1;
+
+double curr_rgb_desat_gc[3];
+Linear2sRGB(curr_rgb_desat,curr_rgb_desat_gc);
+
+
+double curr_tint_rgb[3];
+curr_tint_rgb[0]=1-fabs(curr_rgb_desat[0]-curr_rgbLin_dst[0]);
+curr_tint_rgb[1]=1-fabs(curr_rgb_desat[1]-curr_rgbLin_dst[1]);
+curr_tint_rgb[2]=1-fabs(curr_rgb_desat[2]-curr_rgbLin_dst[2]);
+
+
+//double mxTint=MAX(curr_tint_rgb[0],MAX(curr_tint_rgb[1],curr_tint_rgb[2]));
+
+
+
+if(grey_metric_dst<=strt ){
+ r_desat_sum+=curr_rgb_desat[0];
+ g_desat_sum+=curr_rgb_desat[1];
+ b_desat_sum+=curr_rgb_desat[2];
+
+  r_tint_sum+=curr_tint_rgb[0];
+ g_tint_sum+=curr_tint_rgb[1];
+ b_tint_sum+=curr_tint_rgb[2];
+
+  r_avg_sum+=curr_rgbLin_dst[0];
+ g_avg_sum+=curr_rgbLin_dst[1];
+ b_avg_sum+=curr_rgbLin_dst[2];
+counter+=1;
+}
+
+x+=3;
+
+}
+
+ // srcp += src_pitch;
 ////////////////////////////////////////////////////
 
+      }
+
+       //END OF IMAGE DRAWING LOOP
+
+/////////////////DRAW PIXELS END/////////////////////////////////
+
+
+
+
+double avg_rgb[3]={r_avg_sum/counter,g_avg_sum/counter,b_avg_sum,counter};
+double avg_rgb_gc[3];
+Linear2sRGB(avg_rgb,avg_rgb_gc);
+
+double XYZ_greyed_avg_rgb[3];
+double avg_rgb_xyY[3];
+rgb2xyY(avg_rgb,avg_rgb_xyY);
+double avg_rgb_xy[2]={avg_rgb_xyY[0],avg_rgb_xyY[1]};
+double avg_rgb_XYZ[3];
+xy2XYZ(avg_rgb_xy,avg_rgb_XYZ);
+
+
+double desat_avg_rgb[3]={r_desat_sum/counter,g_desat_sum/counter,b_desat_sum/counter};
+double desat_avg_rgb_bk[3];
+Linear2sRGB(desat_avg_rgb,desat_avg_rgb_bk);
+
+double desat_avg_rgb_xyY[3];
+rgb2xyY(desat_avg_rgb_bk,desat_avg_rgb_xyY);
+double desat_avg_rgb_xy[2]={desat_avg_rgb_xyY[0],desat_avg_rgb_xyY[1]};
+double desat_avg_rgb_XYZ[3];
+xy2XYZ(desat_avg_rgb_xy,desat_avg_rgb_XYZ);
+
+double tint_avg_rgb[3]={r_tint_sum/counter,g_tint_sum/counter,b_tint_sum/counter};
+
+double tint_avg_rgb_bk[3];
+Linear2sRGB(tint_avg_rgb,tint_avg_rgb_bk);
+
+double tint_avg_rgb_xyY[3];
+rgb2xyY(tint_avg_rgb,tint_avg_rgb_xyY);
+double tint_avg_rgb_xy[2]={tint_avg_rgb_xyY[0],tint_avg_rgb_xyY[1]};
+double tint_avg_rgb_XYZ[3];
+xy2XYZ(tint_avg_rgb_xy,tint_avg_rgb_XYZ);
+
+double XYZ_convert[3];
+
+WPconv2Grey (tint_avg_rgb_XYZ,D65XYZ,XYZ_convert);
+
+
+
+      for (y=0; y<height; y++) {
+      for (x=0; x<row_size; x++) {
+
+
+
+double x_shift=(double)x/(double)row_size;
+                 double currBlue=(double)srcp[x];
+                double currGreen=(double)srcp[x+1];
+                double currRed=(double)srcp[x+2];
+
+
+bOG=currBlue/255.0;     // B
+       gOG=currGreen/255.0;   //G
+         rOG=currRed/255.0;  // R
+
+
+double x_shft=(double)x/(double)row_size;
+///////////TO CHANGE WHITE POINT////////////////////////
+
+double px_rgb[3]={rOG,gOG,bOG};
+
+if(dbg==1){
+
+        double curr_rgbLin_fnl[3];
+sRGB2Linear(px_rgb,curr_rgbLin_fnl);
+double rgb_hsi_fnl[3];
+RGB2HSI(curr_rgbLin_fnl,rgb_hsi_fnl);
+double rgb_hsv_fnl[3];
+rgb2hsv(curr_rgbLin_fnl,rgb_hsv_fnl);
+double rgb_hsv_fnl_hwb[3];
+hsv2hwb(rgb_hsv_fnl,rgb_hsv_fnl_hwb);
+double rgb_hsv_fnl_hsl[3];
+hsv2hsl(rgb_hsv_fnl,rgb_hsv_fnl_hsl);
+double curr_rgbLin_fnl_xyY[3];
+rgb2xyY(curr_rgbLin_fnl,curr_rgbLin_fnl_xyY);
+double curr_rgbLin_fnl_XYZ[3];
+xyY2XYZ(curr_rgbLin_fnl_xyY,curr_rgbLin_fnl_XYZ);
+double curr_rgbLin_fnl_Lab[3];
+xyY2XYZ(curr_rgbLin_fnl_xyY,curr_rgbLin_fnl_Lab);
+double curr_rgbLin_fnl_Lch[3];
+xyY2XYZ(curr_rgbLin_fnl_xyY,curr_rgbLin_fnl_Lch);
+
+
+double satSc_fnl=(1-rgb_hsv_fnl[1])+1;
+double hSc_fnl=(1-curr_rgbLin_fnl_Lch[2])+1;
+double sat_lSc_fnl=(1-rgb_hsv_fnl_hsl[1])+1;
+
+double cSc_fnl=(1-curr_rgbLin_fnl_Lch[1])+1;
+
+double wSc_fnl=(rgb_hsv_fnl_hwb[1])+1;
+double bSc_fnl=(rgb_hsv_fnl_hwb[2])+1;
+
+double sat_hsiSc_fnl=(1-rgb_hsi_fnl[1])+1;
+
+double YSc_fnl=(curr_rgbLin_fnl_xyY[2])+1;
+
+double grey_metric_fnl=(satSc_fnl*sat_hsiSc_fnl*wSc_fnl*bSc_fnl-1)/(2*2*2*2-1);
+ grey_metric_fnl*=YSc_fnl*0.5;
+
+    if (grey_metric_fnl>strt){
+
+        srcp[x] = 127;
+                srcp[x+1] =255;
+        srcp[x+2] = 0;
+    }
+}else{
+
+    double rgbxyY[3];
+double rgbXYZ[3];
+double WPConvXYZ[3];
+double WPConvXYZ_xyY[3];
+double WPchgRGB[3];
+rgb2xyY(px_rgb,rgbxyY);
+xyY2XYZ(rgbxyY,rgbXYZ);
+
+WPconv(rgbXYZ,D65XYZ,XYZ_convert,WPConvXYZ);
+
+XYZ2xyY(WPConvXYZ,WPConvXYZ_xyY);
+
+xyY2rgb(WPConvXYZ_xyY,WPchgRGB);
+
+if (x_shft>0.5){
                 srcp[x] = MAX(MIN(round(WPchgRGB[2]*255),255),0);
              srcp[x+1] =MAX(MIN(round(WPchgRGB[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(WPchgRGB[0]*255),255),0);
 
 
+}
+
+
+}
+////////////////////////////////////////////////////
 
 x+=3;
       }
@@ -273,63 +313,6 @@ x+=3;
       } //END OF IMAGE DRAWING LOOP
 
 /////////////////DRAW PIXELS END/////////////////////////////////
-}
-
-/*else{
-          for (y=0; y<height; y++) {
-      for (x=0; x<row_size; x++) {
-
-
-                srcp[x] = srcp[x];
-             srcp[x+1] = srcp[x+1];
-        srcp[x+2] = srcp[x+2];
-
-
-
-x+=3;
-      }
-            srcp += src_pitch;
-      }
-
-}
-*/
-
-}else{
-
-
-    for (y=0; y<height; y++) {
-      for (x=0; x<row_size; x++) {
-
-                 double currBlue=(double)srcp[x];
-                double currGreen=(double)srcp[x+1];
-                double currRed=(double)srcp[x+2];
-
-bOG=currBlue/255.0;     // B
-       gOG=currGreen/255.0;   //G
-         rOG=currRed/255.0;  // R
-
-         mn=MIN(rOG,MIN(gOG,bOG));
- mx=MAX(rOG,MAX(gOG,bOG));
-
-sat=(mx==0)?0:(mx-mn)/mx;
-
-HWblack=1-mx;
-//double HwhiteB=(1-sat)*mx;
-grey_metric=1-(sat*HWblack);
-
-if(grey_metric>strt){
-                srcp[x] = MAX(MIN(round(0*255),255),0);
-             srcp[x+1] =MAX(MIN(round(0*255),255),0);
-        srcp[x+2] = MAX(MIN(round(0*255),255),0);
-}
-
-             x=x+3;
-      }
-             srcp += src_pitch;
-}
-
-
-}
 
 
 
@@ -358,11 +341,10 @@ if (!params)
 
 
 
+        params->desat = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
+        params->start = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):1;
 
-       params->debug = avs_defined(avs_array_elt(args, 3))?avs_as_bool(avs_array_elt(args, 3)):false;
-        params->start = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):1;
-         params->iterations = avs_defined(avs_array_elt(args, 1))?avs_as_int(avs_array_elt(args, 1)):50;
-
+       params->debug = avs_defined(avs_array_elt(args, 2))?avs_as_bool(avs_array_elt(args, 2)):false;
 
 
    fi->user_data = (void*) params;
@@ -378,6 +360,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[iterations]i[start]f[debug]b", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[desat]f[debug]b[start]f", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
