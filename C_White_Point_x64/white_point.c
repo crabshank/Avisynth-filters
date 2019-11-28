@@ -18,11 +18,9 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 
    AVS_VideoFrame* src = avs_get_frame(fi->child, n);
 
-
-
    int row_size, height, src_pitch,x, y, p,dbg;
    BYTE* srcp;
-   double CIEx,CIEy,rOG,bOG,gOG,strt,a_OG,b_OG,tol,cust_x,cust_y;
+   double CIEx,CIEy,rOG,bOG,gOG,strt,cust_x,cust_y;
 
 dbg=params->debug;
 strt=params->start;
@@ -87,12 +85,15 @@ double rgb_hsv_dst_hsl[3];
 hsv2hsl(rgb_hsv_dst,rgb_hsv_dst_hsl);
 double curr_rgbLin_dst_xyY[3];
 rgb2xyY(curr_rgb_dst,curr_rgbLin_dst_xyY);
+/*
 double curr_rgbLin_dst_XYZ[3];
 xyY2XYZ(curr_rgbLin_dst_xyY,curr_rgbLin_dst_XYZ);
+
 double curr_rgbLin_dst_Lab[3];
 xyY2XYZ(curr_rgbLin_dst_xyY,curr_rgbLin_dst_Lab);
 double curr_rgbLin_dst_Lch[3];
 xyY2XYZ(curr_rgbLin_dst_xyY,curr_rgbLin_dst_Lch);
+*/
 
 double satSc=(1-rgb_hsv_dst[1])+1;
 //double hSc=(1-curr_rgbLin_dst_Lch[2])+1;
@@ -217,16 +218,17 @@ double rgb_hsv_fnl_hsl[3];
 hsv2hsl(rgb_hsv_fnl,rgb_hsv_fnl_hsl);
 double curr_rgbLin_fnl_xyY[3];
 rgb2xyY(px_rgb,curr_rgbLin_fnl_xyY);
+/*
 double curr_rgbLin_fnl_XYZ[3];
 xyY2XYZ(curr_rgbLin_fnl_xyY,curr_rgbLin_fnl_XYZ);
 double curr_rgbLin_fnl_Lab[3];
 xyY2XYZ(curr_rgbLin_fnl_xyY,curr_rgbLin_fnl_Lab);
 double curr_rgbLin_fnl_Lch[3];
 xyY2XYZ(curr_rgbLin_fnl_xyY,curr_rgbLin_fnl_Lch);
-
+*/
 
 double satSc_fnl=(1-rgb_hsv_fnl[1])+1;
-double hSc_fnl=(1-curr_rgbLin_fnl_Lch[2])+1;
+//double hSc_fnl=(1-curr_rgbLin_fnl_Lch[2])+1;
 //double sat_lSc_fnl=(1-rgb_hsv_fnl_hsl[1])+1;
 
 //double cSc_fnl=(1-curr_rgbLin_fnl_Lch[1])+1;
