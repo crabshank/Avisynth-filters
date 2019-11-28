@@ -3,16 +3,6 @@
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ( (a) + (t) * ((b) - (a)))
 
-void f_gammaLow(double col, double gamma,double gamma_hi, double target, double dist){
-
-gamma_hi=(log10(pow(col,gamma+1)-pow(col,gamma))-log10(col))/log10(col);
-double outcol=(pow(col,gamma)-pow(col,1+gamma)+pow(col,1+gamma_hi));
-
-dist=abs(outcol-target);
-
-}
-
-
 void rgb2hsv (double rgb[3],double hsv[3])
 {
 
