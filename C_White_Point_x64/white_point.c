@@ -74,6 +74,8 @@ bOG=currBlue*rcp_twoFiveFive;     // B
          rOG=currRed*rcp_twoFiveFive;     // R
 
 double curr_rgb_dst[3]={rOG,gOG,bOG};
+double curr_rgb_dst_lin[3];
+sRGB2Linear(curr_rgb_dst,curr_rgb_dst_lin);
 
 double rgb_hsi_dst[3];
 RGB2HSI(curr_rgb_dst,rgb_hsi_dst);
@@ -124,17 +126,18 @@ rgb_hsv_dst[1]=0;
 
 double curr_rgb_desat[3];
 hsv2rgb(rgb_hsv_dst,curr_rgb_desat);
-
+double curr_rgb_desat_lin[3];
+sRGB2Linear(curr_rgb_desat,curr_rgb_desat_lin);
 
 if(grey_metric_dst<=strt){
 
-r_avg_sum+=rOG;
-g_avg_sum+=gOG;
-b_avg_sum+=bOG;
+r_avg_sum+=curr_rgb_dst_lin[0];
+g_avg_sum+=curr_rgb_dst_lin[1];
+b_avg_sum+=curr_rgb_dst_lin[2];
 grey_metric_avg_sum+=grey_metric_dst;
-r_desat_sum+=curr_rgb_desat[0];
-g_desat_sum+=curr_rgb_desat[1];
-b_desat_sum+=curr_rgb_desat[2];
+r_desat_sum+=curr_rgb_desat_lin[0];
+g_desat_sum+=curr_rgb_desat_lin[1];
+b_desat_sum+=curr_rgb_desat_lin[2];
 
 counter=counter+1;
 }
@@ -166,6 +169,10 @@ double desat_avg_rgb[3];
  desat_avg_rgb[1]=1-(1-fabs(avg_rgb[1]-desat_avg_rgb[1]))*(avg_gm);
  desat_avg_rgb[2]=1-(1-fabs(avg_rgb[2]-desat_avg_rgb[2]))*(avg_gm);
 
+double desat_avg_rgb_gc[3];
+Linear2sRGB(desat_avg_rgb,desat_avg_rgb_gc);
+
+
 /*
 double shift = 1 - MIN(desat_avg_rgb[0], MIN(desat_avg_rgb[1], desat_avg_rgb[2])) - MAX(desat_avg_rgb[0], MAX(desat_avg_rgb[1], desat_avg_rgb[2]));
 //Source: https://github.com/vn971/linux-color-inversion/blob/master/shift.glsl
@@ -176,7 +183,7 @@ desat_avg_rgb[2]+=shift;
 */
 
 double desat_avg_rgb_xyY[3];
-rgb2xyY(desat_avg_rgb,desat_avg_rgb_xyY);
+rgb2xyY(desat_avg_rgb_gc,desat_avg_rgb_xyY);
 double desat_avg_rgb_xy[2]={desat_avg_rgb_xyY[0],desat_avg_rgb_xyY[1]};
 double desat_avg_rgb_XYZ[3];
 xy2XYZ(desat_avg_rgb_xy,desat_avg_rgb_XYZ);
