@@ -158,6 +158,8 @@ double avg_rgb[3];
  avg_rgb[2]=b_avg_sum*rcp_counter;
 
 double desat_avg_rgb[3];
+double desat_avg_rgb1[3];
+
  desat_avg_rgb[0]=r_desat_sum*rcp_counter;
  desat_avg_rgb[1]=r_desat_sum*rcp_counter;
  desat_avg_rgb[2]=r_desat_sum*rcp_counter;
@@ -165,22 +167,43 @@ double desat_avg_rgb[3];
  double avg_gm=(rcp_counter==0)?1:grey_metric_avg_sum*rcp_counter;
 
  avg_gm=MAX(0,MIN(avg_gm,1));
- desat_avg_rgb[0]=1-(1-fabs(avg_rgb[0]-desat_avg_rgb[0]))*(avg_gm);
- desat_avg_rgb[1]=1-(1-fabs(avg_rgb[1]-desat_avg_rgb[1]))*(avg_gm);
- desat_avg_rgb[2]=1-(1-fabs(avg_rgb[2]-desat_avg_rgb[2]))*(avg_gm);
+
+ desat_avg_rgb1[0]=1-(1-fabs(avg_rgb[0]-desat_avg_rgb[0]))*(avg_gm);
+ desat_avg_rgb1[1]=1-(1-fabs(avg_rgb[1]-desat_avg_rgb[1]))*(avg_gm);
+ desat_avg_rgb1[2]=1-(1-fabs(avg_rgb[2]-desat_avg_rgb[2]))*(avg_gm);
+
+
+double desat_avg_rgb2[3];
+ desat_avg_rgb2[0]=(fabs(avg_rgb[0]-desat_avg_rgb[0]))*(1-avg_gm);
+ desat_avg_rgb2[1]=(fabs(avg_rgb[1]-desat_avg_rgb[1]))*(1-avg_gm);
+ desat_avg_rgb2[2]=(fabs(avg_rgb[2]-desat_avg_rgb[2]))*(1-avg_gm);
+
+
+double shift = 1 - MIN(desat_avg_rgb2[0], MIN(desat_avg_rgb2[1], desat_avg_rgb2[2])) - MAX(desat_avg_rgb2[0], MAX(desat_avg_rgb2[1], desat_avg_rgb2[2]));
+//Source: https://github.com/vn971/linux-color-inversion/blob/master/shift.glsl
+
+desat_avg_rgb2[0]+=shift;
+desat_avg_rgb2[1]+=shift;
+desat_avg_rgb2[2]+=shift;
+
+
+double dist_dst1_avg=sqrt(pow(desat_avg_rgb1[0]- avg_rgb[0],2)+pow(desat_avg_rgb1[1]- avg_rgb[1],2)+pow(desat_avg_rgb1[2]- avg_rgb[2],2));
+double dist_dst2_avg=sqrt(pow(desat_avg_rgb2[0]- avg_rgb[0],2)+pow(desat_avg_rgb2[1]- avg_rgb[1],2)+pow(desat_avg_rgb2[2]- avg_rgb[2],2));
+
+double mx_dst_avg_r=MAX(fabs(0-avg_rgb[0]),fabs(1-avg_rgb[0]));
+double mx_dst_avg_g=MAX(fabs(0-avg_rgb[1]),fabs(1-avg_rgb[1]));
+double mx_dst_avg_b=MAX(fabs(0-avg_rgb[2]),fabs(1-avg_rgb[2]));
+double mx_dst_avg_rgb=sqrt(mx_dst_avg_r*mx_dst_avg_r+mx_dst_avg_g*mx_dst_avg_g+mx_dst_avg_b*mx_dst_avg_b);
+
+double lrp=dist_dst2_avg/mx_dst_avg_rgb;
+
+desat_avg_rgb[0]=lerp(desat_avg_rgb1[0],desat_avg_rgb2[0],lrp);
+desat_avg_rgb[1]=lerp(desat_avg_rgb1[1],desat_avg_rgb2[1],lrp);
+desat_avg_rgb[2]=lerp(desat_avg_rgb1[2],desat_avg_rgb2[2],lrp);
+
 
 double desat_avg_rgb_gc[3];
 Linear2sRGB(desat_avg_rgb,desat_avg_rgb_gc);
-
-
-/*
-double shift = 1 - MIN(desat_avg_rgb[0], MIN(desat_avg_rgb[1], desat_avg_rgb[2])) - MAX(desat_avg_rgb[0], MAX(desat_avg_rgb[1], desat_avg_rgb[2]));
-//Source: https://github.com/vn971/linux-color-inversion/blob/master/shift.glsl
-
-desat_avg_rgb[0]+=shift;
-desat_avg_rgb[1]+=shift;
-desat_avg_rgb[2]+=shift;
-*/
 
 double desat_avg_rgb_xyY[3];
 rgb2xyY(desat_avg_rgb_gc,desat_avg_rgb_xyY);
