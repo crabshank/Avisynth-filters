@@ -129,7 +129,7 @@ hsv2rgb(rgb_hsv_dst,curr_rgb_desat);
 double curr_rgb_desat_lin[3];
 sRGB2Linear(curr_rgb_desat,curr_rgb_desat_lin);
 
-if(grey_metric_dst<=strt){
+if(grey_metric_dst<=strt && (grey_metric_dst<1)){
 
 r_avg_sum+=curr_rgb_dst_lin[0];
 g_avg_sum+=curr_rgb_dst_lin[1];
@@ -169,17 +169,17 @@ double desat_avg_rgb[3];
 
 
 double desat_avg_rgb2[3];
- desat_avg_rgb2[0]=fabs(avg_rgb[0]-desat_avg_rgb[0]);
- desat_avg_rgb2[1]=fabs(avg_rgb[1]-desat_avg_rgb[1]);
- desat_avg_rgb2[2]=fabs(avg_rgb[2]-desat_avg_rgb[2]);
-
+ desat_avg_rgb2[0]=0.5*((avg_rgb[0]-desat_avg_rgb[0])-1)*(1-avg_gm);
+ desat_avg_rgb2[1]=0.5*((avg_rgb[1]-desat_avg_rgb[1])-1)*(1-avg_gm);
+ desat_avg_rgb2[2]=0.5*( (avg_rgb[2]-desat_avg_rgb[2])-1)*(1- avg_gm);
+/*
 double shift = 1 - MIN(desat_avg_rgb2[0], MIN(desat_avg_rgb2[1], desat_avg_rgb2[2])) - MAX(desat_avg_rgb2[0], MAX(desat_avg_rgb2[1], desat_avg_rgb2[2]));
 //Source: https://github.com/vn971/linux-color-inversion/blob/master/shift.glsl
 
-desat_avg_rgb2[0]=(desat_avg_rgb2[0]+shift)*(avg_gm);
-desat_avg_rgb2[1]=(desat_avg_rgb2[1]+shift)*(avg_gm);
-desat_avg_rgb2[2]=(desat_avg_rgb2[2]+shift)*(avg_gm);
-
+desat_avg_rgb2[0]=1-(desat_avg_rgb2[0]+shift)*avg_gm;
+desat_avg_rgb2[1]=1-(desat_avg_rgb2[1]+shift)*avg_gm;
+desat_avg_rgb2[2]=1-(desat_avg_rgb2[2]+shift)*avg_gm;
+*/
 double desat_avg_rgb_xyY[3];
 LinRGB2xyY(desat_avg_rgb2,desat_avg_rgb_xyY);
 double desat_avg_rgb_xy[2]={desat_avg_rgb_xyY[0],desat_avg_rgb_xyY[1]};
@@ -203,7 +203,7 @@ bOG=currBlue/255.0;     // B
          rOG=currRed/255.0;  // R
 
 
-//double x_shft=(double)x/(double)row_size;
+double x_shft=(double)x/(double)row_size;
 ///////////TO CHANGE WHITE POINT////////////////////////
 
 double px_rgb[3]={rOG,gOG,bOG};
@@ -296,13 +296,12 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[2]=0;
 }
 
-//if (x_shft>0.5){
+//if (x_shft<0.9){
                 srcp[x] = MAX(MIN(round(WPchgRGB[2]*255),255),0);
              srcp[x+1] =MAX(MIN(round(WPchgRGB[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(WPchgRGB[0]*255),255),0);
 
 //}
-
 
 }
 ////////////////////////////////////////////////////
