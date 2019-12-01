@@ -296,18 +296,12 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[2]=0;
 }
 
-if (x_shft<0.9){
+//if (x_shft<0.9){
                 srcp[x] = MAX(MIN(round(WPchgRGB[2]*255),255),0);
              srcp[x+1] =MAX(MIN(round(WPchgRGB[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(WPchgRGB[0]*255),255),0);
 
-}else{
-
-                srcp[x] = MAX(MIN(round(desat_avg_rgb2[2]*255),255),0);
-             srcp[x+1] =MAX(MIN(round(desat_avg_rgb2[1]*255),255),0);
-        srcp[x+2] = MAX(MIN(round(desat_avg_rgb2[0]*255),255),0);
-}
-
+//}
 
 }
 ////////////////////////////////////////////////////
