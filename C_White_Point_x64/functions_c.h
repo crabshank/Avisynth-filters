@@ -315,6 +315,33 @@ XYZ[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
 
 //Source: https://stackoverflow.com/a/45263428; http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
+void LinRGB2xyY(double rgbNew[3],double outp[3]){
+
+	double XYZ[3]={0,0,0};
+
+double v1[3]={0.4124564,0.3575761, 0.1804375};
+double v2[3]={0.2126729,0.7151522,0.072175};
+double v3[3]={0.0193339,0.119192,0.9503041};
+
+XYZ[0]=v1[0]*rgbNew[0]+v1[1]*rgbNew[1]+v1[2]*rgbNew[2];
+XYZ[1]=v2[0]*rgbNew[0]+v2[1]*rgbNew[1]+v2[2]*rgbNew[2];
+XYZ[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
+
+
+
+	double XYZtot=XYZ[0]+XYZ[1]+XYZ[2];
+
+	double x=XYZ[0]/XYZtot;
+	double y=XYZ[1]/XYZtot;
+
+	outp[0]=x;
+	outp[1]=y;
+	outp[2]=XYZ[1];
+
+}
+
+//Source: https://stackoverflow.com/a/45263428; http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+
 void xyY2XYZ(double xyY[3],double outp[3]){
 	double X=(xyY[2]/xyY[1])*xyY[0];
 	double Z=(xyY[2]/xyY[1])*(1-xyY[0]-xyY[1]);

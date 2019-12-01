@@ -201,12 +201,13 @@ desat_avg_rgb[0]=lerp(desat_avg_rgb1[0],desat_avg_rgb2[0],lrp);
 desat_avg_rgb[1]=lerp(desat_avg_rgb1[1],desat_avg_rgb2[1],lrp);
 desat_avg_rgb[2]=lerp(desat_avg_rgb1[2],desat_avg_rgb2[2],lrp);
 
-
+/*
 double desat_avg_rgb_gc[3];
 Linear2sRGB(desat_avg_rgb,desat_avg_rgb_gc);
+*/
 
 double desat_avg_rgb_xyY[3];
-rgb2xyY(desat_avg_rgb_gc,desat_avg_rgb_xyY);
+LinRGB2xyY(desat_avg_rgb,desat_avg_rgb_xyY);
 double desat_avg_rgb_xy[2]={desat_avg_rgb_xyY[0],desat_avg_rgb_xyY[1]};
 double desat_avg_rgb_XYZ[3];
 xy2XYZ(desat_avg_rgb_xy,desat_avg_rgb_XYZ);
