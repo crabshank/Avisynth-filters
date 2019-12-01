@@ -187,7 +187,7 @@ desat_avg_rgb2[1]+=shift;
 desat_avg_rgb2[2]+=shift;
 
 
-double dist_dst1_avg=sqrt(pow(desat_avg_rgb1[0]- avg_rgb[0],2)+pow(desat_avg_rgb1[1]- avg_rgb[1],2)+pow(desat_avg_rgb1[2]- avg_rgb[2],2));
+//double dist_dst1_avg=sqrt(pow(desat_avg_rgb1[0]- avg_rgb[0],2)+pow(desat_avg_rgb1[1]- avg_rgb[1],2)+pow(desat_avg_rgb1[2]- avg_rgb[2],2));
 double dist_dst2_avg=sqrt(pow(desat_avg_rgb2[0]- avg_rgb[0],2)+pow(desat_avg_rgb2[1]- avg_rgb[1],2)+pow(desat_avg_rgb2[2]- avg_rgb[2],2));
 
 double mx_dst_avg_r=MAX(fabs(0-avg_rgb[0]),fabs(1-avg_rgb[0]));
