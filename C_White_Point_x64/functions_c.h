@@ -352,6 +352,18 @@ void xyY2XYZ(double xyY[3],double outp[3]){
 }
 
 
+void RGB2rgb(double RGB[3],double rgb[3]){
+	double RGBtot=RGB[0]+RGB[1]+RGB[2];
+
+	double r=RGB[0]/RGBtot;
+	double g=RGB[1]/RGBtot;
+
+    rgb[0]=r;
+	rgb[1]=g;
+	rgb[2]=1-r-g;
+}
+
+
 void XYZ2xyY(double XYZ[3],double outp[3]){
 	double XYZtot=XYZ[0]+XYZ[1]+XYZ[2];
 
