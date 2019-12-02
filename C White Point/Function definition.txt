@@ -1,6 +1,0 @@
-(
-      clip,
-      int "iterations"=50,
-      float "start"=1 (1 to 0),
-      bool "debug"=false
-)
