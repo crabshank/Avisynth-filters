@@ -103,12 +103,16 @@ double satSc=(1-rgb_hsv_dst[1])+1;
 
 //double cSc=(1-curr_rgbLin_dst_Lch[1])+1;
 
-double wSc=(rgb_hsv_dst_hwb[1])+1;
-double bSc=(rgb_hsv_dst_hwb[2])+1;
+//double wSc=(rgb_hsv_dst_hwb[1])+1;
+//double bSc=(rgb_hsv_dst_hwb[2])+1;
+
+double wbSc=(MAX(rgb_hsv_dst_hwb[1],rgb_hsv_dst_hwb[2]))+1;
 
 double sat_hsiSc=(1-rgb_hsi_dst[1])+1;
 
-double YSc=(curr_rgbLin_dst_xyY[2])+1;
+
+double YSc=(curr_rgbLin_dst_xyY[2]<=0.5)?4*curr_rgbLin_dst_xyY[2]*curr_rgbLin_dst_xyY[2]-4*curr_rgbLin_dst_xyY[2]+1:2*curr_rgbLin_dst_xyY[2]-1;
+YSc+=1;
 
 double ChromaSc=(rgb_hsv_dst[1]*rgb_hsv_dst[2])+1;
 
@@ -116,7 +120,7 @@ double Chroma_hsl_Sc=(1-rgb_hsv_dst_hsl[1]*rgb_hsv_dst_hsl[2])+1;
 
 double Chroma_hsi_Sc=(1-rgb_hsi_dst[1]*rgb_hsi_dst[2])+1;
 
-double grey_metric_dst=(satSc*sat_hsiSc*wSc*bSc*ChromaSc*Chroma_hsl_Sc*Chroma_hsi_Sc-1)/(2*2*2*2*2*2*2-1);
+double grey_metric_dst=(satSc*sat_hsiSc*wbSc*ChromaSc*Chroma_hsl_Sc*Chroma_hsi_Sc-1)/(2*2*2*2*2*2-1);
 grey_metric_dst*=YSc*0.5;
 
 
@@ -129,7 +133,7 @@ hsv2rgb(rgb_hsv_dst,curr_rgb_desat);
 double curr_rgb_desat_lin[3];
 sRGB2Linear(curr_rgb_desat,curr_rgb_desat_lin);
 
-if(grey_metric_dst<=strt){
+if(grey_metric_dst<=strt && (grey_metric_dst<1) && (rgb_hsv_dst[2]>0) ){
 
 r_avg_sum+=curr_rgb_dst_lin[0];
 g_avg_sum+=curr_rgb_dst_lin[1];
@@ -171,7 +175,7 @@ double desat_avg_rgb[3];
 double desat_avg_rgb2[3];
  desat_avg_rgb2[0]=0.5*((avg_rgb[0]-desat_avg_rgb[0])-1)*(1-avg_gm);
  desat_avg_rgb2[1]=0.5*((avg_rgb[1]-desat_avg_rgb[1])-1)*(1-avg_gm);
- desat_avg_rgb2[2]=0.5*( (avg_rgb[2]-desat_avg_rgb[2])-1)*(1-avg_gm);
+ desat_avg_rgb2[2]=0.5*( (avg_rgb[2]-desat_avg_rgb[2])-1)*(1- avg_gm);
 /*
 double shift = 1 - MIN(desat_avg_rgb2[0], MIN(desat_avg_rgb2[1], desat_avg_rgb2[2])) - MAX(desat_avg_rgb2[0], MAX(desat_avg_rgb2[1], desat_avg_rgb2[2]));
 //Source: https://github.com/vn971/linux-color-inversion/blob/master/shift.glsl
@@ -238,12 +242,16 @@ double satSc_fnl=(1-rgb_hsv_fnl[1])+1;
 
 //double cSc_fnl=(1-curr_rgbLin_fnl_Lch[1])+1;
 
-double wSc_fnl=(rgb_hsv_fnl_hwb[1])+1;
-double bSc_fnl=(rgb_hsv_fnl_hwb[2])+1;
+//double wSc_fnl=(rgb_hsv_fnl_hwb[1])+1;
+//double bSc_fnl=(rgb_hsv_fnl_hwb[2])+1;
+
+double wbSc_fnl=(MAX(rgb_hsv_fnl_hwb[1],rgb_hsv_fnl_hwb[2]))+1;
 
 double sat_hsiSc_fnl=(1-rgb_hsi_fnl[1])+1;
 
-double YSc_fnl=(curr_rgbLin_fnl_xyY[2])+1;
+double YSc_fnl=(curr_rgbLin_fnl_xyY[2]<=0.5)?4*curr_rgbLin_fnl_xyY[2]*curr_rgbLin_fnl_xyY[2]-4*curr_rgbLin_fnl_xyY[2]+1:2*curr_rgbLin_fnl_xyY[2]-1;
+YSc_fnl+=1;
+
 
 double ChromaSc_fnl=(rgb_hsv_fnl[1]*rgb_hsv_fnl[2])+1;
 
@@ -251,9 +259,10 @@ double Chroma_hsl_Sc_fnl=(1-rgb_hsv_fnl_hsl[1]*rgb_hsv_fnl_hsl[2])+1;
 
 double Chroma_hsi_Sc_fnl=(1-rgb_hsi_fnl[1]*rgb_hsi_fnl[2])+1;
 
-double grey_metric_fnl=(satSc_fnl*sat_hsiSc_fnl*wSc_fnl*bSc_fnl*ChromaSc_fnl*Chroma_hsl_Sc_fnl*Chroma_hsi_Sc_fnl-1)/(2*2*2*2*2*2*2-1);
+double grey_metric_fnl=(satSc_fnl*sat_hsiSc_fnl*wbSc_fnl*ChromaSc_fnl*Chroma_hsl_Sc_fnl*Chroma_hsi_Sc_fnl-1)/(2*2*2*2*2*2-1);
 
  grey_metric_fnl*=YSc_fnl*0.5;
+
 
     if (grey_metric_fnl>strt){
 
