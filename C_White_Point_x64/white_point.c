@@ -117,7 +117,8 @@ double satSc=(1-rgb_hsv_dst[1])+1;
 
 double wSc=(rgb_hsv_dst_hwb[1])+1;
 
-double wbSc=(MAX(rgb_hsv_dst_hwb[1],rgb_hsv_dst_hwb[2]))+1;
+double wbScMx=MAX(rgb_hsv_dst_hwb[1],rgb_hsv_dst_hwb[2]);
+double wbSc=wbScMx+1;
 
 double sat_hsiSc=(1-rgb_hsi_dst[1])+1;
 double YSc=(1-curr_rgbLin_dst_xyY[2])+1;
@@ -140,7 +141,7 @@ double Chroma_TSL_Sc=(1-curr_TintSL_dst[0]*curr_TintSL_dst[1])+1;
 
 double grey_metric_dst=(satSc*sat_hsiSc*wbSc*ChromaSc*Chroma_hsl_Sc*Chroma_hsi_Sc*Sat_TSL_Sc*YSc*Chroma_TSL_Sc-1)/(2*2*2*2*2*2*2*2*2-1);
 grey_metric_dst=MAX(0,MIN(grey_metric_dst,1));
-grey_metric_dst=1-(1-grey_metric_dst)*(rgb_hsv_dst[1]);
+grey_metric_dst=grey_metric_dst*wbScMx;
 /*
 YSc+=1;
 */
@@ -222,6 +223,7 @@ double desat_avg_rgb[3];
  double inv_avg_gm=(rcp_counter==0)?0:(1-avg_gm3)+1;
 double desat_avg_rgb2[3];
 
+
  desat_avg_rgb2[0]=0.5* (0.25*(2+(inv_avg_gm*(avg_rgb[0]-desat_avg_rgb[0])))-1);
  desat_avg_rgb2[1]=0.5*(0.25*(2+(inv_avg_gm*(avg_rgb[1]-desat_avg_rgb[1])))-1);
  desat_avg_rgb2[2]=0.5*(0.25*( 2+(inv_avg_gm*(avg_rgb[2]-desat_avg_rgb[2])))-1);
@@ -301,7 +303,8 @@ double satSc_fnl=(1-rgb_hsv_fnl[1])+1;
 //double wSc_fnl=(rgb_hsv_fnl_hwb[1])+1;
 //double bSc_fnl=(rgb_hsv_fnl_hwb[2])+1;
 
-double wbSc_fnl=(MAX(rgb_hsv_fnl_hwb[1],rgb_hsv_fnl_hwb[2]))+1;
+double wbScMx_fnl=MAX(rgb_hsv_fnl_hwb[1],rgb_hsv_fnl_hwb[2]);
+double wbSc_fnl=wbScMx_fnl+1;
 
 double sat_hsiSc_fnl=(1-rgb_hsi_fnl[1])+1;
 
@@ -322,7 +325,7 @@ double Sat_TSL_Sc_fnl=(1-curr_TintSL_dst_fnl[0])+1;
 double grey_metric_fnl=(satSc_fnl*sat_hsiSc_fnl*wbSc_fnl*ChromaSc_fnl*Chroma_hsl_Sc_fnl*Chroma_hsi_Sc_fnl*Sat_TSL_Sc_fnl*Chroma_TSL_Sc_fnl*YSc_fnl-1)/(2*2*2*2*2*2*2*2*2-1);
 
 grey_metric_fnl=MAX(0,MIN(grey_metric_fnl,1));
-grey_metric_fnl=1-(1-grey_metric_fnl)*(rgb_hsv_fnl[1]);
+grey_metric_fnl=grey_metric_fnl*wbScMx_fnl;
 
 
  //grey_metric_fnl*=YSc_fnl*0.5;
