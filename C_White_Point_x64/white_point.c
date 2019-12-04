@@ -206,11 +206,10 @@ double desat_avg_rgb[3];
  desat_avg_rgb[2]=b_desat_sum*b_desat_sum_gm*rcp_gm_weight*rcp_gm_weight2;
 
  double avg_gm=(rcp_counter==0)?1:grey_metric_avg_sum*rcp_counter;
- double inv_avg_gm=(rcp_counter==0)?0:(1-grey_metric_avg_sum*rcp_counter)+1;
+ avg_gm=MAX(0,MIN(avg_gm,1));
+ double inv_avg_gm=(rcp_counter==0)?0:(1-avg_gm)+1;
  double avg_gm2=(rcp_counter==0)?1:grey_metric_avg_sum*rcp_gm_weight;
  double avg_gm3=(rcp_counter==0)?1:grey_metric_avg_sum2*rcp_gm_weight;
-
- avg_gm=MAX(0,MIN(avg_gm,1));
 
 
 double desat_avg_rgb2[3];
