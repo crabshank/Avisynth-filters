@@ -2,6 +2,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ( (a) + (t) * ((b) - (a)))
+#define  mod(a,N) ((a) - (N)*floor((a)/(N)))
 
 void rgb2hsv (double rgb[3],double hsv[3])
 {
@@ -456,6 +457,26 @@ XYZnew[0]=v1[0]*rgbNew[0]+v1[1]*rgbNew[1]+v1[2]*rgbNew[2];
 XYZnew[1]=v2[0]*rgbNew[0]+v2[1]*rgbNew[1]+v2[2]*rgbNew[2];
 XYZnew[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
 
+		/*	return XYZ2xyY_Grey(
+                         WPconv2Grey(XYZog,XYZnew)
+                         ).xy;*/ //HLSL next steps
+
+}
+
+
+void LinRGB2Other_XYZ (double rgb[3], double rgbTo[3], double XYZog[3],double XYZnew[3]){
+
+double v1[3]={0.4124564,0.3575761, 0.1804375};
+double v2[3]={0.2126729,0.7151522,0.072175};
+double v3[3]={0.0193339,0.119192,0.9503041};
+
+XYZog[0]=v1[0]*rgb[0]+v1[1]*rgb[1]+v1[2]*rgb[2];
+XYZog[1]=v2[0]*rgb[0]+v2[1]*rgb[1]+v2[2]*rgb[2];
+XYZog[2]=v3[0]*rgb[0]+v3[1]*rgb[1]+v3[2]*rgb[2];
+
+XYZnew[0]=v1[0]*rgbTo[0]+v1[1]*rgbTo[1]+v1[2]*rgbTo[2];
+XYZnew[1]=v2[0]*rgbTo[0]+v2[1]*rgbTo[1]+v2[2]*rgbTo[2];
+XYZnew[2]=v3[0]*rgbTo[0]+v3[1]*rgbTo[1]+v3[2]*rgbTo[2];
 		/*	return XYZ2xyY_Grey(
                          WPconv2Grey(XYZog,XYZnew)
                          ).xy;*/ //HLSL next steps
