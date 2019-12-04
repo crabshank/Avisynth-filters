@@ -208,8 +208,8 @@ double desat_avg_rgb[3];
  double avg_gm=(rcp_counter==0)?1:grey_metric_avg_sum*rcp_counter;
  avg_gm=MAX(0,MIN(avg_gm,1));
  double inv_avg_gm=(rcp_counter==0)?0:(1-avg_gm)+1;
- double avg_gm2=(rcp_counter==0)?1:grey_metric_avg_sum*rcp_gm_weight;
- double avg_gm3=(rcp_counter==0)?1:grey_metric_avg_sum2*rcp_gm_weight;
+// double avg_gm2=(rcp_counter==0)?1:grey_metric_avg_sum*rcp_gm_weight;
+// double avg_gm3=(rcp_counter==0)?1:grey_metric_avg_sum2*rcp_gm_weight;
 
 
 double desat_avg_rgb2[3];
