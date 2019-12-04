@@ -590,6 +590,18 @@ HSI[0]=acos(((rgb[0]-rgb[1])+(rgb[0]-rgb[2]))/(2*sqrt((rgb[0]-rgb[1])*(rgb[0]-rg
 
 //Source: http://fourier.eng.hmc.edu/e161/lectures/ColorProcessing/node2.html
 
+void RGB2TintSL(double rgb[3],double SL[2]){
+
+
+
+    	double r_=rgb[0]-(1/3);
+	double g_=rgb[1]-(1/3);
+
+	 SL[0]=sqrt((9/5)*(r_*r_+g_*g_))/(sqrt(2.4));
+SL[1]=rgb[0]*0.299+rgb[1]*0.587+rgb[2]*0.114;
+}
+
+
 /* HLSL NESTED FUNCTIONS
 float3 WPChangeRGB(float3 color, float3 from, float3 to){
 
