@@ -96,13 +96,12 @@ hsv[1]=1-(w/(1-b));
 hsv[2]=1-b;
 
 }
-
 void hsv2hwb( double hsv[3],double hwb[3])
 {
 
 hwb[0]=hsv[0];
-hwb[1]=1-hsv[2];
-hwb[2]=(1-hsv[1])*hsv[2];
+hwb[1]=(1-hsv[1])*hsv[2];
+hwb[2]=1-hsv[2];
 
 
 }
