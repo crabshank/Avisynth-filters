@@ -54,6 +54,56 @@ hsv[0]=hsv[0]-(double)floor(hsv[0]);
 
 }
 
+void rgb2hsv_white (double rgb[3],double hsv[3])
+{
+
+double r=rgb[0];
+double g=rgb[1];
+double b=rgb[2];
+
+
+    double max = MAX(r,MAX(g, b));
+    double min = MIN(r,MIN(g, b));
+
+    double diff=max-min;
+
+    hsv[2] = max;
+
+    if (max == 0.0f) {
+        hsv[1] = 0;
+        hsv[0] = 1;
+    }
+
+   else  if (diff == 0.0f) {
+        hsv[1] = 0;
+        hsv[0] = 1;
+    }
+
+    else {
+        hsv[1] = diff / max;
+
+        if (max == r) {
+            hsv[0] = (g-b)/diff;
+        }
+        else if (max == g) {
+            hsv[0] = 2+(b-r)/diff;
+        }
+        else {
+            hsv[0] = 4+(r-g)/diff;
+    }
+
+
+    if(hsv[0]!=0){
+    hsv[0]/=6;
+hsv[0]=hsv[0]-(double)floor(hsv[0]);
+    }
+
+    hsv[0]=(hsv[0] < 0)?hsv[0]+1:hsv[0];
+
+    }
+
+}
+
 
 
 void hsv2rgb(double hsv[3], double rgb[3])
@@ -80,6 +130,35 @@ double v=hsv[2];
 
 }
 
+void hsv_white2rgb(double hsv[3], double rgb[3])
+{
+double h=hsv[0];
+double s=hsv[1];
+double v=hsv[2];
+
+if(h==1 && (s==0)){
+    rgb[0]=v;
+    rgb[1]=v;
+    rgb[2]=v;
+
+}else{
+   int i = floor(h * 6);
+   double f = h * 6 - i;
+   double p = v * (1 - s);
+    double q = v * (1 - f * s);
+   double t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: rgb[0] = v, rgb[1] = t, rgb[2] = p; break;
+        case 1: rgb[0] = q, rgb[1] = v, rgb[2] = p; break;
+        case 2: rgb[0] = p, rgb[1] = v, rgb[2] = t; break;
+        case 3: rgb[0] = p, rgb[1] = q, rgb[2] = v; break;
+        case 4: rgb[0] = t, rgb[1] = p, rgb[2] = v; break;
+        case 5: rgb[0] = v, rgb[1] = p, rgb[2] = q; break;
+    }
+}
+
+}
+
 void hwb2hsv( double hwb[3],double hsv[3])
 {
 double h=hwb[0];
@@ -96,6 +175,7 @@ hsv[1]=1-(w/(1-b));
 hsv[2]=1-b;
 
 }
+
 void hsv2hwb( double hsv[3],double hwb[3])
 {
 
@@ -363,6 +443,23 @@ void RGB2rgb(double RGB[3],double rgb[3]){
 	rgb[2]=1-r-g;
 }
 
+void rgb2RGB_White(double rgb[3],double RGB[3]){
+
+	double mx_prp=MAX( rgb[0],MAX( rgb[1], rgb[2]));
+	double rcp_mx_prp=(mx_prp==0)?0:pow(mx_prp,-1);
+
+    RGB[0]=rgb[0]*rcp_mx_prp;
+    RGB[1]=rgb[1]*rcp_mx_prp;
+    RGB[2]=rgb[2]*rcp_mx_prp;
+
+double mx_RGB=MAX( RGB[0],MAX( RGB[1], RGB[2]));
+double rcp_mx_RGB=(mx_RGB==0)?0:pow(mx_RGB,-1);
+
+    RGB[0]=RGB[0]*rcp_mx_RGB;
+    RGB[1]=RGB[1]*rcp_mx_RGB;
+    RGB[2]=RGB[2]*rcp_mx_RGB;
+
+}
 
 void XYZ2xyY(double XYZ[3],double outp[3]){
 	double XYZtot=XYZ[0]+XYZ[1]+XYZ[2];
@@ -503,6 +600,31 @@ double v3[3]={0.0193339,0.119192,0.9503041};
 XYZog[0]=v1[0]*rgbLin[0]+v1[1]*rgbLin[1]+v1[2]*rgbLin[2];
 XYZog[1]=v2[0]*rgbLin[0]+v2[1]*rgbLin[1]+v2[2]*rgbLin[2];
 XYZog[2]=v3[0]*rgbLin[0]+v3[1]*rgbLin[1]+v3[2]*rgbLin[2];
+
+XYZnew[0]=v1[0]*rgbNew[0]+v1[1]*rgbNew[1]+v1[2]*rgbNew[2];
+XYZnew[1]=v2[0]*rgbNew[0]+v2[1]*rgbNew[1]+v2[2]*rgbNew[2];
+XYZnew[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
+
+		/*	return XYZ2xyY_Grey(
+                         WPconv2Grey(XYZog,XYZnew)
+                         ).xy;*/ //HLSL next steps
+
+}
+
+void LinRGB2Grey_XYZ (double rgb[3], double XYZog[3],double XYZnew[3]){
+
+double rgbNewTot=rgb[0]+rgb[1]+rgb[2];
+double rgbNewAvg=rgbNewTot/3;
+
+double rgbNew[3]={rgbNewAvg,rgbNewAvg,rgbNewAvg};
+
+double v1[3]={0.4124564,0.3575761, 0.1804375};
+double v2[3]={0.2126729,0.7151522,0.072175};
+double v3[3]={0.0193339,0.119192,0.9503041};
+
+XYZog[0]=v1[0]*rgb[0]+v1[1]*rgb[1]+v1[2]*rgb[2];
+XYZog[1]=v2[0]*rgb[0]+v2[1]*rgb[1]+v2[2]*rgb[2];
+XYZog[2]=v3[0]*rgb[0]+v3[1]*rgb[1]+v3[2]*rgb[2];
 
 XYZnew[0]=v1[0]*rgbNew[0]+v1[1]*rgbNew[1]+v1[2]*rgbNew[2];
 XYZnew[1]=v2[0]*rgbNew[0]+v2[1]*rgbNew[1]+v2[2]*rgbNew[2];
