@@ -159,6 +159,25 @@ if(h==1 && (s==0)){
 
 }
 
+void hsv2hmv( double hsv[3],double hmv[3])
+{
+
+hmv[0]=hsv[0];
+hmv[1]=(hsv[2]*(-hsv[1]+2))/2;
+hmv[2]=hsv[2];
+
+}
+
+void hmv2hsv( double hmv[3],double hsv[3])
+{
+
+hsv[0]=hmv[0];
+hsv[1]=((-2*hmv[1])/hmv[2])+2;
+hsv[2]=hmv[2];
+
+
+}
+
 void hwb2hsv( double hwb[3],double hsv[3])
 {
 double h=hwb[0];
