@@ -9,7 +9,7 @@ typedef struct WhitePoint {
         double start;
         double x;
         double y;
-       //double tint;
+       double tint;
        // int precision;
 } WhitePoint;
 
@@ -28,7 +28,7 @@ dbg=params->debug;
 strt=params->start;
 cust_x=params->x;
 cust_y=params->y;
-//double tnt=params->tint;
+double tnt=params->tint;
 //prc=params->precision;
 
    CIEx= 0.312727;
@@ -484,9 +484,21 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 }
 
 
-                srcp[x] = MAX(MIN(round(WPchgRGB[2]*255),255),0);
-             srcp[x+1] =MAX(MIN(round(WPchgRGB[1]*255),255),0);
-        srcp[x+2] = MAX(MIN(round(WPchgRGB[0]*255),255),0);
+double WPchgRGB_lin[3];
+sRGB2Linear(WPchgRGB,WPchgRGB_lin);
+
+double output[3];
+output[0]=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],tnt);
+output[1]=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],tnt);
+output[2]=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],tnt);
+
+double output_gc[3];
+
+Linear2sRGB(output,output_gc);
+
+                srcp[x] = MAX(MIN(round(output_gc[2]*255),255),0);
+             srcp[x+1] =MAX(MIN(round(output_gc[1]*255),255),0);
+        srcp[x+2] = MAX(MIN(round(output_gc[0]*255),255),0);
 
 /*
                 if(y_shift<0.05){
@@ -591,7 +603,7 @@ if (!params)
           params->x = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.312727;
           params->y = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):0.329023;
           //params->precision = avs_defined(avs_array_elt(args, 5))?avs_as_int(avs_array_elt(args, 5)):2;
-       //  params->tint = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):0.5;
+         params->tint = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):1;
 
 
 
@@ -608,6 +620,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[debug]b[start]f[x]f[y]f", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[debug]b[start]f[x]f[y]f[tint]f", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
