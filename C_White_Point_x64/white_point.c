@@ -9,7 +9,7 @@ typedef struct WhitePoint {
         double start;
         double x;
         double y;
-        //double tint;
+       //double tint;
        // int precision;
 } WhitePoint;
 
@@ -28,7 +28,7 @@ dbg=params->debug;
 strt=params->start;
 cust_x=params->x;
 cust_y=params->y;
-//tnt=params->tint;
+//double tnt=params->tint;
 //prc=params->precision;
 
    CIEx= 0.312727;
@@ -158,6 +158,7 @@ x+=3;
       double avg_rgb5[3];
       double avg_rgb6[3];*/
       double avg_chroma=sumChroma*rcp_counterAll;
+      double avg_sat=(sumMax==0)?0:((sumMax-sumMin)/(sumMax))*rcp_counterAll;
 
 
 avg_rgb[0]=sumR*rcp_counterAll;
@@ -316,18 +317,18 @@ double rgb_trns_wht1_prp_wht[3];
 double rgb_trns_wht2_prp_wht[3];
 
 
-double hueDiff1 =  0.5 - fabs(fmod(fabs(avg_rgb_hsv[0] - avg_rgb_hmv_bk[0]), 2*0.5) - 0.5);
-double hueDiff2 =  0.5 - fabs(fmod(fabs(avg_rgb_hsv[0] - avg_rgb_wht_inv_hsv[0]), 2*0.5) - 0.5);
+double hueDiff1 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_hmv_bk[0]), 1) - 0.5);
+double hueDiff2 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_wht_inv_hsv[0]), 1) - 0.5);
 
-double lrp=1-avg_chroma;
-
-
-lrp=(hueDiff2<hueDiff1)?0.75+(0.5*lrp-0.25):0.25+(-0.5*lrp+0.25);
+double lrp=((1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]))*(1-avg_sat)*(1-avg_chroma));
 
 
-rgb_trns_wht1[0]=lerp(avg_rgb_hmv_fix[0],avg_rgb_wht_inv[0],lrp);
-rgb_trns_wht1[1]=lerp(avg_rgb_hmv_fix[1],avg_rgb_wht_inv[1],lrp);
-rgb_trns_wht1[2]=lerp(avg_rgb_hmv_fix[2],avg_rgb_wht_inv[2],lrp);
+lrp=(hueDiff1<=hueDiff2)?0.75+(0.5*lrp-0.25):0.25+(-0.5*lrp+0.25);
+
+
+rgb_trns_wht1[0]=lerp(avg_rgb_wht_inv[0],avg_rgb_hmv_fix[0],lrp);
+rgb_trns_wht1[1]=lerp(avg_rgb_wht_inv[1],avg_rgb_hmv_fix[1],lrp);
+rgb_trns_wht1[2]=lerp(avg_rgb_wht_inv[2],avg_rgb_hmv_fix[2],lrp);
 
 
 
@@ -487,6 +488,14 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
              srcp[x+1] =MAX(MIN(round(WPchgRGB[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(WPchgRGB[0]*255),255),0);
 
+/*
+                if(y_shift<0.05){
+                            srcp[x] = MAX(MIN(round(avg_chroma*255),255),0); //B
+             srcp[x+1] =MAX(MIN(round(avg_sat*255),255),0); //G
+        srcp[x+2] = MAX(MIN(round(fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1])*255),255),0); //R
+        }
+*/
+
   /*      double tint_map[3];
 
 
@@ -582,7 +591,7 @@ if (!params)
           params->x = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.312727;
           params->y = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):0.329023;
           //params->precision = avs_defined(avs_array_elt(args, 5))?avs_as_int(avs_array_elt(args, 5)):2;
-      //    params->tint = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):0.5;
+       //  params->tint = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):0.5;
 
 
 
