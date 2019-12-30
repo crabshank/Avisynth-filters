@@ -57,9 +57,9 @@ double counterAll=0;
 double sumR=0;
 double sumG=0;
 double sumB=0;
-
+/*
 double sumMin=0;
-double sumMax=0;
+double sumMax=0;*/
 double sumChroma=0;
 
 double rcp_twoFiveFive=pow(255,-1);
@@ -116,10 +116,11 @@ if (Sc<=strt){
         sumB+=curr_rgb_dst_lin_prp[2]*Sc;
 
         counterAll+=1;
-        double max=MAX(curr_rgb_dst_lin[0],MAX(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2]))*Sc;
+      /*  double max=MAX(curr_rgb_dst_lin[0],MAX(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2]))*Sc;
         double min=MIN(curr_rgb_dst_lin[0],MIN(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2]))*Sc;
 sumMax+=max;
 sumMin+=min;
+*/
 sumChroma+=Sc;
 //if(curr_rgb_dst_hwb_rgb[0]+curr_rgb_dst_hwb_rgb[1]+curr_rgb_dst_hwb_rgb[2]>0){
 
@@ -160,7 +161,7 @@ x+=3;
       double avg_rgb5[3];
       double avg_rgb6[3];*/
       double avg_chroma=sumChroma*rcp_counterAll;
-      double avg_sat=(sumMax==0)?0:((sumMax-sumMin)/(sumMax))*rcp_counterAll;
+      //double avg_sat=(sumMax==0)?0:((sumMax-sumMin)/(sumMax))*rcp_counterAll;
 
 
 avg_rgb[0]=sumR*rcp_counterAll;
@@ -348,8 +349,9 @@ double avg_rgb_hmv_fix_grey=(avg_rgb_hmv_fix_lin[0]+avg_rgb_hmv_fix_lin[1]+avg_r
 double hueDiff1 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_hmv_bk[0]), 1) - 0.5);
 double hueDiff2 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_wht_inv_hsv[0]), 1) - 0.5);
 
-double lrp=pow(3,-1)*(((avg_sat)*(1-avg_chroma))+(avg_sat)+(1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1])));
 
+double diff_sm=1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]);
+double lrp=0.5*(0.5*(diff_sm-avg_chroma+1)+(1-avg_chroma))*(1-avg_chroma);
 
 //lrp=(hueDiff1<=hueDiff2)?0.75+(0.5*lrp-0.25):0.25+(-0.5*lrp+0.25);
 
@@ -660,13 +662,19 @@ Linear2sRGB(output,output_gc);
              srcp[x+1] =MAX(MIN(round(output_gc[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(output_gc[0]*255),255),0);
 
-/*
+
                 if(y_shift<0.05){
                             srcp[x] = MAX(MIN(round(avg_chroma*255),255),0); //B
-             srcp[x+1] =MAX(MIN(round(avg_sat*255),255),0); //G
+             srcp[x+1] =MAX(MIN(round(lrp*255),255),0); //G
         srcp[x+2] = MAX(MIN(round(fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1])*255),255),0); //R
         }
+                 /*       if(y_shift<0.02){
+                            srcp[x] = MAX(MIN(round(lrp*255),255),0); //B
+             srcp[x+1] =MAX(MIN(round(lrp*255),255),0); //G
+        srcp[x+2] = MAX(MIN(round(lrp*255),255),0); //R
+        }
 */
+
 
   /*      double tint_map[3];
 
