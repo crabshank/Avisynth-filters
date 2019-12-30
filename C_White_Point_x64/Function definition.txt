@@ -3,6 +3,5 @@
      bool "debug"=false,
      float "start"=1 (1 to 0),
      float "x"=0.312727,
-     float "y"=0.329023,
-     float "tint"=1 (0 - No effect. 1 - Full auto)
+     float "y"=0.329023
 )
