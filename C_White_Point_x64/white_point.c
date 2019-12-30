@@ -286,13 +286,15 @@ rgb2RGB_White(avg_rgb2_inv,avg_rgb6);
 
 //double avg_rgb_hsv[3];
 
-/*
+
+
 double avg_rgb_sc_lin[3];
+double avg_rgb_lin[3];
 
 sRGB2Linear(avg_rgb_sc,avg_rgb_sc_lin);
-*/
-/*
-sRGB2Linear(avg_rgb,avg_rgb_sc_lin);*/
+
+
+sRGB2Linear(avg_rgb,avg_rgb_lin);
 double avg_rgb_prp[3];
 RGB2rgb(avg_rgb,avg_rgb_prp);
 double avg_rgb_wht[3];
@@ -345,7 +347,8 @@ double avg_rgb_hmv_fix_grey=(avg_rgb_hmv_fix_lin[0]+avg_rgb_hmv_fix_lin[1]+avg_r
 double hueDiff1 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_hmv_bk[0]), 1) - 0.5);
 double hueDiff2 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_wht_inv_hsv[0]), 1) - 0.5);
 
-double lrp=((1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]))*(1-avg_sat)*(1-avg_chroma));
+//double lrp=((1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]))*(1-avg_sat)*(1-avg_chroma));
+double lrp=0.5*(0.5*((avg_sat)+((1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]))*(1-avg_chroma)))+(0.5*(avg_sat+(1-avg_sat))));
 
 
 //lrp=(hueDiff1<=hueDiff2)?0.75+(0.5*lrp-0.25):0.25+(-0.5*lrp+0.25);
@@ -442,8 +445,9 @@ rgb2RGB_White(rgb_trns_wht1_inv_prp,rgb_trns_wht1_inv_wht);
 double XYZ_convert_OG[3];
 double XYZ_convert2[3];
 double XYZ_convert[3];
-double white[3]={1,1,1};/*
-double rgb_trns_wht1_prp[3];
+/*
+double rgb_trns_wht1_pr
+double white[3]={1,1,1};p[3];
 double rgb_trns_wht1_wht[3];
    RGB2rgb(rgb_trns_wht1,rgb_trns_wht1_prp);
 rgb2RGB_White(rgb_trns_wht1_prp,rgb_trns_wht1_wht);
@@ -477,11 +481,11 @@ double avg_WPchgRGB_Lin[3];
 double avg_rgb_frm[3];
 double avg_rgb_frm_lin[3];
 
- avg_rgb_frm[0]=avg_rgb_sc[0];
- avg_rgb_frm[1]=avg_rgb_sc[1];
- avg_rgb_frm[2]=avg_rgb_sc[2];
+ avg_rgb_frm_lin[0]=(1-((1-avg_rgb_sc_lin[0])*(1-avg_rgb_lin[0])))*avg_rgb_lin[0];
+ avg_rgb_frm_lin[1]=(1-((1-avg_rgb_sc_lin[1])*(1-avg_rgb_lin[1])))*avg_rgb_lin[1];
+ avg_rgb_frm_lin[2]=(1-((1-avg_rgb_sc_lin[2])*(1-avg_rgb_lin[2])))*avg_rgb_lin[2];
 
-sRGB2Linear(avg_rgb_frm,avg_rgb_frm_lin);
+sRGB2Linear(avg_rgb_frm_lin,avg_rgb_frm);
 
 rgb2xyY(avg_rgb_frm,avg_rgbxyY);
 xyY2XYZ(avg_rgbxyY,avg_rgbXYZ);
