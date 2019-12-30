@@ -393,6 +393,73 @@ rgb2RGB_White(rgb_trns_wht2_prp,rgb_trns_wht2_prp_wht);
   //  LinRGB2Grey_XYZ(rgb_corr_wht,XYZ_convert_OG,XYZ_convert2);
 
 WPconv2Grey (XYZ_convert_OG,XYZ_convert2 ,XYZ_convert);
+double avg_rgbxyY[3];
+double avg_rgbXYZ[3];
+double avg_WPConvXYZ[3];
+double avg_WPConvXYZ_xyY[3];
+double avg_WPchgRGB[3];
+rgb2xyY(avg_rgb,avg_rgbxyY);
+xyY2XYZ(avg_rgbxyY,avg_rgbXYZ);
+
+WPconv(avg_rgbXYZ,D65XYZ,XYZ_convert,avg_WPConvXYZ);
+
+XYZ2xyY(avg_WPConvXYZ,avg_WPConvXYZ_xyY);
+
+xyY2rgb(avg_WPConvXYZ_xyY,avg_WPchgRGB);
+
+
+double dnm_rg=avg_rgb[0]-avg_WPchgRGB[0]-avg_rgb[1]+avg_WPchgRGB[1];
+double dnm_rb=avg_rgb[0]-avg_WPchgRGB[0]-avg_rgb[2]+avg_WPchgRGB[2];
+double dnm_gb=avg_rgb[1]-avg_WPchgRGB[1]-avg_rgb[2]+avg_WPchgRGB[2];
+double t_zero_rg=(dnm_rg==0)?1:(avg_rgb[0]-avg_rgb[1])/dnm_rg;
+double t_zero_rb=(dnm_rb==0)?1:(avg_rgb[0]-avg_rgb[2])/dnm_rb;
+double t_zero_gb=(dnm_gb==0)?1:(avg_rgb[1]-avg_rgb[2])/dnm_gb;
+
+ t_zero_rg=MAX(MIN(t_zero_rg,1),0);
+ t_zero_rb=MAX(MIN(t_zero_rb,1),0);
+ t_zero_gb=MAX(MIN(t_zero_gb,1),0);
+
+double lrp_rg_r=lerp(avg_rgb[0],avg_WPchgRGB[0],t_zero_rg);
+double lrp_rg_g=lerp(avg_rgb[1],avg_WPchgRGB[1],t_zero_rg);
+double lrp_rg_b=lerp(avg_rgb[2],avg_WPchgRGB[2],t_zero_rg);
+
+double lrp_rb_r=lerp(avg_rgb[0],avg_WPchgRGB[0],t_zero_rb);
+double lrp_rb_g=lerp(avg_rgb[1],avg_WPchgRGB[1],t_zero_rb);
+double lrp_rb_b=lerp(avg_rgb[2],avg_WPchgRGB[2],t_zero_rb);
+
+double lrp_gb_r=lerp(avg_rgb[0],avg_WPchgRGB[0],t_zero_gb);
+double lrp_gb_g=lerp(avg_rgb[1],avg_WPchgRGB[1],t_zero_gb);
+double lrp_gb_b=lerp(avg_rgb[2],avg_WPchgRGB[2],t_zero_gb);
+
+double mix_lrp_rg= MAX(lrp_rg_r,MAX(lrp_rg_g,lrp_rg_b))-MIN(lrp_rg_r,MIN(lrp_rg_g,lrp_rg_b));
+double mix_lrp_rb= MAX(lrp_rb_r,MAX(lrp_rb_g,lrp_rb_b))-MIN(lrp_rb_r,MIN(lrp_rb_g,lrp_rb_b));
+double mix_lrp_gb= MAX(lrp_gb_r,MAX(lrp_gb_g,lrp_gb_b))-MIN(lrp_gb_r,MIN(lrp_gb_g,lrp_gb_b));
+double mix_lrp_zero= MAX(avg_rgb[0],MAX(avg_rgb[1],avg_rgb[2]))-MIN(avg_rgb[0],MIN(avg_rgb[1],avg_rgb[2]));
+double mix_lrp_one= MAX(avg_WPchgRGB[0],MAX(avg_WPchgRGB[1],avg_WPchgRGB[2]))-MIN(avg_WPchgRGB[0],MIN(avg_WPchgRGB[1],avg_WPchgRGB[2]));
+
+double mix_lrp_min=MIN(mix_lrp_rg,MIN(mix_lrp_rb,MIN(mix_lrp_zero,MIN(mix_lrp_one,mix_lrp_gb))));
+double tnt=1;
+
+if(mix_lrp_min==mix_lrp_rg){
+        tnt=t_zero_rg;
+}
+
+if(mix_lrp_min==mix_lrp_rb){
+        tnt=t_zero_rb;
+}
+
+if(mix_lrp_min==mix_lrp_gb){
+        tnt=t_zero_gb;
+}
+
+if(mix_lrp_min==mix_lrp_zero){
+        tnt=0;
+}
+
+if(mix_lrp_min==mix_lrp_one){
+        tnt=1;
+}
+
 
 
       for (y=0; y<height; y++) {
@@ -489,61 +556,6 @@ sRGB2Linear(WPchgRGB,WPchgRGB_lin);
 
 double output[3];
 
-
-
-double dnm_rg=curr_rgb_dst_lin_fnl[0]-WPchgRGB_lin[0]-curr_rgb_dst_lin_fnl[1]+WPchgRGB_lin[1];
-double dnm_rb=curr_rgb_dst_lin_fnl[0]-WPchgRGB_lin[0]-curr_rgb_dst_lin_fnl[2]+WPchgRGB_lin[2];
-double dnm_gb=curr_rgb_dst_lin_fnl[1]-WPchgRGB_lin[1]-curr_rgb_dst_lin_fnl[2]+WPchgRGB_lin[2];
-double t_zero_rg=(dnm_rg==0)?1:(curr_rgb_dst_lin_fnl[0]-curr_rgb_dst_lin_fnl[1])/dnm_rg;
-double t_zero_rb=(dnm_rb==0)?1:(curr_rgb_dst_lin_fnl[0]-curr_rgb_dst_lin_fnl[2])/dnm_rb;
-double t_zero_gb=(dnm_gb==0)?1:(curr_rgb_dst_lin_fnl[1]-curr_rgb_dst_lin_fnl[2])/dnm_gb;
-
- t_zero_rg=MAX(MIN(t_zero_rg,1),0);
- t_zero_rb=MAX(MIN(t_zero_rb,1),0);
- t_zero_gb=MAX(MIN(t_zero_gb,1),0);
-
-double lrp_rg_r=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],t_zero_rg);
-double lrp_rg_g=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],t_zero_rg);
-double lrp_rg_b=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],t_zero_rg);
-
-double lrp_rb_r=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],t_zero_rb);
-double lrp_rb_g=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],t_zero_rb);
-double lrp_rb_b=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],t_zero_rb);
-
-double lrp_gb_r=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],t_zero_gb);
-double lrp_gb_g=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],t_zero_gb);
-double lrp_gb_b=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],t_zero_gb);
-
-double mix_lrp_rg= MAX(lrp_rg_r,MAX(lrp_rg_g,lrp_rg_b))-MIN(lrp_rg_r,MIN(lrp_rg_g,lrp_rg_b));
-double mix_lrp_rb= MAX(lrp_rb_r,MAX(lrp_rb_g,lrp_rb_b))-MIN(lrp_rb_r,MIN(lrp_rb_g,lrp_rb_b));
-double mix_lrp_gb= MAX(lrp_gb_r,MAX(lrp_gb_g,lrp_gb_b))-MIN(lrp_gb_r,MIN(lrp_gb_g,lrp_gb_b));
-double mix_lrp_zero= MAX(curr_rgb_dst_lin_fnl[0],MAX(curr_rgb_dst_lin_fnl[1],curr_rgb_dst_lin_fnl[2]))-MIN(curr_rgb_dst_lin_fnl[0],MIN(curr_rgb_dst_lin_fnl[1],curr_rgb_dst_lin_fnl[2]));
-double mix_lrp_one= MAX(WPchgRGB_lin[0],MAX(WPchgRGB_lin[1],WPchgRGB_lin[2]))-MIN(WPchgRGB_lin[0],MIN(WPchgRGB_lin[1],WPchgRGB_lin[2]));
-
-
-
-double mix_lrp_min=MIN(mix_lrp_rg,MIN(mix_lrp_rb,MIN(mix_lrp_zero,MIN(mix_lrp_one,mix_lrp_gb))));
-double tnt=1;
-
-if(mix_lrp_min==mix_lrp_rg){
-        tnt=t_zero_rg;
-}
-
-if(mix_lrp_min==mix_lrp_rb){
-        tnt=t_zero_rb;
-}
-
-if(mix_lrp_min==mix_lrp_gb){
-        tnt=t_zero_gb;
-}
-
-if(mix_lrp_min==mix_lrp_zero){
-        tnt=0;
-}
-
-if(mix_lrp_min==mix_lrp_one){
-        tnt=1;
-}
 
 output[0]=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],tnt);
 output[1]=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],tnt);
