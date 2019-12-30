@@ -348,7 +348,7 @@ double avg_rgb_hmv_fix_grey=(avg_rgb_hmv_fix_lin[0]+avg_rgb_hmv_fix_lin[1]+avg_r
 double hueDiff1 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_hmv_bk[0]), 1) - 0.5);
 double hueDiff2 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_wht_inv_hsv[0]), 1) - 0.5);
 
-double lrp=((1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]))*(1-avg_sat)*(1-avg_chroma));
+double lrp=pow(3,-1)*(((avg_sat)*(1-avg_chroma))+(avg_sat)+(1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1])));
 
 
 //lrp=(hueDiff1<=hueDiff2)?0.75+(0.5*lrp-0.25):0.25+(-0.5*lrp+0.25);
@@ -403,14 +403,14 @@ if(hueDiff1<=hueDiff2){
 
 
 //
-
+/*
 
    RGB2rgb(rgb_trns_wht1,rgb_trns_wht1_prp);
 rgb2RGB_White(rgb_trns_wht1_prp,rgb_trns_wht1_prp_wht);
 
    RGB2rgb(rgb_trns_wht2,rgb_trns_wht2_prp);
 rgb2RGB_White(rgb_trns_wht2_prp,rgb_trns_wht2_prp_wht);
-
+*/
   RGB2rgb(rgb_trns_wht3,rgb_trns_wht3_prp);
 rgb2RGB_White(rgb_trns_wht3_prp,rgb_trns_wht3_prp_wht);
 
