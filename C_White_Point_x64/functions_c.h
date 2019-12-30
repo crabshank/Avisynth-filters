@@ -1,7 +1,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define PI  3.14159265358979323846
-#define lerp(a,b,t) ( (a) + (t) * ((b) - (a)))
+#define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
 
 void rgb2hsv (double rgb[3],double hsv[3])

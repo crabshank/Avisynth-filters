@@ -9,7 +9,7 @@ typedef struct WhitePoint {
         double start;
         double x;
         double y;
-       double tint;
+      // double tint;
        // int precision;
 } WhitePoint;
 
@@ -28,7 +28,7 @@ dbg=params->debug;
 strt=params->start;
 cust_x=params->x;
 cust_y=params->y;
-double tnt=params->tint;
+//double tnt=params->tint;
 //prc=params->precision;
 
    CIEx= 0.312727;
@@ -488,6 +488,52 @@ double WPchgRGB_lin[3];
 sRGB2Linear(WPchgRGB,WPchgRGB_lin);
 
 double output[3];
+
+
+
+double dnm_rg=curr_rgb_dst_lin_fnl[0]-WPchgRGB_lin[0]-curr_rgb_dst_lin_fnl[1]+WPchgRGB_lin[1];
+double dnm_rb=curr_rgb_dst_lin_fnl[0]-WPchgRGB_lin[0]-curr_rgb_dst_lin_fnl[2]+WPchgRGB_lin[2];
+double dnm_gb=curr_rgb_dst_lin_fnl[1]-WPchgRGB_lin[1]-curr_rgb_dst_lin_fnl[2]+WPchgRGB_lin[2];
+double t_zero_rg=(dnm_rg==0)?1:(curr_rgb_dst_lin_fnl[0]-curr_rgb_dst_lin_fnl[1])/dnm_rg;
+double t_zero_rb=(dnm_rb==0)?1:(curr_rgb_dst_lin_fnl[0]-curr_rgb_dst_lin_fnl[2])/dnm_rb;
+double t_zero_gb=(dnm_gb==0)?1:(curr_rgb_dst_lin_fnl[1]-curr_rgb_dst_lin_fnl[2])/dnm_gb;
+
+ t_zero_rg=MAX(MIN(t_zero_rg,1),0);
+ t_zero_rb=MAX(MIN(t_zero_rb,1),0);
+ t_zero_gb=MAX(MIN(t_zero_gb,1),0);
+
+double lrp_rg_r=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],t_zero_rg);
+double lrp_rg_g=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],t_zero_rg);
+double lrp_rg_b=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],t_zero_rg);
+
+double lrp_rb_r=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],t_zero_rb);
+double lrp_rb_g=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],t_zero_rb);
+double lrp_rb_b=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],t_zero_rb);
+
+double lrp_gb_r=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],t_zero_gb);
+double lrp_gb_g=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],t_zero_gb);
+double lrp_gb_b=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],t_zero_gb);
+
+double mix_lrp_rg= MAX(lrp_rg_r,MAX(lrp_rg_g,lrp_rg_b))-MIN(lrp_rg_r,MIN(lrp_rg_g,lrp_rg_b));
+double mix_lrp_rb= MAX(lrp_rb_r,MAX(lrp_rb_g,lrp_rb_b))-MIN(lrp_rb_r,MIN(lrp_rb_g,lrp_rb_b));
+double mix_lrp_gb= MAX(lrp_gb_r,MAX(lrp_gb_g,lrp_gb_b))-MIN(lrp_gb_r,MIN(lrp_gb_g,lrp_gb_b));
+
+
+double mix_lrp_min=MIN(mix_lrp_rg,MIN(mix_lrp_rb,mix_lrp_gb));
+double tnt=1;
+
+if(mix_lrp_min==mix_lrp_rg){
+        tnt=t_zero_rg;
+}
+
+if(mix_lrp_min==mix_lrp_rb){
+        tnt=t_zero_rb;
+}
+
+if(mix_lrp_min==mix_lrp_gb){
+        tnt=t_zero_gb;
+}
+
 output[0]=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],tnt);
 output[1]=lerp(curr_rgb_dst_lin_fnl[1],WPchgRGB_lin[1],tnt);
 output[2]=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],tnt);
@@ -495,6 +541,7 @@ output[2]=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],tnt);
 double output_gc[3];
 
 Linear2sRGB(output,output_gc);
+
 
                 srcp[x] = MAX(MIN(round(output_gc[2]*255),255),0);
              srcp[x+1] =MAX(MIN(round(output_gc[1]*255),255),0);
@@ -603,7 +650,7 @@ if (!params)
           params->x = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.312727;
           params->y = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):0.329023;
           //params->precision = avs_defined(avs_array_elt(args, 5))?avs_as_int(avs_array_elt(args, 5)):2;
-         params->tint = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):1;
+        // params->tint = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):1;
 
 
 
@@ -620,6 +667,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[debug]b[start]f[x]f[y]f[tint]f", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[debug]b[start]f[x]f[y]f", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
