@@ -517,9 +517,12 @@ double lrp_gb_b=lerp(curr_rgb_dst_lin_fnl[2],WPchgRGB_lin[2],t_zero_gb);
 double mix_lrp_rg= MAX(lrp_rg_r,MAX(lrp_rg_g,lrp_rg_b))-MIN(lrp_rg_r,MIN(lrp_rg_g,lrp_rg_b));
 double mix_lrp_rb= MAX(lrp_rb_r,MAX(lrp_rb_g,lrp_rb_b))-MIN(lrp_rb_r,MIN(lrp_rb_g,lrp_rb_b));
 double mix_lrp_gb= MAX(lrp_gb_r,MAX(lrp_gb_g,lrp_gb_b))-MIN(lrp_gb_r,MIN(lrp_gb_g,lrp_gb_b));
+double mix_lrp_zero= MAX(curr_rgb_dst_lin_fnl[0],MAX(curr_rgb_dst_lin_fnl[1],curr_rgb_dst_lin_fnl[2]))-MIN(curr_rgb_dst_lin_fnl[0],MIN(curr_rgb_dst_lin_fnl[1],curr_rgb_dst_lin_fnl[2]));
+double mix_lrp_one= MAX(WPchgRGB_lin[0],MAX(WPchgRGB_lin[1],WPchgRGB_lin[2]))-MIN(WPchgRGB_lin[0],MIN(WPchgRGB_lin[1],WPchgRGB_lin[2]));
 
 
-double mix_lrp_min=MIN(mix_lrp_rg,MIN(mix_lrp_rb,mix_lrp_gb));
+
+double mix_lrp_min=MIN(mix_lrp_rg,MIN(mix_lrp_rb,MIN(mix_lrp_zero,MIN(mix_lrp_one,mix_lrp_gb))));
 double tnt=1;
 
 if(mix_lrp_min==mix_lrp_rg){
@@ -532,6 +535,14 @@ if(mix_lrp_min==mix_lrp_rb){
 
 if(mix_lrp_min==mix_lrp_gb){
         tnt=t_zero_gb;
+}
+
+if(mix_lrp_min==mix_lrp_zero){
+        tnt=0;
+}
+
+if(mix_lrp_min==mix_lrp_one){
+        tnt=1;
 }
 
 output[0]=lerp(curr_rgb_dst_lin_fnl[0],WPchgRGB_lin[0],tnt);
