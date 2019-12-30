@@ -480,11 +480,11 @@ double avg_WPchgRGB_Lin[3];
 double avg_rgb_frm[3];
 double avg_rgb_frm_lin[3];
 
- avg_rgb_frm[0]=avg_rgb_sc_wht[0];
- avg_rgb_frm[1]=avg_rgb_sc_wht[1];
- avg_rgb_frm[2]=avg_rgb_sc_wht[2];
+ avg_rgb_frm_lin[0]=avg_rgb_sc_wht[0];
+ avg_rgb_frm_lin[1]=avg_rgb_sc_wht[1];
+ avg_rgb_frm_lin[2]=avg_rgb_sc_wht[2];
 
-sRGB2Linear(avg_rgb_frm,avg_rgb_frm_lin);
+Linear2sRGB(avg_rgb_frm_lin,avg_rgb_frm);
 
 rgb2xyY(avg_rgb_frm,avg_rgbxyY);
 xyY2XYZ(avg_rgbxyY,avg_rgbXYZ);
