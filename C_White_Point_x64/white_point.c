@@ -350,8 +350,8 @@ double hueDiff1 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_hmv_bk[0]), 1) -
 double hueDiff2 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_wht_inv_hsv[0]), 1) - 0.5);
 
 
-double diff_sm=1-fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]);
-double lrp=0.5*(0.5*(diff_sm-avg_chroma+1)+(1-avg_chroma))*(1-avg_chroma);
+double diff_sm=fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]);
+double lrp=0.5*((1-(0.5*(0.5*(diff_sm-avg_chroma+1)+diff_sm))*(1-(1-diff_sm)*(1-avg_chroma)))+(1-avg_chroma));
 
 //lrp=(hueDiff1<=hueDiff2)?0.75+(0.5*lrp-0.25):0.25+(-0.5*lrp+0.25);
 
