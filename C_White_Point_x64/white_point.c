@@ -662,12 +662,13 @@ Linear2sRGB(output,output_gc);
              srcp[x+1] =MAX(MIN(round(output_gc[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(output_gc[0]*255),255),0);
 
+        /*
 
                 if(y_shift<0.05){
                             srcp[x] = MAX(MIN(round(avg_chroma*255),255),0); //B
              srcp[x+1] =MAX(MIN(round(lrp*255),255),0); //G
         srcp[x+2] = MAX(MIN(round(fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1])*255),255),0); //R
-        }
+        }*/
                  /*       if(y_shift<0.02){
                             srcp[x] = MAX(MIN(round(lrp*255),255),0); //B
              srcp[x+1] =MAX(MIN(round(lrp*255),255),0); //G
