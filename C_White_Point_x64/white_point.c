@@ -307,9 +307,10 @@ double avg_rgb_hsmv[3];
 hsv2hmv(avg_rgb_hsv,avg_rgb_hsmv);
 double avg_rgb_avg=(avg_rgb[0]+avg_rgb[1]+avg_rgb[2])*pow(3,-1);
 
-double avg_rgb_hmv[3]={avg_rgb_hsv[0],avg_rgb_avg,avg_rgb_hsv[2]};
 double avg_rgb_hmv_bk[3];
-hmv2hsv(avg_rgb_hmv,avg_rgb_hmv_bk);
+double corr_pwr=1.00827;
+mchg2hsv(avg_rgb_hsmv,pow(avg_rgb_avg,corr_pwr),avg_rgb_hmv_bk);
+
 double avg_rgb_hmv_fix[3];
 hsv2rgb(avg_rgb_hmv_bk,avg_rgb_hmv_fix);
 double avg_rgb_hmv_fix_lin[3];
@@ -350,7 +351,7 @@ double hueDiff1 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_hmv_bk[0]), 1) -
 double hueDiff2 =  0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - avg_rgb_wht_inv_hsv[0]), 1) - 0.5);
 
 
-double diff_sm=fabs(avg_rgb_hsmv[1]-avg_rgb_hmv[1]);
+double diff_sm=fabs(avg_rgb_hsmv[1]-pow(avg_rgb_avg,corr_pwr));
 double lrp=0.5*((1-(0.5*(0.5*(diff_sm-avg_chroma+1)+diff_sm))*(1-(1-diff_sm)*(1-avg_chroma)))+(1-avg_chroma));
 
 //lrp=(hueDiff1<=hueDiff2)?0.75+(0.5*lrp-0.25):0.25+(-0.5*lrp+0.25);

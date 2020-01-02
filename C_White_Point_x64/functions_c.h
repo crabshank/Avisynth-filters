@@ -178,6 +178,36 @@ hsv[2]=hmv[2];
 
 }
 
+
+void mchg2hsv( double hmv[3], double m,double hsv[3])
+{
+
+hsv[0]=hmv[0];
+hmv[1]=m;
+
+double a =2*m-hmv[2];
+double b=hmv[2];
+double zero_t=(a-b==0)?1:a/(a-b);
+double one_t=(a-b==0)?1:(a-1)/(a-b);
+
+if (a<0){
+    a=0;
+    b=lerp(hmv[2],m,zero_t);
+
+}else if (a>1){
+    a=1;
+    b=lerp(hmv[2],m,one_t);
+}
+
+hmv[2]=MAX(a,b);
+
+
+hsv[1]=((-2*hmv[1])/hmv[2])+2;
+hsv[2]=hmv[2];
+
+
+}
+
 void hwb2hsv( double hwb[3],double hsv[3])
 {
 double h=hwb[0];
