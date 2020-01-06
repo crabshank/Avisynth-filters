@@ -3,8 +3,8 @@
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
-#define third ((1)/(3))
-#define rcptwoFiveFive ((1)/(255))
+#define third 1/3
+#define rcptwoFiveFive 1/255
 
 void rgb2hsv (double rgb[3],double hsv[3])
 {
@@ -518,6 +518,30 @@ if(MAX( RGB[0],MAX( RGB[1], RGB[2]))==0){
 
 }
 
+void rgb2RGB_val(double rgb[3],double val[1],double RGB[3]){
+
+	double mx_prp=MAX( rgb[0],MAX( rgb[1], rgb[2]));
+	double rcp_mx_prp=(mx_prp==0)?0:pow(mx_prp,-1);
+
+    RGB[0]=rgb[0]*rcp_mx_prp;
+    RGB[1]=rgb[1]*rcp_mx_prp;
+    RGB[2]=rgb[2]*rcp_mx_prp;
+
+double mx_RGB=MAX( RGB[0],MAX( RGB[1], RGB[2]));
+double rcp_mx_RGB=(mx_RGB==0)?0:pow(mx_RGB,-1);
+
+    RGB[0]=(RGB[0]*rcp_mx_RGB)*val[0];
+    RGB[1]=(RGB[1]*rcp_mx_RGB)*val[0];
+    RGB[2]=(RGB[2]*rcp_mx_RGB)*val[0];
+
+if(MAX( RGB[0],MAX( RGB[1], RGB[2]))==0){
+    RGB[0]=1;
+    RGB[1]=1;
+    RGB[2]=1;
+}
+
+}
+
 void XYZ2xyY(double XYZ[3],double outp[3]){
 	double XYZtot=XYZ[0]+XYZ[1]+XYZ[2];
 
@@ -584,6 +608,42 @@ for (int i=0;i<3;i++){
 
 //Source: http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
+void xyY2LinRGB(double xyY[3],double RGB[3]){
+double X;
+double Z;
+
+double x;
+double y;
+double Y;
+
+
+
+    double *pxyY = &xyY[0];
+
+    xyY[0]=*(pxyY);
+xyY[1]=*(pxyY+1);
+xyY[2]=*(pxyY+2);
+
+ Y=*(pxyY+2);
+  y=*(pxyY+1);
+ x=*(pxyY);
+  X=(Y/y)*x;
+ Z=(Y/y)*(1.0-x-y);
+
+
+
+    double *pRGB = &RGB[0];
+*(pRGB)=0; *(pRGB+1)=0; *(pRGB+2)=0;
+
+
+*(pRGB)=3.2404542*X-1.5371385*Y-0.4985314*Z;
+*(pRGB+1)=-0.969266*X+1.8760108*Y+0.041556*Z;
+*(pRGB+2)=0.0556434*X-0.2040259*Y+1.0572252*Z;
+
+}
+
+
+//Source: http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
 
 void rgb2Other_XYZ (double rgb[3], double rgbTo[3], double XYZog[3],double XYZnew[3]){
