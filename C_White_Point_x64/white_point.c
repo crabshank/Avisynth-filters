@@ -229,7 +229,7 @@ double h_e=0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - (300*pow(360,-1))  ), 1) - 0.5);
 double h_f=0.5 - fabs(mod(fabs(avg_rgb_hsv[0] - (1)  ), 1) - 0.5);
 
 
-double hd_min=MAX(h_a,MAX(h_b,MAX(h_c,MAX(h_d,MAX(h_e,h_f)))));
+double hd_min=MAX(h_a,MAX(h_b,MAX(h_c,MAX(h_d,MAX(h_e,MAX(h_f,avg_rgb_hsv[0]))))));
 
 if (hd_min=h_a){
     avg_rgb_hsv[0]=60*pow(360,-1);
