@@ -3,6 +3,7 @@
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
+#define third ((1)/(3))
 
 void rgb2hsv (double rgb[3],double hsv[3])
 {
@@ -179,31 +180,31 @@ hsv[2]=hmv[2];
 }
 
 
-void mchg2hsv( double hmv[3], double m,double hsv[3])
+void mchg2hsv( double hmv[3], double m[1],double hsv[3])
 {
 
-hsv[0]=hmv[0];
-hmv[1]=m;
+//double mOG=hmv[1];
 
-double a =2*m-hmv[2];
+hsv[0]=hmv[0];
+
+
+double a =2*m[0]-hmv[2];
 double b=hmv[2];
 double zero_t=(a-b==0)?1:a/(a-b);
 double one_t=(a-b==0)?1:(a-1)/(a-b);
 
 if (a<0){
     a=0;
-    b=lerp(hmv[2],m,zero_t);
+    b=lerp(hmv[2],m[0],zero_t);
 
 }else if (a>1){
     a=1;
-    b=lerp(hmv[2],m,one_t);
+    b=lerp(hmv[2],m[0],one_t);
 }
 
-hmv[2]=MAX(a,b);
+hsv[2]=MAX(a,b);
+hsv[1]=((-2*m[0])/hsv[2])+2;
 
-
-hsv[1]=((-2*hmv[1])/hmv[2])+2;
-hsv[2]=hmv[2];
 
 
 }
@@ -508,6 +509,12 @@ double rcp_mx_RGB=(mx_RGB==0)?0:pow(mx_RGB,-1);
     RGB[1]=RGB[1]*rcp_mx_RGB;
     RGB[2]=RGB[2]*rcp_mx_RGB;
 
+if(MAX( RGB[0],MAX( RGB[1], RGB[2]))==0){
+    RGB[0]=1;
+    RGB[1]=1;
+    RGB[2]=1;
+}
+
 }
 
 void XYZ2xyY(double XYZ[3],double outp[3]){
@@ -748,15 +755,51 @@ void hsv2hsl(double hsv[3],double hsl[3]){
 }
 
 
-void RGB2HSI(double rgb[3],double HSI[3]){
+void RGB2HSI(double RGB[3],double HSI[3]){
 
-HSI[2]=(rgb[0]+rgb[1]+rgb[2])/3;
-
-HSI[1]=1-3*MIN(rgb[0],MIN(rgb[1],rgb[2]))/HSI[2];
-
-HSI[0]=acos(((rgb[0]-rgb[1])+(rgb[0]-rgb[2]))/(2*sqrt((rgb[0]-rgb[1])*(rgb[0]-rgb[1])+(rgb[0]-rgb[2])*(rgb[1]-rgb[2]))))/PI;
+double RGB_tot=RGB[0]+RGB[1]+RGB[2];
+double rgb[3];
+if(RGB_tot==0){
+rgb[0]=third;
+rgb[1]=third;
+rgb[2]=third;
+}else{
+rgb[0]=RGB[0]/RGB_tot;
+rgb[1]=RGB[1]/RGB_tot;
+rgb[2]=RGB[2]/RGB_tot;
 
 }
+
+if(RGB[0]==RGB[1] && (RGB[1]==RGB[2])){
+
+    HSI[0]=0;
+    HSI[1]=0;
+
+}else{
+
+double w=0.5*(2*RGB[0]-RGB[1]-RGB[2])/sqrt((  RGB[0]-RGB[1]  )*(  RGB[0]-RGB[1]  )  + (  RGB[0]-RGB[2]  )*(  RGB[1]-RGB[2]  )     );
+w=MIN(MAX(w,-1),1);
+HSI[0]=acos(w);
+HSI[0]=(RGB[2]>RGB[1])?2*PI-HSI[0]:HSI[0];
+
+if(rgb[0]<=rgb[1] && (rgb[0]<=rgb[2]) ){
+    HSI[1]=1-3*rgb[0];
+}
+
+if(rgb[1]<=rgb[0] && (rgb[1]<=rgb[2]) ){
+    HSI[1]=1-3*rgb[1];
+}
+
+if(rgb[2]<=rgb[0] && (rgb[2]<=rgb[1]) ){
+    HSI[1]=1-3*rgb[2];
+}
+
+
+
+
+}
+}
+
 
 //Source: http://fourier.eng.hmc.edu/e161/lectures/ColorProcessing/node2.html
 
