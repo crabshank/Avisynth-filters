@@ -41,15 +41,8 @@ p=0;
       row_size = avs_get_row_size_p(src, planes[p]);
       height = avs_get_height_p(src, planes[p]);
 
-/*
-double r_avg_sum_gm= 0;
-double g_avg_sum_gm= 0;
-double b_avg_sum_gm= 0;
-*/
-double counterAll=0;
 
-//double counter=0;
-//double counterSc=0;
+double counterAll=0;
 
 double sumR=0;
 double sumG=0;
@@ -59,9 +52,6 @@ double sumR_=0;
 double sumG_=0;
 double sumB_=0;
 
-/*
-double sumMin=0;
-double sumMax=0;*/
 double sumChroma=0;
 
 double rcp_twoFiveFive=pow(255,-1);
@@ -87,40 +77,14 @@ double curr_rgb_dst_lin[3];
 sRGB2Linear(curr_rgb_dst,curr_rgb_dst_lin);
 
 double curr_rgb_dst_lin_prp[3];
-//double curr_rgb_dst_lin_wht[3];
-//double curr_rgb_dst_lin_hsv[3];
+
 RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
-/*
-rgb2hsv(curr_rgb_dst_lin,curr_rgb_dst_lin_hsv);
-double curr_rgb_dst_hsi[3];
-RGB2HSI(curr_rgb_dst_lin,curr_rgb_dst_hsi);
-*/
-/*
-rgb2RGB_White(curr_rgb_dst_lin_prp,curr_rgb_dst_lin_wht);
-*/
 
-
-/*
-
-
-
-
-curr_rgb_dst_hwb[2]=1;
-
-double curr_rgb_dst_hwb_hsv[3];
-hwb2hsv(curr_rgb_dst_hwb,curr_rgb_dst_hwb_hsv);
-
-double curr_rgb_dst_hwb_rgb[3];
-hsv2rgb(curr_rgb_dst_hwb_hsv,curr_rgb_dst_hwb_rgb);
-*/
 double Sc=(MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]))-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])));
-//double satSc=curr_rgb_dst_hsv[1];
-
 
 double rootSat=sqrt(  pow(curr_rgb_dst_lin[0]-curr_rgb_dst_lin[1],2) + pow(curr_rgb_dst_lin[0]-curr_rgb_dst_lin[2],2)  +pow(curr_rgb_dst_lin[1]-curr_rgb_dst_lin[2],2))/sqrt(3);
- // Sc=(1-curr_rgb_dst_hsv[1])*(curr_rgb_dst_hsi[1])*(1-0.5*(Sc+(1-curr_rgb_dst_hwb[1])))*2;
-//double min=MIN(fabs(curr_rgb_dst_lin[0]-curr_rgb_dst_lin[1]),MIN(fabs(curr_rgb_dst_lin[0]-curr_rgb_dst_lin[2]), fabs(curr_rgb_dst_lin[1]-curr_rgb_dst_lin[2])  ));
- Sc=MIN(MAX((Sc*rootSat),0),1);
+
+  Sc=MIN(MAX((Sc*rootSat),0),1);
 if (1-Sc<=strt){
 
     sumR+=curr_rgb_dst_lin[0]*Sc;
@@ -213,12 +177,6 @@ double XYZ_convert[3];
 double white[3]={1,1,1};
 
 LinRGB2Other_XYZ (white,avg_rgb_wht_bk2,XYZ_convert_OG,XYZ_convert2);
-//LinRGB2Other_XYZ (white,avg_rgb_hmv_fix_inv_wht,XYZ_convert_OG,XYZ_convert2);
-
-
-
-   //LinRGB2Other_XYZ (avg_rgb_hmv_fix_inv_wht2,white,XYZ_convert_OG_inv,XYZ_convert2_inv);
-
 
 WPconv2Grey (XYZ_convert_OG,XYZ_convert2 ,XYZ_convert);
 
