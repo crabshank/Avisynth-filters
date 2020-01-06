@@ -4,6 +4,7 @@
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
 #define third ((1)/(3))
+#define rcptwoFiveFive ((1)/(255))
 
 void rgb2hsv (double rgb[3],double hsv[3])
 {
