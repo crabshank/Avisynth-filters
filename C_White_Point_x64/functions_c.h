@@ -3,8 +3,8 @@
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
-#define third 1/3
-#define rcptwoFiveFive 1/255
+#define third 1.0/3.0
+#define rcptwoFiveFive 1.0/255.0
 
 void rgb2hsv (double rgb[3],double hsv[3])
 {

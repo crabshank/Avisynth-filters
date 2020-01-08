@@ -81,14 +81,14 @@ double curr_rgb_dst_lin_prp[3];
 RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
 
 double Sc=1-(MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]))-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])));
-
-  Sc=MIN(MAX((Sc),0),1);
-
+double mx=MAX(curr_rgb_dst_lin[0],MAX(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2]));
+  Sc=MIN(MAX(third*(2*Sc+mx),0),1);
+double mtrc=(strt==0)?1:Sc/strt;
 if (Sc<=strt){
 
-    sumR+=curr_rgb_dst_lin[0]*Sc;
-    sumG+=curr_rgb_dst_lin[1]*Sc;
-    sumB+=curr_rgb_dst_lin[2]*Sc;
+    sumR+=curr_rgb_dst_lin[0]*(mtrc);
+    sumG+=curr_rgb_dst_lin[1]*(mtrc);
+    sumB+=curr_rgb_dst_lin[2]*(mtrc);
 
 
 sumR_+=curr_rgb_dst_lin[0];
@@ -484,7 +484,8 @@ double Sc_lst=1-(MAX(curr_rgb_dst_lin_prp_lst[0],MAX(curr_rgb_dst_lin_prp_lst[1]
 double rootSat_lst=sqrt(  pow(curr_rgb_dst_lin_lst[0]-curr_rgb_dst_lin_lst[1],2) + pow(curr_rgb_dst_lin_lst[0]-curr_rgb_dst_lin_lst[2],2)  +pow(curr_rgb_dst_lin_lst[1]-curr_rgb_dst_lin_lst[2],2))/sqrt(3);
 */
 
- Sc_lst=MIN(MAX((Sc_lst),0),1);
+double mx_lst=MAX(curr_rgb_dst_lin_lst[0],MAX(curr_rgb_dst_lin_lst[1],curr_rgb_dst_lin_lst[2]));
+  Sc_lst=MIN(MAX(third* (2*Sc_lst+mx_lst),0),1);
 
 if(dbg==1){
 
