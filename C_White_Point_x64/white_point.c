@@ -112,8 +112,6 @@ x+=3;
     double avg_rgb_nw_wht[3];
     double avg_rgb_prp[3];
     double avg_rgb_wht[3];
-    double avg_rgb_wht_xyY[3];
-    double avg_rgb_wht_XYZ[3];
 
 avg_rgb[0]=sumR*rcp_counterAll;
 avg_rgb[1]=sumG*rcp_counterAll;
@@ -187,7 +185,6 @@ double XYZ_convert[3];
 double XYZ_convert2[3];
 double XYZ_convert4[3];
 double XYZ_convert3[3];
-double WPConvXYZ2[3];
 double white[3]={1,1,1};
 
 LinRGB2Other_XYZ (avg_rgb_wht_bk2,white,XYZ_convert_OG,XYZ_convert2);
@@ -207,8 +204,8 @@ double sumB_wp=0;
       for (x=0; x<row_size; x++) {
 
 
-double x_shift=(double)x/(double)row_size;
-double y_shift=(double)y/(double)height;
+//double x_shift=(double)x/(double)row_size;
+//double y_shift=(double)y/(double)height;
                  double currBlue=(double)srcp[x];
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
@@ -333,8 +330,8 @@ WPconv2Grey (XYZ_convert_OG3,XYZ_convert5 ,XYZ_convert6);
       for (x=0; x<row_size; x++) {
 
 
-double x_shift=(double)x/(double)row_size;
-double y_shift=(double)y/(double)height;
+//double x_shift=(double)x/(double)row_size;
+//double y_shift=(double)y/(double)height;
                  double currBlue=(double)srcp[x];
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];

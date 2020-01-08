@@ -275,7 +275,7 @@ void mul( int rows_a, int cols_a, int cols_b,void* ma, void* mb, void* mres)
 int i,j,k;
 
       double (*a)[cols_a] = (double (*)[cols_a]) ma;
-      double (*b)[cols_b] = (double (*)[cols_b]) mb;{}
+      double (*b)[cols_b] = (double (*)[cols_b]) mb;
       double (*res)[cols_b] = (double (*)[cols_b]) mres;
   zeroMatrix( rows_a,cols_b,res);
       double *pta = &a[0][0];
