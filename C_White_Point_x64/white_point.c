@@ -241,21 +241,7 @@ xyY2XYZ(rgbxyY,rgbXYZ);
 
 WPconv(rgbXYZ,D65XYZ,XYZ_convert,WPConvXYZ);
 WPconv(rgbXYZ,D65XYZ,XYZ_convert3,WPConvXYZ2);
-/*
-if (cust_x!=CIEx || (cust_y!=CIEy)){
 
-double WPConvXYZ2[3];
-double cust_xy[2]={cust_x,cust_y};
-double cust_XYZ[3];
-xy2XYZ(cust_xy,cust_XYZ);
-
-WPconv(WPConvXYZ,D65XYZ,cust_XYZ,WPConvXYZ2);
-WPConvXYZ[0]=WPConvXYZ2[0];
-WPConvXYZ[1]=WPConvXYZ2[1];
-WPConvXYZ[2]=WPConvXYZ2[2];
-
-}
-*/
 XYZ2xyY(WPConvXYZ,WPConvXYZ_xyY);
 
 xyY2LinRGB(WPConvXYZ_xyY,WPchgRGB);
