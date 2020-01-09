@@ -485,13 +485,18 @@ void xyY2XYZ(double xyY[3],double outp[3]){
 
 void RGB2rgb(double RGB[3],double rgb[3]){
 	double RGBtot=RGB[0]+RGB[1]+RGB[2];
-
+if(RGBtot==0){
+    rgb[0]=third;
+	rgb[1]=third;
+	rgb[2]=third;
+}else{
 	double r=RGB[0]/RGBtot;
 	double g=RGB[1]/RGBtot;
 
     rgb[0]=r;
 	rgb[1]=g;
 	rgb[2]=1-r-g;
+}
 }
 
 void rgb2RGB_White(double rgb[3],double RGB[3]){
