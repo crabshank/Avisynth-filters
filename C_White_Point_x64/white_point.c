@@ -110,12 +110,8 @@ x+=3;
     double avg_rgb_nw[3];
     double avg_rgb_nw_prp[3];
     double avg_rgb_nw_wht[3];
-    double avg_rgb_nw_hsv[3];
     double avg_rgb_prp[3];
     double avg_rgb_wht[3];
-double avg_rgb_wp[3];
-double avg_rgb_wp_prp[3];
-double avg_rgb_wp_wht[3];
 
 avg_rgb[0]=sumR*rcp_counterAll;
 avg_rgb[1]=sumG*rcp_counterAll;
@@ -124,14 +120,7 @@ avg_rgb[2]=sumB*rcp_counterAll;
 avg_rgb_nw[0]=sumR_*rcp_counterAll;
 avg_rgb_nw[1]=sumG_*rcp_counterAll;
 avg_rgb_nw[2]=sumB_*rcp_counterAll;
-if(avg_rgb_nw[0]==0 && (avg_rgb_nw[0]==0) && (avg_rgb_nw[0]==0)){
-    avg_rgb_wp[0]=0;
-    avg_rgb_wp[1]=0;
-    avg_rgb_wp[2]=0;
 
-}else{
-
-rgb2hsv(avg_rgb_nw,avg_rgb_nw_hsv);
 RGB2rgb(avg_rgb_nw,avg_rgb_nw_prp);
 rgb2RGB_White(avg_rgb_nw_prp,avg_rgb_nw_wht);
 
@@ -196,18 +185,7 @@ double XYZ_convert[3];
 double XYZ_convert2[3];
 double XYZ_convert4[3];
 double XYZ_convert3[3];
-double rgbxyY[3];
-double rgbXYZ[3];
-double WPConvXYZ[3];
-double WPConvXYZ2[3];
-double WPConvXYZ_xyY[3];
-double WPConvXYZ_xyY2[3];
-double WPchgRGB_hsv[3];
-double WPchgRGB2_hsv[3];
 double white[3]={1,1,1};
-
-
-double avg_rgb_wp2[3];
 
 LinRGB2Other_XYZ (avg_rgb_wht_bk2,white,XYZ_convert_OG,XYZ_convert2);
 
@@ -216,8 +194,48 @@ WPconv2Grey (XYZ_convert_OG,XYZ_convert2 ,XYZ_convert);
 LinRGB2Other_XYZ (white,avg_rgb_wht_bk2,XYZ_convert_OG2,XYZ_convert4);
 
 WPconv2Grey (XYZ_convert_OG2,XYZ_convert4 ,XYZ_convert3);
+/////////////////////////////////////////////////////////////////////////
 
-LinRGB2xyY(avg_rgb_nw,rgbxyY);
+double sumR_wp=0;
+double sumG_wp=0;
+double sumB_wp=0;
+
+      for (y=0; y<height; y++) {
+      for (x=0; x<row_size; x++) {
+
+
+//double x_shift=(double)x/(double)row_size;
+//double y_shift=(double)y/(double)height;
+                 double currBlue=(double)srcp[x];
+                double currGreen=(double)srcp[x+1];
+                double currRed=(double)srcp[x+2];
+
+bOG=currBlue*rcptwoFiveFive;     // B
+       gOG=currGreen*rcptwoFiveFive;   //G
+         rOG=currRed*rcptwoFiveFive;     // R
+
+double curr_rgb_dst_fnl[3]={rOG,gOG,bOG};
+
+double curr_rgb_dst_lin_fnl[3];
+double curr_rgb_dst_lin_hsv_fnl[3];
+sRGB2Linear(curr_rgb_dst_fnl,curr_rgb_dst_lin_fnl);
+            rgb2hsv(curr_rgb_dst_lin_fnl,curr_rgb_dst_lin_hsv_fnl);
+
+
+    double WPchgRGB[3];
+    double WPchgRGB2[3];
+
+        double WPchgRGB_hsv[3];
+    double WPchgRGB2_hsv[3];
+
+    double rgbxyY[3];
+double rgbXYZ[3];
+double WPConvXYZ[3];
+double WPConvXYZ_xyY[3];
+double WPConvXYZ2[3];
+double WPConvXYZ_xyY2[3];
+
+LinRGB2xyY(curr_rgb_dst_lin_fnl,rgbxyY);
 xyY2XYZ(rgbxyY,rgbXYZ);
 
 
@@ -226,33 +244,58 @@ WPconv(rgbXYZ,D65XYZ,XYZ_convert3,WPConvXYZ2);
 
 XYZ2xyY(WPConvXYZ,WPConvXYZ_xyY);
 
-xyY2LinRGB(WPConvXYZ_xyY,avg_rgb_wp);
+xyY2LinRGB(WPConvXYZ_xyY,WPchgRGB);
 XYZ2xyY(WPConvXYZ2,WPConvXYZ_xyY2);
 
-xyY2LinRGB(WPConvXYZ_xyY2,avg_rgb_wp2);
+xyY2LinRGB(WPConvXYZ_xyY2,WPchgRGB2);
 
-rgb2hsv(avg_rgb_wp,WPchgRGB_hsv);
-rgb2hsv(avg_rgb_wp2,WPchgRGB2_hsv);
-double min_sat=MIN(avg_rgb_nw_hsv[1],MIN(WPchgRGB2_hsv[1],WPchgRGB_hsv[1]));
+rgb2hsv(WPchgRGB,WPchgRGB_hsv);
+rgb2hsv(WPchgRGB2,WPchgRGB2_hsv);
+double min_sat=MIN(curr_rgb_dst_lin_hsv_fnl[1],MIN(WPchgRGB2_hsv[1],WPchgRGB_hsv[1]));
 
 
 if (WPchgRGB2_hsv[1]==min_sat){
 
-    avg_rgb_wp[0]=avg_rgb_wp2[0];
-    avg_rgb_wp[1]=avg_rgb_wp2[1];
-    avg_rgb_wp[2]=avg_rgb_wp2[2];
+    WPchgRGB[0]=WPchgRGB2[0];
+    WPchgRGB[1]=WPchgRGB2[1];
+    WPchgRGB[2]=WPchgRGB2[2];
 
-} else if (avg_rgb_nw_hsv[1]==min_sat){
+} else if (curr_rgb_dst_lin_hsv_fnl[1]==min_sat){
 
-    avg_rgb_wp[0]=avg_rgb_nw[0];
-    avg_rgb_wp[1]=avg_rgb_nw[1];
-    avg_rgb_wp[2]=avg_rgb_nw[2];
+    WPchgRGB[0]=curr_rgb_dst_lin_fnl[0];
+    WPchgRGB[1]=curr_rgb_dst_lin_fnl[1];
+    WPchgRGB[2]=curr_rgb_dst_lin_fnl[2];
+
+}
+
+
+if(rOG==0 && (gOG==0) && (bOG==0)){
+    WPchgRGB[0]=0;
+    WPchgRGB[1]=0;
+    WPchgRGB[2]=0;
 
 }
 
 
+ sumR_wp+=WPchgRGB[0];
+ sumG_wp+=WPchgRGB[1];
+ sumB_wp+=WPchgRGB[2];
 
+x+=3;
 }
+
+      }
+
+
+
+
+double avg_rgb_wp[3];
+double avg_rgb_wp_prp[3];
+double avg_rgb_wp_wht[3];
+
+avg_rgb_wp[0]=sumR_wp*rcp_counterAll;
+avg_rgb_wp[1]=sumG_wp*rcp_counterAll;
+avg_rgb_wp[2]=sumB_wp*rcp_counterAll;
 
 RGB2rgb(avg_rgb_wp,avg_rgb_wp_prp);
 rgb2RGB_White(avg_rgb_wp_prp,avg_rgb_wp_wht);
