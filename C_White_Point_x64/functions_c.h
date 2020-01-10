@@ -881,9 +881,10 @@ SL[1]=rgb[0]*0.299+rgb[1]*0.587+rgb[2]*0.114;
 }
 
 void rgb2yuv(double rgb[3],double YUV[3]){
-double Kr=0.2126;
-double Kg=0.7152;
-double Kb=0.0722;
+
+double Kr=0.212673;
+double Kg=0.715152;
+double Kb=0.072175;
 
 YUV[0]=Kr*rgb[0]+Kg*rgb[1]+Kb*rgb[2];
 YUV[1]=(rgb[0]-YUV[0])/(1-Kr);
@@ -895,9 +896,9 @@ YUV[2]=(rgb[2]-YUV[0])/(1-Kb);
 
 void yuv2rgb(double YUV[3],double rgb[3]){
 
-double Kr=0.2126;
-double Kg=0.7152;
-double Kb=0.0722;
+double Kr=0.212673;
+double Kg=0.715152;
+double Kb=0.072175;
 
 rgb[0]=YUV[0]+YUV[1]*(1-Kb);
 rgb[1]=YUV[0]-YUV[1]*(1-Kb)*Kb/Kg-YUV[2]*(1-Kr)*Kr/Kg;
