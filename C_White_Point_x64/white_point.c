@@ -9,6 +9,7 @@ typedef struct WhitePoint {
         double start;
         double x;
         double y;
+        int blend;
 
 } WhitePoint;
 
@@ -19,7 +20,7 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 
    AVS_VideoFrame* src = avs_get_frame(fi->child, n);
 
-   int row_size, height, src_pitch,x, y, p,dbg;
+   int row_size, height, src_pitch,x, y, p,dbg,blnd;
    BYTE* srcp;
    double CIEx,CIEy,rOG,bOG,gOG,strt,cust_x,cust_y;
 
@@ -27,6 +28,7 @@ dbg=params->debug;
 strt=params->start;
 cust_x=params->x;
 cust_y=params->y;
+blnd=params->blend;
 
    CIEx= 0.312727;
       CIEy= 0.329023;
@@ -327,10 +329,12 @@ bOG=currBlue*rcptwoFiveFive;     // B
          rOG=currRed*rcptwoFiveFive;     // R
 
 double curr_rgb_dst_lst[3]={rOG,gOG,bOG};
+double curr_rgb_dst_lst_YUV[3];
 
 double curr_rgb_dst_lin_lst[3];
+double curr_rgb_dst_lin_lst_YUV[3];
 sRGB2Linear(curr_rgb_dst_lst,curr_rgb_dst_lin_lst);
-
+rgb2yuv(curr_rgb_dst_lst,curr_rgb_dst_lst_YUV);
 double curr_rgb_dst_lin_prp_lst[3];
 RGB2rgb(curr_rgb_dst_lin_lst,curr_rgb_dst_lin_prp_lst);
 
@@ -355,6 +359,8 @@ if(dbg==1){
 }else{
 
     double WPchgRGB_lst[3];
+    double WPchgRGB_lst_bk[3];
+    double WPchgRGB_lst_gc[3];
 
     double rgbxyY_lst[3];
 double rgbXYZ_lst[3];
@@ -381,9 +387,18 @@ WPConvXYZ_lst[2]=WPConvXYZ4[2];
 }
 
 XYZ2xyY(WPConvXYZ_lst,WPConvXYZ_xyY_lst);
-
 xyY2rgb(WPConvXYZ_xyY_lst,WPchgRGB_lst);
+if (blnd==1){
 
+
+double WPchgRGB_lst_YUV[3];
+rgb2yuv(WPchgRGB_lst,WPchgRGB_lst_YUV);
+
+WPchgRGB_lst_YUV[1]=curr_rgb_dst_lst_YUV[1];
+WPchgRGB_lst_YUV[2]=curr_rgb_dst_lst_YUV[2];
+yuv2rgb(WPchgRGB_lst_YUV,WPchgRGB_lst);
+
+}
 
 
 if(rOG==0 && (gOG==0) && (bOG==0)){
@@ -435,6 +450,7 @@ if (!params)
           params->start = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):1;
           params->x = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.312727;
           params->y = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):0.329023;
+          params->blend = avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(args, 4)):true;
 
 
 
@@ -451,6 +467,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[debug]b[start]f[x]f[y]f", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[debug]b[start]f[x]f[y]f[blend]b", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
