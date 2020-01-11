@@ -44,6 +44,9 @@ runTot_r=0;
 runTot_g=0;
 runTot_b=0;
 weights=0;
+double last_sum_s=0;
+double last_ssd_s=0;
+double count_ssd=0;
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -74,13 +77,24 @@ runTot_r+=lnRGB[0]*weight;
 runTot_g+=lnRGB[1]*weight;
 runTot_b+=lnRGB[2]*weight;
 runTot_s+=satr;
-weights+=weight;
+
+if(count_ssd<1){ //If first eligible pixel, add current dist to sum
+last_sum_s=satr;
+}else{
+last_ssd_s+=(satr-((last_sum_s+satr)/(count_ssd+1)))*(satr-(last_sum_s/count_ssd));
+last_sum_s+=satr;
+}
+
+count_ssd+=1;
+weights=weights+weight;
 
         x=x+3;
 
       }
 
       }
+
+last_ssd_s*=(count_ssd)/(count_ssd-1); //Bessel correct
 
 //Bisection method solver/////////////////////////////////////////
 p=1;
@@ -89,7 +103,7 @@ max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 opt=0;
 double mxMean[3];
  double mxMeanGC[3];
- double avg_sat=runTot_s/weights;
+ double avg_sat=runTot_s/count_ssd;
 if(satu==0){
 
  mxMean[0]=runTot_r/weights;
@@ -103,7 +117,7 @@ while(p<=max_iters){
     c=0.5*(a+b);
     if(satu==1){
 
-        f_sat_gammaLow(avg_sat, c,f_c);
+        f_sat_gammaLow(avg_sat, last_ssd_s,c,f_c);
     }else{
     f_gammaLow(mxMeanGC, c,gamma_high,f_c);
     }
@@ -117,7 +131,7 @@ while(p<=max_iters){
 
         if(satu==1){
 
-        f_sat_gammaLow(avg_sat, a,f_a);
+        f_sat_gammaLow(avg_sat, last_ssd_s,a,f_a);
     }else{
     f_gammaLow(mxMeanGC, a,gamma_high_tmp,f_a);
     }
@@ -157,7 +171,7 @@ if(satu==1){
     double rgb[3]={R,G,B};
     double rgb_bk[3];
     rgb2hsv(rgb,hsv);
-    hsv[1]=MAX(0, pow(hsv[1],gamma_low));
+    hsv[1]=MIN(MAX(0, pow(hsv[1],gamma_low)),1);
     hsv2rgb(hsv,rgb_bk);
     R=rgb_bk[0];
     G=rgb_bk[1];
