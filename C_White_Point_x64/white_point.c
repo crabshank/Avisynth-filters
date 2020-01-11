@@ -402,8 +402,9 @@ WPchgRGB_lst_YUV[2]=curr_rgb_dst_lst_YUV[2];
 yuv2rgbWP(WPchgRGB_lst_YUV,WPchgRGB_lst_YUV_bk);
 rgb2hsv(WPchgRGB_lst_YUV_bk,WPchgRGB_lst_hsv);
      double lrp_blnd=(0.5 - fabs(mod(fabs(WPchgRGB_lst_hsv[0] - curr_rgb_dst_hsv[0])  , 1) - 0.5))*2;
+     //double lrp_blnd=0.5*(fabs(WPchgRGB_lst_YUV[1]-curr_rgb_dst_lst_YUV[1])+fabs(WPchgRGB_lst_YUV[2]-curr_rgb_dst_lst_YUV[2]));
 
-WPchgRGB_lst_hsv[1]=MAX(WPchgRGB_lst_hsv[1]-(1-curr_rgb_dst_hsv[1])*lrp_blnd,0);
+WPchgRGB_lst_hsv[1]=MAX(WPchgRGB_lst_hsv[1]-0.5*    ((lrp_blnd)*(1-fabs(WPchgRGB_lst_hsv[1]-curr_rgb_dst_hsv[1])+(curr_rgb_dst_hsv[2]))),0);
 hsv2rgb(WPchgRGB_lst_hsv,WPchgRGB_lst);
 }
 
@@ -420,6 +421,8 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
                 srcp[x] = MAX(MIN(round(WPchgRGB_lst[2]*255),255),0);
              srcp[x+1] =MAX(MIN(round(WPchgRGB_lst[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(WPchgRGB_lst[0]*255),255),0);
+
+
 
 }
 
