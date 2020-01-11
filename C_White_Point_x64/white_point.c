@@ -334,7 +334,7 @@ double curr_rgb_dst_lst_YUV[3];
 double curr_rgb_dst_lin_lst[3];
 double curr_rgb_dst_lin_lst_YUV[3];
 sRGB2Linear(curr_rgb_dst_lst,curr_rgb_dst_lin_lst);
-rgb2yuv(curr_rgb_dst_lst,curr_rgb_dst_lst_YUV);
+rgb2yuvWP(curr_rgb_dst_lst,curr_rgb_dst_lst_YUV);
 double curr_rgb_dst_lin_prp_lst[3];
 RGB2rgb(curr_rgb_dst_lin_lst,curr_rgb_dst_lin_prp_lst);
 
@@ -392,11 +392,11 @@ if (blnd==1){
 
 
 double WPchgRGB_lst_YUV[3];
-rgb2yuv(WPchgRGB_lst,WPchgRGB_lst_YUV);
+rgb2yuvWP(WPchgRGB_lst,WPchgRGB_lst_YUV);
 
 WPchgRGB_lst_YUV[1]=curr_rgb_dst_lst_YUV[1];
 WPchgRGB_lst_YUV[2]=curr_rgb_dst_lst_YUV[2];
-yuv2rgb(WPchgRGB_lst_YUV,WPchgRGB_lst);
+yuv2rgbWP(WPchgRGB_lst_YUV,WPchgRGB_lst);
 
 }
 

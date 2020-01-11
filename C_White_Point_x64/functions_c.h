@@ -880,7 +880,7 @@ void RGB2TintSL(double rgb[3],double SL[2]){
 SL[1]=rgb[0]*0.299+rgb[1]*0.587+rgb[2]*0.114;
 }
 
-void rgb2yuv(double rgb[3],double YUV[3]){
+void rgb2yuvWP(double rgb[3],double YUV[3]){
 
 double Kr=0.212673;
 double Kg=0.715152;
@@ -894,7 +894,7 @@ YUV[2]=(rgb[2]-YUV[0])/(1-Kb);
 
 
 
-void yuv2rgb(double YUV[3],double rgb[3]){
+void yuv2rgbWP(double YUV[3],double rgb[3]){
 
 double Kr=0.212673;
 double Kg=0.715152;
