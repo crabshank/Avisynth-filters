@@ -109,14 +109,3 @@ double hwb[3]={hsv[0],(1-hsv[1])*hsv[2],1-hsv[2]};
 
 
 }
-void f_sat_gammaLow(double sat, double sdev,double gamma, double dist){
-
-
-double outcolLo=pow(MAX(sat-sdev,0),gamma);
-double outcolHi=pow(MIN(1,sat+sdev),gamma);
-
- dist=1-fabs(outcolHi-outcolLo);
-
-
-}
-

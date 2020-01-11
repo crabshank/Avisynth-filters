@@ -9,7 +9,6 @@ typedef struct Auto_Gamma {
       double bracketB;
       int tolerance;
       int limitedRange;
-      int desat;
 } Auto_Gamma;
 
 AVS_VideoFrame* AVSC_CC Auto_Gamma_get_frame(AVS_FilterInfo* fi, int n)
@@ -18,17 +17,16 @@ AVS_VideoFrame* AVSC_CC Auto_Gamma_get_frame(AVS_FilterInfo* fi, int n)
 
    AVS_VideoFrame* src = avs_get_frame(fi->child, n);
 
-//int sgn_c,sgn_a
 
-   int row_size, height, src_pitch,x, y, p,max_iters,tol,tolr,opt,lmr,satu;
+
+   int row_size, height, src_pitch,x, y, p,count,max_iters,tol,tolr,sgn_c,sgn_a,opt,lmr;
    BYTE* srcp;
-   double a,b,c,mx,runTot_r,runTot_g,runTot_b,runTot_s,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,weights;
+   double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,weights;
 
 a =   params->bracketA;
 b=params->bracketB;
 tol=params->tolerance;
 lmr=params->limitedRange;
-satu=params->desat;
 
             int planes[] ={AVS_CS_BGR32};
 src = avs_get_frame(fi->child, n);
@@ -44,9 +42,6 @@ runTot_r=0;
 runTot_g=0;
 runTot_b=0;
 weights=0;
-double last_sum_s=0;
-double last_ssd_s=0;
-double count_ssd=0;
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -64,11 +59,11 @@ double lnRGB[3];
    double      mn=MIN(rOG,MIN(gOG,bOG));
  double mx=MAX(rOG,MAX(gOG,bOG));
 
-double satr=(mx==0)?0:(mx-mn)/mx;
+double sat=(mx==0)?0:(mx-mn)/mx;
 
 
 double HWblack=1-mx;
-double HwhiteB=(1-satr)*mx;
+double HwhiteB=(1-sat)*mx;
 
 double weight=1+(1-(sqrt(pow(HwhiteB,2)+pow(HWblack,2)))/sqrt((2)));
 sRGB2Linear(ogRGB,lnRGB);
@@ -76,17 +71,7 @@ sRGB2Linear(ogRGB,lnRGB);
 runTot_r+=lnRGB[0]*weight;
 runTot_g+=lnRGB[1]*weight;
 runTot_b+=lnRGB[2]*weight;
-runTot_s+=satr;
-
-if(count_ssd<1){ //If first eligible pixel, add current dist to sum
-last_sum_s=satr;
-}else{
-last_ssd_s+=(satr-((last_sum_s+satr)/(count_ssd+1)))*(satr-(last_sum_s/count_ssd));
-last_sum_s+=satr;
-}
-
-count_ssd+=1;
-weights=weights+weight;
+weights+=weight;
 
         x=x+3;
 
@@ -94,33 +79,18 @@ weights=weights+weight;
 
       }
 
-last_ssd_s*=(count_ssd)/(count_ssd-1); //Bessel correct
-
 //Bisection method solver/////////////////////////////////////////
 p=1;
 tolr=pow(1,(double)tol*-1);
 max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 opt=0;
-double mxMean[3];
- double mxMeanGC[3];
- double avg_sat=runTot_s/count_ssd;
-if(satu==0){
-
- mxMean[0]=runTot_r/weights;
- mxMean[1]=runTot_g/weights;
- mxMean[2]=runTot_b/weights;
-
+double mxMean[3]={runTot_r/weights,runTot_g/weights,runTot_b/weights};
+double mxMeanGC[3];
 Linear2sRGB(mxMean,mxMeanGC);
-}
-
 while(p<=max_iters){
     c=0.5*(a+b);
-    if(satu==1){
-
-        f_sat_gammaLow(avg_sat, last_ssd_s,c,f_c);
-    }else{
     f_gammaLow(mxMeanGC, c,gamma_high,f_c);
-    }
+
     if(f_c==0||(0.5*(b-a)<tolr)){
     p=max_iters;
     gamma_low=c;
@@ -128,14 +98,7 @@ while(p<=max_iters){
     }
 
     p++;
-
-        if(satu==1){
-
-        f_sat_gammaLow(avg_sat, last_ssd_s,a,f_a);
-    }else{
-    f_gammaLow(mxMeanGC, a,gamma_high_tmp,f_a);
-    }
-
+    f_gammaLow(mxMeanGC, a,gamma_high_tmp,f_a );
    // sgn_c=(f_c<0)?-1:1;
     //sgn_a=(f_a<0)?-1:1;
     if(f_a>f_c){
@@ -164,39 +127,20 @@ bOG=currBlue/255.0;     // B
 R=rOG;
 G=gOG;
 B=bOG;
-
-
-if(satu==1){
-    double hsv[3];
-    double rgb[3]={R,G,B};
-    double rgb_bk[3];
-    rgb2hsv(rgb,hsv);
-    hsv[1]=MIN(MAX(0, pow(hsv[1],gamma_low)),1);
-    hsv2rgb(hsv,rgb_bk);
-    R=rgb_bk[0];
-    G=rgb_bk[1];
-    B=rgb_bk[2];
-
-
-}else{
-           if(opt==1){
+         if(opt==1){
 
 R=lerp(pow(rOG,gamma_low),pow(rOG,gamma_high),rOG);
 G=lerp(pow(gOG,gamma_low),pow(gOG,gamma_high),gOG);
 B=lerp(pow(bOG,gamma_low),pow(bOG,gamma_high),bOG);
 
 
-         }
-
-
-
-}
 if(lmr==1){
     R=(( R*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
      G=(( G*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
       B=(( B*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
 }
 
+         }
 
 ////////////////////////////////////////////////////
 //if (x_shift>0.5){
@@ -242,7 +186,6 @@ if (!params)
          params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
                 params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):2;
 params->limitedRange= avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):false;
-params->desat= avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(args, 5)):false;
 
    fi->user_data = (void*) params;
    fi->get_frame = Auto_Gamma_get_frame;
@@ -257,6 +200,6 @@ params->desat= avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(arg
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[tolerance]i[limitedRange]b[desat]b", create_Auto_Gamma, 0);
+   avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[tolerance]i[limitedRange]b", create_Auto_Gamma, 0);
    return "Auto_Gamma sample C plugin";
 }
