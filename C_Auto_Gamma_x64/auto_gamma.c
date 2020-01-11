@@ -88,18 +88,20 @@ tolr=pow(1,(double)tol*-1);
 max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 opt=0;
 double mxMean[3];
+ double mxMeanGC[3];
 if(satu==1){
 double avg_sat=runTot_s/weights;
-mxMean[0]=avg_sat;
-mxMean[1]=avg_sat;
-mxMean[2]=avg_sat;
+mxMeanGC[0]=avg_sat;
+mxMeanGC[1]=avg_sat;
+mxMeanGC[2]=avg_sat;
 }else{
  mxMean[0]=runTot_r/weights;
  mxMean[1]=runTot_g/weights;
  mxMean[2]=runTot_b/weights;
-}
-double mxMeanGC[3];
+
 Linear2sRGB(mxMean,mxMeanGC);
+}
+
 while(p<=max_iters){
     c=0.5*(a+b);
     f_gammaLow(mxMeanGC, c,gamma_high,f_c);
