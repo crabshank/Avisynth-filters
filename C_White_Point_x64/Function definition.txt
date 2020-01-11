@@ -4,6 +4,5 @@
      float "start"=1 (1 to 0),
      float "x"=0.312727,
      float "y"=0.329023,
-     bool "blend"= true,
-     float "desat"=0
+     bool "blend"= true
 )
