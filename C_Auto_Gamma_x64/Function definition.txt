@@ -4,5 +4,4 @@
      float "b"=12,
      int "tolerance"=2 (accurate to n decimal places),
      bool "limitedRange"=false,
-     bool "desat"=false (auto-desaturate instead of auto-gamma; use a=0, b = some low number)
 )
