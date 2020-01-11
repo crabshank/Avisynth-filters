@@ -89,10 +89,10 @@ max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 opt=0;
 double mxMean[3];
 if(satu==1){
-
-mxMean[0]=runTot_s/weights;
-mxMean[1]=runTot_s/weights;
-mxMean[2]=runTot_s/weights;
+double avg_sat=runTot_s/weights;
+mxMean[0]=avg_sat;
+mxMean[1]=avg_sat;
+mxMean[2]=avg_sat;
 }else{
  mxMean[0]=runTot_r/weights;
  mxMean[1]=runTot_g/weights;
