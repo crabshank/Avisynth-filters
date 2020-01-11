@@ -9,6 +9,7 @@ typedef struct Auto_Gamma {
       double bracketB;
       int tolerance;
       int limitedRange;
+      int sat;
 } Auto_Gamma;
 
 AVS_VideoFrame* AVSC_CC Auto_Gamma_get_frame(AVS_FilterInfo* fi, int n)
@@ -19,14 +20,15 @@ AVS_VideoFrame* AVSC_CC Auto_Gamma_get_frame(AVS_FilterInfo* fi, int n)
 
 
 
-   int row_size, height, src_pitch,x, y, p,count,max_iters,tol,tolr,sgn_c,sgn_a,opt,lmr;
+   int row_size, height, src_pitch,x, y, p,count,max_iters,tol,tolr,sgn_c,sgn_a,opt,lmr,satu;
    BYTE* srcp;
-   double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,weights;
+   double a,b,c,mx,runTot_r,runTot_g,runTot_b,runTot_s,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,weights;
 
 a =   params->bracketA;
 b=params->bracketB;
 tol=params->tolerance;
 lmr=params->limitedRange;
+satu=params->sat;
 
             int planes[] ={AVS_CS_BGR32};
 src = avs_get_frame(fi->child, n);
@@ -59,11 +61,11 @@ double lnRGB[3];
    double      mn=MIN(rOG,MIN(gOG,bOG));
  double mx=MAX(rOG,MAX(gOG,bOG));
 
-double sat=(mx==0)?0:(mx-mn)/mx;
+double satr=(mx==0)?0:(mx-mn)/mx;
 
 
 double HWblack=1-mx;
-double HwhiteB=(1-sat)*mx;
+double HwhiteB=(1-satr)*mx;
 
 double weight=1+(1-(sqrt(pow(HwhiteB,2)+pow(HWblack,2)))/sqrt((2)));
 sRGB2Linear(ogRGB,lnRGB);
@@ -71,7 +73,8 @@ sRGB2Linear(ogRGB,lnRGB);
 runTot_r+=lnRGB[0]*weight;
 runTot_g+=lnRGB[1]*weight;
 runTot_b+=lnRGB[2]*weight;
-weights+=weight;
+runTot_s+=satr;
+weights=(satu==1)?weights+1:weights+weight;
 
         x=x+3;
 
@@ -84,7 +87,17 @@ p=1;
 tolr=pow(1,(double)tol*-1);
 max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 opt=0;
-double mxMean[3]={runTot_r/weights,runTot_g/weights,runTot_b/weights};
+double mxMean[3];
+if(satu==1){
+
+mxMean[0]=runTot_s/weights;
+mxMean[1]=runTot_s/weights;
+mxMean[2]=runTot_s/weights;
+}else{
+ mxMean[0]=runTot_r/weights;
+ mxMean[1]=runTot_g/weights;
+ mxMean[2]=runTot_b/weights;
+}
 double mxMeanGC[3];
 Linear2sRGB(mxMean,mxMeanGC);
 while(p<=max_iters){
@@ -127,20 +140,39 @@ bOG=currBlue/255.0;     // B
 R=rOG;
 G=gOG;
 B=bOG;
-         if(opt==1){
+
+
+if(satu==1){
+    double hsv[3];
+    double rgb[3]={R,G,B};
+    double rgb_bk[3];
+    rgb2hsv(rgb,hsv);
+    hsv[1]=lerp(pow( hsv[1],gamma_low),pow(hsv[1],gamma_high),hsv[1]);
+    hsv2rgb(hsv,rgb_bk);
+    R=rgb_bk[0];
+    G=rgb_bk[1];
+    B=rgb_bk[2];
+
+
+}else{
+           if(opt==1){
 
 R=lerp(pow(rOG,gamma_low),pow(rOG,gamma_high),rOG);
 G=lerp(pow(gOG,gamma_low),pow(gOG,gamma_high),gOG);
 B=lerp(pow(bOG,gamma_low),pow(bOG,gamma_high),bOG);
 
 
+         }
+
+
+
+}
 if(lmr==1){
     R=(( R*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
      G=(( G*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
       B=(( B*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
 }
 
-         }
 
 ////////////////////////////////////////////////////
 //if (x_shift>0.5){
@@ -186,6 +218,7 @@ if (!params)
          params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
                 params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):2;
 params->limitedRange= avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):false;
+params->sat= avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(args, 5)):false;
 
    fi->user_data = (void*) params;
    fi->get_frame = Auto_Gamma_get_frame;
@@ -200,6 +233,6 @@ params->limitedRange= avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[tolerance]i[limitedRange]b", create_Auto_Gamma, 0);
+   avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[tolerance]i[limitedRange]b[sat]b", create_Auto_Gamma, 0);
    return "Auto_Gamma sample C plugin";
 }
