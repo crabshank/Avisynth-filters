@@ -1,8 +1,6 @@
 (
      clip,
-     bool "debug"=false,
-     float "start"=1 (1 to 0),
+     bool "post"=true (if x or y are specified, post=false does a white point transform only),
      float "x"=0.312727,
-     float "y"=0.329023,
-     bool "blend"= true
+     float "y"=0.329023
 )
