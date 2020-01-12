@@ -130,7 +130,8 @@ double initSat_avg=curr_rgb_dst_lst_hsv[1];
     curr_rgb_dst_lst_hsv[1]=MAX(0.5*(curr_rgb_dst_lst_hsv[1]*curr_rgb_dst_lst_hsv[1] +(1-curr_rgb_dst_lst_hsv[2])),0);
 
 double lrpr=1-third*((1-curr_rgb_dst_lst_hsv[1])   +lrp+(1-initSat_avg))*(1-initSat_avg);
-curr_rgb_dst_lst_hsv[1]=lerp(curr_rgb_dst_lst_hsv[1],initSat_avg,lrpr);
+
+curr_rgb_dst_lst_hsv[1]=MIN(lerp(curr_rgb_dst_lst_hsv[1],initSat_avg,lrpr),initSat_avg);
 
 hsv2rgb(curr_rgb_dst_lst_hsv,WPchgRGB_lst);
 
