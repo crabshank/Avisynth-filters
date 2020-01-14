@@ -150,7 +150,7 @@ curr_rgb_dst_lst_hsv[1]=MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(Sc
 
 curr_rgb_dst_lst_hsv[1]=MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(initSat+(1-Sc_diff_scr))));
 double curr_diff=fabs(curr_rgb_dst_lst_hsv[1]-initSat)/(MAX(curr_rgb_dst_lst_hsv[1],MAX(1-curr_rgb_dst_lst_hsv[1],MAX(initSat,1-initSat))));
-curr_rgb_dst_lst_hsv[1]=MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(((curr_rgb_dst_lst_hsv[1])+(curr_diff)))));
+curr_rgb_dst_lst_hsv[1]=MAX(0,MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(((curr_rgb_dst_lst_hsv[1])+(curr_diff))))));
 
 hsv2rgb(curr_rgb_dst_lst_hsv,WPchgRGB_lst);
 
