@@ -38,13 +38,21 @@ p=0;
       src_pitch = avs_get_pitch_p(src, planes[p]);
       row_size = avs_get_row_size_p(src, planes[p]);
       height = avs_get_height_p(src, planes[p]);
-
-if(pst==1){
 double counterAll=0;
 
 double sumR_gc=0;
 double sumG_gc=0;
 double sumB_gc=0;
+
+double sumR_gc_prp=0;
+double sumG_gc_prp=0;
+double sumB_gc_prp=0;
+
+double Sc_sum=0;
+double Sc_avg=0;
+    double avg_rgb_gc[3];
+    double avg_hsv_gc[3];
+if(pst==1){
 
 
       for (y=0; y<height; y++) {
@@ -60,10 +68,23 @@ bOG=currBlue*rcptwoFiveFive;     // B
          rOG=currRed*rcptwoFiveFive;     // R
 
 double curr_rgb_dst[3]={rOG,gOG,bOG};
+double curr_rgb_dst_prp[3];
+RGB2rgb(curr_rgb_dst,curr_rgb_dst_prp);
 
+double Sc=1-(MAX(curr_rgb_dst_prp[0],MAX(curr_rgb_dst_prp[1],curr_rgb_dst_prp[2]))-MIN(curr_rgb_dst_prp[0],MIN(curr_rgb_dst_prp[1],curr_rgb_dst_prp[2])));
+//double mx=MAX(curr_rgb_dst[0],MAX(curr_rgb_dst[1],curr_rgb_dst[2]));
+//  Sc=MIN(MAX(third*(2*Sc+mx),0),1);
+/*
+  double mx_prp_diff_r=MAX(curr_rgb_dst_prp[0],MAX(1-curr_rgb_dst_prp[0],MAX(,)));
+  double mx_prp_diff_g=MAX(,MAX(,MAX(,)));
+  double mx_prp_diff_r=MAX(,MAX(,MAX(,)));
+*/
+Sc_sum+=Sc;
 sumR_gc+=curr_rgb_dst[0];
 sumG_gc+= curr_rgb_dst[1];
 sumB_gc+=curr_rgb_dst[2];
+
+
         counterAll+=1;
 
 
@@ -79,23 +100,17 @@ x+=3;
 
       double rcp_counterAll=(counterAll==0)?1:pow(counterAll,-1);
 
-    double avg_rgb_gc[3];
+
 
 avg_rgb_gc[0]=sumR_gc*rcp_counterAll;
 avg_rgb_gc[1]=sumG_gc*rcp_counterAll;
 avg_rgb_gc[2]=sumB_gc*rcp_counterAll;
 
 
-double avg_rgb_hsv[3];
-rgb2hsv(avg_rgb_gc ,avg_rgb_hsv);
+rgb2hsv(avg_rgb_gc,avg_hsv_gc);
+Sc_avg=Sc_sum*rcp_counterAll;
 
 
- double initSat_avg=avg_rgb_hsv[1];
-
- avg_rgb_hsv[1]=MAX(0.5*(avg_rgb_hsv[1]*avg_rgb_hsv[1] +(1-avg_rgb_hsv[2])),0);
-double mx_diff=MAX(initSat_avg,1-initSat_avg);
-
-lrp=(mx_diff==0)?1:fabs(initSat_avg-avg_rgb_hsv[1])/mx_diff;
 }
 
 double rgbxyY_lst[3];
@@ -122,17 +137,31 @@ bOG=currBlue*rcptwoFiveFive;     // B
 double curr_rgb_dst_lst[3]={rOG,gOG,bOG};
 
 if(pst==1){
+double curr_rgb_dst_lst_prp[3];
+RGB2rgb(curr_rgb_dst_lst,curr_rgb_dst_lst_prp);
 double curr_rgb_dst_lst_hsv[3];
 double curr_rgb_dst_lin_lst[3];
 rgb2hsv(curr_rgb_dst_lst,curr_rgb_dst_lst_hsv);
 
-double initSat_avg=curr_rgb_dst_lst_hsv[1];
-    curr_rgb_dst_lst_hsv[1]=MAX(0.5*(curr_rgb_dst_lst_hsv[1]*curr_rgb_dst_lst_hsv[1] +(1-curr_rgb_dst_lst_hsv[2])),0);
+double initSat=curr_rgb_dst_lst_hsv[1];
 
-double lrpr=1-third*(1-initSat_avg)*(lrp - initSat_avg- curr_rgb_dst_lst_hsv[1] +2);
-curr_rgb_dst_lst_hsv[1]=MIN(lerp(curr_rgb_dst_lst_hsv[1],initSat_avg,lrpr),initSat_avg);
+    double Sc_lst=1-(MAX(curr_rgb_dst_lst_prp[0],MAX(curr_rgb_dst_lst_prp[1],curr_rgb_dst_lst_prp[2]))-MIN(curr_rgb_dst_lst_prp[0],MIN(curr_rgb_dst_lst_prp[1],curr_rgb_dst_lst_prp[2])));
+
+    double Sc_diff_scr=(1-(fabs(Sc_avg-Sc_lst)/(MAX(Sc_avg,MAX(1-Sc_avg,MAX(Sc_lst,1-Sc_lst))))));
+    double Sat_diff_scr=(1-(fabs(initSat-avg_hsv_gc[1])/(MAX(avg_hsv_gc[1],MAX(1-avg_hsv_gc[1],MAX(initSat,1-initSat))))));
+    double dnm=1-0.5*(Sc_diff_scr+Sc_lst);
+    dnm=(dnm==0)?0:pow(Sc_lst,1.0/dnm);
+double dst=pow(0.5*(0.5*(Sc_diff_scr*Sc_lst)*dnm+Sc_lst),1-Sc_lst);
+curr_rgb_dst_lst_hsv[1]*=1-(dst);
+curr_rgb_dst_lst_hsv[1]=MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(Sc_diff_scr+initSat)*Sat_diff_scr));
+
+curr_rgb_dst_lst_hsv[1]=MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(initSat+(1-Sc_diff_scr))));
+double curr_diff=fabs(curr_rgb_dst_lst_hsv[1]-initSat)/(MAX(curr_rgb_dst_lst_hsv[1],MAX(1-curr_rgb_dst_lst_hsv[1],MAX(initSat,1-initSat))));
+curr_rgb_dst_lst_hsv[1]=MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(((curr_rgb_dst_lst_hsv[1])+(curr_diff)))));
 
 hsv2rgb(curr_rgb_dst_lst_hsv,WPchgRGB_lst);
+
+
 
 if (cust_x!=CIEx || (cust_y!=CIEy)){
 
