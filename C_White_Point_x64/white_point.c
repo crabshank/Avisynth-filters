@@ -145,12 +145,12 @@ double initSat=curr_rgb_dst_lst_hsv[1];
     double dnm=1-0.5*(Sc_diff_scr+Sc_lst);
     dnm=(dnm==0)?0:pow(Sc_lst,1.0/dnm);
 double dst=pow(0.5*(0.5*(Sc_diff_scr*Sc_lst)*dnm+Sc_lst),1-Sc_lst);
-curr_rgb_dst_lst_hsv[1]*=1-(dst);
-curr_rgb_dst_lst_hsv[1]=MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(Sc_diff_scr+initSat)*Sat_diff_scr));
+double curr_sat=initSat*(1-(dst));
+curr_sat=MIN(initSat,lerp(curr_sat,initSat,0.5*(Sc_diff_scr+initSat)*Sat_diff_scr));
 
-curr_rgb_dst_lst_hsv[1]=MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(initSat+(1-Sc_diff_scr))));
-double curr_diff=fabs(curr_rgb_dst_lst_hsv[1]-initSat)/(MAX(curr_rgb_dst_lst_hsv[1],MAX(1-curr_rgb_dst_lst_hsv[1],MAX(initSat,1-initSat))));
-curr_rgb_dst_lst_hsv[1]=MAX(0,MIN(initSat,lerp(curr_rgb_dst_lst_hsv[1],initSat,0.5*(((curr_rgb_dst_lst_hsv[1])+(curr_diff))))));
+curr_sat=MIN(initSat,lerp(curr_sat,initSat,0.5*(initSat+(1-Sc_diff_scr))));
+double curr_diff=fabs(curr_sat-initSat)/(MAX(curr_sat,MAX(1-curr_sat,MAX(initSat,1-initSat))));
+curr_rgb_dst_lst_hsv[1]=MAX(0,MIN(initSat,lerp(curr_sat,initSat,0.5*(((curr_sat)+(curr_diff))))));
 
 hsv2rgb(curr_rgb_dst_lst_hsv,WPchgRGB_lst);
 
