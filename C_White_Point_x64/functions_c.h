@@ -417,9 +417,10 @@ void rgb2xyY(double rgb[3],double outp[3]){
 
 	double XYZ[3]={0,0,0};
 
-	for (int p=0;p<3;p++){
-        rgbNew[p]=(rgb[p] > 0.0404482362771082 )?pow(fabs((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
-}
+
+        rgbNew[0]=(rgb[0] > 0.0404482362771082 )?pow(fabs((rgb[0]+0.055)/1.055),2.4):rgb[0]/12.92;
+        rgbNew[1]=(rgb[1] > 0.0404482362771082 )?pow(fabs((rgb[1]+0.055)/1.055),2.4):rgb[1]/12.92;
+        rgbNew[2]=(rgb[2] > 0.0404482362771082 )?pow(fabs((rgb[2]+0.055)/1.055),2.4):rgb[2]/12.92;
 
 
 

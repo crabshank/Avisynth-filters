@@ -8,6 +8,7 @@ typedef struct WhitePoint {
     int post;
         double x;
         double y;
+        double scurve;
 } WhitePoint;
 
 
@@ -19,11 +20,12 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 
    int row_size, height, src_pitch,x, y, p,pst;
    BYTE* srcp;
-   double CIEx,CIEy,rOG,bOG,gOG,cust_x,cust_y,lrp;
+   double CIEx,CIEy,rOG,bOG,gOG,cust_x,cust_y,lrp,scrv;
 
 pst=params->post;
 cust_x=params->x;
 cust_y=params->y;
+scrv=params->scurve;
 
 
    CIEx= 0.312727;
@@ -135,6 +137,7 @@ double curr_rgb_dst_lst_prp[3];
 RGB2rgb(curr_rgb_dst_lst,curr_rgb_dst_lst_prp);
 double curr_rgb_dst_lst_hsv[3];
 rgb2hsv(curr_rgb_dst_lst,curr_rgb_dst_lst_hsv);
+double Y=0.212673*rOG+0.715152*gOG+0.072175*bOG;
 
 double initSat=curr_rgb_dst_lst_hsv[1];
 
@@ -151,6 +154,13 @@ curr_sat=MIN(initSat,lerp(curr_sat,initSat,0.5*(Sc_diff_scr+initSat)*Sat_diff_sc
 curr_sat=MIN(initSat,lerp(curr_sat,initSat,0.5*(initSat+(1-Sc_diff_scr))));
 double curr_diff=fabs(curr_sat-initSat)/(MAX(curr_sat,MAX(1-curr_sat,MAX(initSat,1-initSat))));
 curr_rgb_dst_lst_hsv[1]=MAX(0,MIN(initSat,lerp(curr_sat,initSat,0.5*(((curr_sat)+(curr_diff))))));
+
+if(scrv!=-1){
+double post_sat=curr_rgb_dst_lst_hsv[1];
+double scrv_sat=curr_rgb_dst_lst_hsv[1]*2;
+scrv_sat=(scrv_sat<0.5)?pow(fabs(0.5*scrv_sat),scrv):1-(0.5*pow(fabs(2-scrv_sat),scrv));
+curr_rgb_dst_lst_hsv[1]=lerp(MIN(scrv_sat,initSat),MAX(scrv_sat,initSat),Y);
+}
 
 hsv2rgb(curr_rgb_dst_lst_hsv,WPchgRGB_lst);
 
@@ -255,6 +265,7 @@ if (!params)
           params->post = avs_defined(avs_array_elt(args, 1))?avs_as_bool(avs_array_elt(args, 1)):true;
           params->x = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.312727;
           params->y = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.329023;
+          params->scurve = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):-1;
 
 
    fi->user_data = (void*) params;
@@ -270,6 +281,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[blend]b", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[scurve]f[desat]f", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
