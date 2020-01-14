@@ -9,6 +9,8 @@ typedef struct WhitePoint {
         double x;
         double y;
         double scurve;
+        double desat;
+        int debug;
 } WhitePoint;
 
 
@@ -18,14 +20,16 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 
    AVS_VideoFrame* src = avs_get_frame(fi->child, n);
 
-   int row_size, height, src_pitch,x, y, p,pst;
+   int row_size, height, src_pitch,x, y, p,pst,dbg;
    BYTE* srcp;
-   double CIEx,CIEy,rOG,bOG,gOG,cust_x,cust_y,lrp,scrv;
+   double CIEx,CIEy,rOG,bOG,gOG,cust_x,cust_y,lrp,scrv,dest;
 
 pst=params->post;
 cust_x=params->x;
 cust_y=params->y;
 scrv=params->scurve;
+dest=params->desat;
+dbg=params->debug;
 
 
    CIEx= 0.312727;
@@ -155,6 +159,14 @@ curr_sat=MIN(initSat,lerp(curr_sat,initSat,0.5*(initSat+(1-Sc_diff_scr))));
 double curr_diff=fabs(curr_sat-initSat)/(MAX(curr_sat,MAX(1-curr_sat,MAX(initSat,1-initSat))));
 curr_rgb_dst_lst_hsv[1]=MAX(0,MIN(initSat,lerp(curr_sat,initSat,0.5*(((curr_sat)+(curr_diff))))));
 
+if(dest!=0){
+double man_dst=curr_rgb_dst_lst_hsv[1];
+
+man_dst=MAX(0,lerp(man_dst,-dest+dest*man_dst+man_dst,Y));
+    curr_rgb_dst_lst_hsv[1]=man_dst;
+
+}
+
 if(scrv!=-1){
 double post_sat=curr_rgb_dst_lst_hsv[1];
 double scrv_sat=curr_rgb_dst_lst_hsv[1]*2;
@@ -163,7 +175,6 @@ curr_rgb_dst_lst_hsv[1]=lerp(MIN(scrv_sat,initSat),MAX(scrv_sat,initSat),Y);
 }
 
 hsv2rgb(curr_rgb_dst_lst_hsv,WPchgRGB_lst);
-
 
 
 if (cust_x!=CIEx || (cust_y!=CIEy)){
@@ -224,6 +235,14 @@ WPchgRGB_lst[2]=bOG;
 }
       }
 
+      if (dbg==1){
+            double chroma=(MAX(WPchgRGB_lst[0],MAX(WPchgRGB_lst[1],WPchgRGB_lst[2]))-MIN(WPchgRGB_lst[0],MIN(WPchgRGB_lst[1],WPchgRGB_lst[2])));
+
+        WPchgRGB_lst[0]=chroma;
+        WPchgRGB_lst[1]=chroma;
+        WPchgRGB_lst[2]=chroma;
+      }
+
 
              srcp[x] = MAX(MIN(round(WPchgRGB_lst[2]*255),255),0);
              srcp[x+1] =MAX(MIN(round(WPchgRGB_lst[1]*255),255),0);
@@ -266,6 +285,8 @@ if (!params)
           params->x = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.312727;
           params->y = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.329023;
           params->scurve = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):-1;
+          params->desat = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):0;
+          params->debug = avs_defined(avs_array_elt(args, 6))?avs_as_bool(avs_array_elt(args, 6)):false;
 
 
    fi->user_data = (void*) params;
@@ -281,6 +302,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[scurve]f[desat]f", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[scurve]f[desat]f[debug]b", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
