@@ -162,7 +162,7 @@ curr_rgb_dst_lst_hsv[1]=MAX(0,MIN(initSat,lerp(curr_sat,initSat,0.5*(((curr_sat)
 if(dest!=0){
 double man_dst=curr_rgb_dst_lst_hsv[1];
 
-man_dst=MAX(0,lerp(man_dst,-dest+dest*man_dst+man_dst,Y));
+man_dst=MAX(0,lerp(man_dst,-dest+dest*man_dst+man_dst,(Y*(curr_rgb_dst_lst_hsv[2]*man_dst))));
     curr_rgb_dst_lst_hsv[1]=man_dst;
 
 }
