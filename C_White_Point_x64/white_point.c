@@ -58,8 +58,13 @@ double Sc_sum=0;
 double Sc_avg=0;
     double avg_rgb_gc[3];
     double avg_hsv_gc[3];
-    double avg_Y    ;
-    double sum_Y;
+    double avg_Y=0;
+    double sum_Y=0;
+    double sum_invK=0;
+    double avg_invK=0;
+    double sum_white=0;
+    double avg_white=0;
+
 if(pst==1){
 
 
@@ -85,7 +90,8 @@ Sc_sum+=Sc;
 sumR_gc+=curr_rgb_dst[0];
 sumG_gc+= curr_rgb_dst[1];
 sumB_gc+=curr_rgb_dst[2];
-
+     sum_invK+=1-MIN(1-rOG,MIN(1-gOG,1-bOG));
+     sum_white+=MIN(rOG,MIN(gOG,bOG));
 
         counterAll+=1;
 
@@ -111,7 +117,8 @@ avg_rgb_gc[2]=sumB_gc*rcp_counterAll;
 rgb2hsv(avg_rgb_gc,avg_hsv_gc);
 Sc_avg=Sc_sum*rcp_counterAll;
 avg_Y=sum_Y*rcp_counterAll;
-
+avg_invK=sum_invK*rcp_counterAll;
+avg_white=sum_white*rcp_counterAll;
 }
 
 double rgbxyY_lst[3];
@@ -124,7 +131,12 @@ double cust_XYZ_lst[3];
 double Y;
 double man_dst;
 double Y_diff_scr;
+double white_diff_scr;
+double invK_diff_scr;
+double invK;
 double whiteB;
+double initSat;
+double curr_rgb_dst_lst_hsv[3];
   double WPchgRGB_lst[3];
       for (y=0; y<height; y++) {
 
@@ -143,17 +155,20 @@ double curr_rgb_dst_lst[3]={rOG,gOG,bOG};
 if(pst==1){
 double curr_rgb_dst_lst_prp[3];
 RGB2rgb(curr_rgb_dst_lst,curr_rgb_dst_lst_prp);
-double curr_rgb_dst_lst_hsv[3];
+
 rgb2hsv(curr_rgb_dst_lst,curr_rgb_dst_lst_hsv);
 Y=0.212673*rOG+0.715152*gOG+0.072175*bOG;
 whiteB=MIN(rOG,MIN(gOG,bOG));
-
-double initSat=curr_rgb_dst_lst_hsv[1];
+invK=1-MIN(1-rOG,MIN(1-gOG,1-bOG));
+ initSat=curr_rgb_dst_lst_hsv[1];
 
     double Sc_lst=1-(MAX(curr_rgb_dst_lst_prp[0],MAX(curr_rgb_dst_lst_prp[1],curr_rgb_dst_lst_prp[2]))-MIN(curr_rgb_dst_lst_prp[0],MIN(curr_rgb_dst_lst_prp[1],curr_rgb_dst_lst_prp[2])));
 
     double Sc_diff_scr=(1-(fabs(Sc_avg-Sc_lst)/(MAX(Sc_avg,MAX(1-Sc_avg,MAX(Sc_lst,1-Sc_lst))))));
-double Y_diff_scr=(1-(fabs(Y-avg_Y)/(MAX(avg_Y,MAX(1-avg_Y,MAX(Y,1-Y))))));
+ Y_diff_scr=(1-(fabs(Y-avg_Y)/(MAX(avg_Y,MAX(1-avg_Y,MAX(Y,1-Y))))));
+ invK_diff_scr=(1-(fabs(invK-avg_invK)/(MAX(avg_invK,MAX(1-avg_invK,MAX(invK,1-invK))))));
+ white_diff_scr=(1-(fabs(whiteB-avg_white)/(MAX(avg_white,MAX(1-avg_white,MAX(whiteB,1-whiteB))))));
+
     double Sat_diff_scr=(1-(fabs(initSat-avg_hsv_gc[1])/(MAX(avg_hsv_gc[1],MAX(1-avg_hsv_gc[1],MAX(initSat,1-initSat))))));
     double dnm=1-0.5*(Sc_diff_scr+Sc_lst);
     dnm=(dnm==0)?0:pow(Sc_lst,1.0/dnm);
@@ -167,10 +182,8 @@ curr_rgb_dst_lst_hsv[1]=lerp_clamp(curr_sat,initSat,0.5*(((curr_sat)+(curr_diff)
 man_dst=initSat;
 if(dest!=0){
 
-
-//man_dst=MAX(0,lerp_clamp(man_dst,-dest+dest*man_dst+man_dst,(Y*(curr_rgb_dst_lst_hsv[2]*man_dst))));
 man_dst=curr_rgb_dst_lst_hsv[1];
-man_dst=-dest*Y_diff_scr*whiteB+dest*man_dst*Y_diff_scr*whiteB+man_dst;
+man_dst=-dest*Y_diff_scr*white_diff_scr*invK_diff_scr+dest*man_dst*Y_diff_scr*white_diff_scr*invK_diff_scr+man_dst;
 double man_dst_sat=MAX(0,man_dst);
     curr_rgb_dst_lst_hsv[1]=man_dst_sat;
     double pst_dst_rgb[3];
@@ -178,6 +191,9 @@ double man_dst_sat=MAX(0,man_dst);
  Y=0.212673*pst_dst_rgb[0]+0.715152*pst_dst_rgb[1]+0.072175*pst_dst_rgb[2];
  Y_diff_scr=(1-(fabs(Y-avg_Y)/(MAX(avg_Y,MAX(1-avg_Y,MAX(Y,1-Y))))));
  whiteB=MIN(pst_dst_rgb[0],MIN(pst_dst_rgb[1],pst_dst_rgb[2]));
+invK=1-MIN(1-pst_dst_rgb[0],MIN(1-pst_dst_rgb[1],1-pst_dst_rgb[2]));
+ invK_diff_scr=(1-(fabs(invK-avg_invK)/(MAX(avg_invK,MAX(1-avg_invK,MAX(invK,1-invK))))));
+ white_diff_scr=(1-(fabs(whiteB-avg_white)/(MAX(avg_white,MAX(1-avg_white,MAX(whiteB,1-whiteB))))));
 }
 
 
@@ -185,7 +201,7 @@ if(scrv!=-1){
 double post_sat=curr_rgb_dst_lst_hsv[1];
 double scrv_sat=curr_rgb_dst_lst_hsv[1]*2;
 scrv_sat=(scrv_sat<0.5)?pow(fabs(0.5*scrv_sat),scrv):1-(0.5*pow(fabs(2-scrv_sat),scrv));
-curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(MIN(scrv_sat,MIN(curr_rgb_dst_lst_hsv[1],man_dst)),initSat,Y_diff_scr*whiteB));
+curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(initSat,MIN(scrv_sat,MIN(curr_rgb_dst_lst_hsv[1],man_dst)),Y_diff_scr*white_diff_scr*invK_diff_scr));
 }
 
 
@@ -257,7 +273,6 @@ WPchgRGB_lst[2]=bOG;
         WPchgRGB_lst[1]=chroma;
         WPchgRGB_lst[2]=chroma;
       }
-
 
 
              srcp[x] = MAX(MIN(round(WPchgRGB_lst[2]*255),255),0);
