@@ -97,15 +97,12 @@ void f_gammaLow(double rgb[3], double gamma,double gamma_hi, double dist){
     double outcol[3];
     for (int i=0; i<3; i++){
     double col=rgb[i];
-gamma_hi=(log10(pow(col,gamma+1)-pow(col,gamma))-log10(col))/log10(col);
-outcol[i]=(pow(col,gamma)-pow(col,1+gamma)+pow(col,1+gamma_hi));
+    double ln=(col-(1-col)*pow(col,gamma));
+gamma_hi=(ln<=0 || (col==0))?gamma:log(ln)/log(col);
+outcol[i]=pow(-col,gamma+1)+pow(col,gamma_hi+1)+pow(col,gamma);
     }
 
-double hsv[3];
-rgb2hsv(outcol,hsv);
-double hwb[3]={hsv[0],(1-hsv[1])*hsv[2],1-hsv[2]};
-
- dist=sqrt(pow(hwb[1],2)+pow(hwb[2],2));
+ dist=(outcol[0]-rgb[0])+(rgb[1]-outcol[1])+((outcol[2]-rgb[2]));
 
 
 }
