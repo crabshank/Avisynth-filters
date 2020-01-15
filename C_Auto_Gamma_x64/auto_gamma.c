@@ -21,13 +21,12 @@ AVS_VideoFrame* AVSC_CC Auto_Gamma_get_frame(AVS_FilterInfo* fi, int n)
 
    int row_size, height, src_pitch,x, y, p,count,max_iters,tol,tolr,sgn_c,sgn_a,opt,lmr;
    BYTE* srcp;
-   double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,weights;
+   double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter;
 
 a =   params->bracketA;
 b=params->bracketB;
 tol=params->tolerance;
 lmr=params->limitedRange;
-
             int planes[] ={AVS_CS_BGR32};
 src = avs_get_frame(fi->child, n);
    avs_make_writable(fi->env, &src);
@@ -41,7 +40,7 @@ p=0;
 runTot_r=0;
 runTot_g=0;
 runTot_b=0;
-weights=0;
+counter=0;
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -53,25 +52,17 @@ weights=0;
 bOG=currBlue/255.0;     // B
        gOG=currGreen/255.0;   //G
          rOG=currRed/255.0;  // R
-double ogRGB[3]={bOG,gOG,rOG};
-double lnRGB[3];
+
 
    double      mn=MIN(rOG,MIN(gOG,bOG));
  double mx=MAX(rOG,MAX(gOG,bOG));
 
 double sat=(mx==0)?0:(mx-mn)/mx;
 
-
-double HWblack=1-mx;
-double HwhiteB=(1-sat)*mx;
-
-double weight=1+(1-(sqrt(pow(HwhiteB,2)+pow(HWblack,2)))/sqrt((2)));
-sRGB2Linear(ogRGB,lnRGB);
-
-runTot_r+=lnRGB[0]*weight;
-runTot_g+=lnRGB[1]*weight;
-runTot_b+=lnRGB[2]*weight;
-weights+=weight;
+runTot_r+=rOG*sat;
+runTot_g+=gOG*sat;
+runTot_b+=bOG*sat;
+counter+=1;
 
         x=x+3;
 
@@ -84,12 +75,11 @@ p=1;
 tolr=pow(1,(double)tol*-1);
 max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 opt=0;
-double mxMean[3]={runTot_r/weights,runTot_g/weights,runTot_b/weights};
-double mxMeanGC[3];
-Linear2sRGB(mxMean,mxMeanGC);
+double mxMean[3]={runTot_r/counter,runTot_g/counter,runTot_b/counter};
+
 while(p<=max_iters){
     c=0.5*(a+b);
-    f_gammaLow(mxMeanGC, c,gamma_high,f_c);
+    f_gammaLow(mxMean, c,gamma_high,f_c);
 
     if(f_c==0||(0.5*(b-a)<tolr)){
     p=max_iters;
@@ -98,7 +88,7 @@ while(p<=max_iters){
     }
 
     p++;
-    f_gammaLow(mxMeanGC, a,gamma_high_tmp,f_a );
+    f_gammaLow(mxMean, a,gamma_high_tmp,f_a );
    // sgn_c=(f_c<0)?-1:1;
     //sgn_a=(f_a<0)?-1:1;
     if(f_a>f_c){
@@ -181,9 +171,8 @@ if (!params)
       return avs_new_value_error("Input video must be in RGB format!");
    }
 
-
-        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):12;
          params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
+        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):12;
                 params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):2;
 params->limitedRange= avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):false;
 
