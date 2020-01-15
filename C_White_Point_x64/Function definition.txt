@@ -4,6 +4,6 @@
      float "x"=0.312727,
      float "y"=0.329023,
      float "desat"=0 (disabled by default),
-     float "scurve"=-1 (disabled by default),
+     float "contrast"=0 (disabled by default; may be positive or negative),
      bool "debug"=false
 )
