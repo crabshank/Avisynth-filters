@@ -414,14 +414,17 @@ for (int p=0; p<3; p++){
 
 void rgb2xyY(double rgb[3],double outp[3]){
 
-   double rgbNew[3]={0,0,0};
+double n1=0;
+double n2=0;
+double n3=0;
 
-	double XYZ[3]={0,0,0};
+double X=0;
+double Y=0;
+double Z=0;
 
-
-        rgbNew[0]=(rgb[0] > 0.0404482362771082 )?pow(fabs((rgb[0]+0.055)/1.055),2.4):rgb[0]/12.92;
-        rgbNew[1]=(rgb[1] > 0.0404482362771082 )?pow(fabs((rgb[1]+0.055)/1.055),2.4):rgb[1]/12.92;
-        rgbNew[2]=(rgb[2] > 0.0404482362771082 )?pow(fabs((rgb[2]+0.055)/1.055),2.4):rgb[2]/12.92;
+        n1=(rgb[0] > 0.0404482362771082 )?pow(fabs((rgb[0]+0.055)/1.055),2.4):rgb[0]/12.92;
+        n2=(rgb[1] > 0.0404482362771082 )?pow(fabs((rgb[1]+0.055)/1.055),2.4):rgb[1]/12.92;
+        n3=(rgb[2] > 0.0404482362771082 )?pow(fabs((rgb[2]+0.055)/1.055),2.4):rgb[2]/12.92;
 
 
 
@@ -429,20 +432,20 @@ double v1[3]={0.4124564,0.3575761, 0.1804375};
 double v2[3]={0.2126729,0.7151522,0.072175};
 double v3[3]={0.0193339,0.119192,0.9503041};
 
-XYZ[0]=v1[0]*rgbNew[0]+v1[1]*rgbNew[1]+v1[2]*rgbNew[2];
-XYZ[1]=v2[0]*rgbNew[0]+v2[1]*rgbNew[1]+v2[2]*rgbNew[2];
-XYZ[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
+X=v1[0]*n1+v1[1]*n2+v1[2]*n3;
+Y=v2[0]*n1+v2[1]*n2+v2[2]*n3;
+Z=v3[0]*n1+v3[1]*n2+v3[2]*n3;
 
 
 
-	double XYZtot=XYZ[0]+XYZ[1]+XYZ[2];
+	double XYZtot=X+Y+Z;
 
-	double x=XYZ[0]/XYZtot;
-	double y=XYZ[1]/XYZtot;
+	double x=X/XYZtot;
+	double y=Y/XYZtot;
 
 	outp[0]=x;
 	outp[1]=y;
-	outp[2]=XYZ[1];
+	outp[2]=Y;
 
 }
 
@@ -450,26 +453,30 @@ XYZ[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
 
 void LinRGB2xyY(double rgbNew[3],double outp[3]){
 
-	double XYZ[3]={0,0,0};
+double n1=rgbNew[0];
+double n2=rgbNew[1];
+double n3=rgbNew[2];
+
+double X=0;
+double Y=0;
+double Z=0;
 
 double v1[3]={0.4124564,0.3575761, 0.1804375};
 double v2[3]={0.2126729,0.7151522,0.072175};
 double v3[3]={0.0193339,0.119192,0.9503041};
 
-XYZ[0]=v1[0]*rgbNew[0]+v1[1]*rgbNew[1]+v1[2]*rgbNew[2];
-XYZ[1]=v2[0]*rgbNew[0]+v2[1]*rgbNew[1]+v2[2]*rgbNew[2];
-XYZ[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
+X=v1[0]*n1+v1[1]*n2+v1[2]*n3;
+Y=v2[0]*n1+v2[1]*n2+v2[2]*n3;
+Z=v3[0]*n1+v3[1]*n2+v3[2]*n3;
 
+	double XYZtot=X+Y+Z;
 
-
-	double XYZtot=XYZ[0]+XYZ[1]+XYZ[2];
-
-	double x=XYZ[0]/XYZtot;
-	double y=XYZ[1]/XYZtot;
+	double x=X/XYZtot;
+	double y=Y/XYZtot;
 
 	outp[0]=x;
 	outp[1]=y;
-	outp[2]=XYZ[1];
+	outp[2]=Y;
 
 }
 

@@ -139,6 +139,10 @@ double invK;
 double whiteB;
 double initSat;
 double curr_rgb_dst_lst_hsv[3];
+double rgb_xyY[3];
+double xyY_OG[3];
+double xyY_dst[3];
+double rgb_xyY1[3];
   double WPchgRGB_lst[3];
       for (y=0; y<height; y++) {
 
@@ -151,7 +155,12 @@ double curr_rgb_dst_lst_hsv[3];
 bOG=currBlue*rcptwoFiveFive;     // B
        gOG=currGreen*rcptwoFiveFive;   //G
          rOG=currRed*rcptwoFiveFive;     // R
+        if(rOG==0 && (gOG==0) && (bOG==0)){
+    WPchgRGB_lst[0]=0;
+    WPchgRGB_lst[1]=0;
+    WPchgRGB_lst[2]=0;
 
+}else{
 double curr_rgb_dst_lst[3]={rOG,gOG,bOG};
 
 if(pst==1){
@@ -173,14 +182,24 @@ invK=1-MIN(1-rOG,MIN(1-gOG,1-bOG));
 
     double Sat_diff_scr=(1-(fabs(initSat-avg_hsv_gc[1])/(MAX(avg_hsv_gc[1],MAX(1-avg_hsv_gc[1],MAX(initSat,1-initSat))))));
     double dnm=1-0.5*(Sc_diff_scr+Sc_lst);
-    dnm=(dnm==0)?0:pow(Sc_lst,1.0/dnm);
-double dst=pow(0.5*(0.5*(Sc_diff_scr*Sc_lst)*dnm+Sc_lst),1-Sc_lst);
+    double dnm2=(dnm==0)?0:pow(Sc_lst,1.0/dnm);
+double dst=pow(0.5*(0.5*(Sc_diff_scr*Sc_lst)*dnm2+Sc_lst),1-Sc_lst);
 double curr_sat=initSat*(1-(dst));
-curr_sat=lerp_clamp(curr_sat,initSat,0.5*(Sc_diff_scr+initSat)*Sat_diff_scr);
 
-curr_sat=lerp_clamp(curr_sat,initSat,0.5*(initSat+(1-Sc_diff_scr)));
+
+curr_sat=curr_sat*(0.5*(Sc_diff_scr+initSat)*Sat_diff_scr);
+
+curr_sat=lerp_clamp(curr_sat,initSat,third*(Sc_lst*Sc_diff_scr*initSat+ Sat_diff_scr+initSat*(1-Sc_diff_scr)));
+
 double curr_diff=fabs(curr_sat-initSat)/(MAX(curr_sat,MAX(1-curr_sat,MAX(initSat,1-initSat))));
-curr_rgb_dst_lst_hsv[1]=lerp_clamp(curr_sat,initSat,0.5*(((curr_sat)+(curr_diff))));
+
+curr_sat=lerp_clamp(0,initSat,1-    0.5*((1-curr_diff)*(1-    initSat)+Sc_lst*(Sat_diff_scr)));
+
+
+
+curr_rgb_dst_lst_hsv[1]=curr_sat;
+
+
 man_dst=initSat;
 if(dest!=0){
 
@@ -200,13 +219,16 @@ invK=1-MIN(1-pst_dst_rgb[0],MIN(1-pst_dst_rgb[1],1-pst_dst_rgb[2]));
 
 
 if(cont!=0){
-
-curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(curr_rgb_dst_lst_hsv[1],initSat, 0.25*((1-curr_rgb_dst_lst_hsv[1])*cont+Y_diff_scr+white_diff_scr+invK_diff_scr))  );
+curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(curr_rgb_dst_lst_hsv[1],initSat, pow(((1-curr_rgb_dst_lst_hsv[1])*Y_diff_scr*white_diff_scr*invK_diff_scr),cont)));
 }
 
 
-hsv2rgb(curr_rgb_dst_lst_hsv,WPchgRGB_lst);
+hsv2rgb(curr_rgb_dst_lst_hsv,rgb_xyY);
 
+rgb2xyY(rgb_xyY,xyY_dst);
+rgb2xyY(curr_rgb_dst_lst,xyY_OG);
+double xyY_dst_bk[3]={xyY_dst[0],xyY_dst[1],xyY_OG[2]};
+xyY2rgb(xyY_dst_bk,WPchgRGB_lst);
 
 if (cust_x!=CIEx || (cust_y!=CIEy)){
 
@@ -265,7 +287,7 @@ WPchgRGB_lst[2]=bOG;
 
 }
       }
-
+}
       if (dbg==1){
             double chroma=pow(MAX(WPchgRGB_lst[0],MAX(WPchgRGB_lst[1],WPchgRGB_lst[2]))-MIN(WPchgRGB_lst[0],MIN(WPchgRGB_lst[1],WPchgRGB_lst[2])),pwr);
 
@@ -273,6 +295,8 @@ WPchgRGB_lst[2]=bOG;
         WPchgRGB_lst[1]=chroma;
         WPchgRGB_lst[2]=chroma;
       }
+
+
 
 
              srcp[x] = MAX(MIN(round(WPchgRGB_lst[2]*255),255),0);
