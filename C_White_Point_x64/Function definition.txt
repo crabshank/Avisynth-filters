@@ -3,7 +3,7 @@
      bool "post"=true (if x or y are specified: post=false does a white point transform only),
      float "x"=0.312727,
      float "y"=0.329023,
-     float "scurve"=-1 (disabled by default),
      float "desat"=0 (disabled by default),
+     float "scurve"=-1 (disabled by default),
      bool "debug"=false
 )
