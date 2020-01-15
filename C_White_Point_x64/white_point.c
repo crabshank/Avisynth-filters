@@ -8,8 +8,8 @@ typedef struct WhitePoint {
     int post;
         double x;
         double y;
-        double scurve;
         double contrast;
+        double desat;
         int debug;
 } WhitePoint;
 
@@ -27,8 +27,8 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 pst=params->post;
 cust_x=params->x;
 cust_y=params->y;
-cont=params->scurve;
-dest=params->contrast;
+cont=params->contrast;
+dest=params->desat;
 dbg=params->debug;
 
 
@@ -197,7 +197,7 @@ invK=1-MIN(1-pst_dst_rgb[0],MIN(1-pst_dst_rgb[1],1-pst_dst_rgb[2]));
 }
 
 
-if(cont!=-1){
+if(cont!=0){
 
 curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(curr_rgb_dst_lst_hsv[1],initSat, pow(curr_rgb_dst_lst_hsv[1],cont)*Y_diff_scr*white_diff_scr*invK_diff_scr)  );
 }
@@ -313,8 +313,8 @@ if (!params)
           params->post = avs_defined(avs_array_elt(args, 1))?avs_as_bool(avs_array_elt(args, 1)):true;
           params->x = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.312727;
           params->y = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.329023;
-                    params->contrast = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):0;
-          params->scurve = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):-1;
+                    params->desat = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):0;
+          params->contrast = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):0;
 
           params->debug = avs_defined(avs_array_elt(args, 6))?avs_as_bool(avs_array_elt(args, 6)):false;
 
@@ -332,6 +332,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[contrast]f[scurve]f[debug]b", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[desat]f[contrast]f[debug]b", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
