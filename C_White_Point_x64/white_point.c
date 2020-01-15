@@ -11,6 +11,7 @@ typedef struct WhitePoint {
         double contrast;
         double desat;
         int debug;
+        double debug_pwr;
 } WhitePoint;
 
 
@@ -22,7 +23,7 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 
    int row_size, height, src_pitch,x, y, p,pst,dbg;
    BYTE* srcp;
-   double CIEx,CIEy,rOG,bOG,gOG,cust_x,cust_y,lrp,cont,dest;
+   double CIEx,CIEy,rOG,bOG,gOG,cust_x,cust_y,lrp,cont,dest,pwr;
 
 pst=params->post;
 cust_x=params->x;
@@ -30,6 +31,7 @@ cust_y=params->y;
 cont=params->contrast;
 dest=params->desat;
 dbg=params->debug;
+pwr=params->debug_pwr;;
 
 
    CIEx= 0.312727;
@@ -199,7 +201,7 @@ invK=1-MIN(1-pst_dst_rgb[0],MIN(1-pst_dst_rgb[1],1-pst_dst_rgb[2]));
 
 if(cont!=0){
 
-curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(curr_rgb_dst_lst_hsv[1],initSat, pow(curr_rgb_dst_lst_hsv[1],cont)*Y_diff_scr*white_diff_scr*invK_diff_scr)  );
+curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(curr_rgb_dst_lst_hsv[1],initSat, 0.25*((1-curr_rgb_dst_lst_hsv[1])*cont+Y_diff_scr+white_diff_scr+invK_diff_scr))  );
 }
 
 
@@ -265,7 +267,7 @@ WPchgRGB_lst[2]=bOG;
       }
 
       if (dbg==1){
-            double chroma=(MAX(WPchgRGB_lst[0],MAX(WPchgRGB_lst[1],WPchgRGB_lst[2]))-MIN(WPchgRGB_lst[0],MIN(WPchgRGB_lst[1],WPchgRGB_lst[2])));
+            double chroma=pow(MAX(WPchgRGB_lst[0],MAX(WPchgRGB_lst[1],WPchgRGB_lst[2]))-MIN(WPchgRGB_lst[0],MIN(WPchgRGB_lst[1],WPchgRGB_lst[2])),pwr);
 
         WPchgRGB_lst[0]=chroma;
         WPchgRGB_lst[1]=chroma;
@@ -317,6 +319,7 @@ if (!params)
           params->contrast = avs_defined(avs_array_elt(args, 5))?avs_as_float(avs_array_elt(args, 5)):0;
 
           params->debug = avs_defined(avs_array_elt(args, 6))?avs_as_bool(avs_array_elt(args, 6)):false;
+          params->debug_pwr = avs_defined(avs_array_elt(args, 7))?avs_as_float(avs_array_elt(args, 7)):1;
 
 
    fi->user_data = (void*) params;
@@ -332,6 +335,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[desat]f[contrast]f[debug]b", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[desat]f[contrast]f[debug]b[debug_pwr]f", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
