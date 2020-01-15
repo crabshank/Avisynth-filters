@@ -185,7 +185,7 @@ if(scrv!=-1){
 double post_sat=curr_rgb_dst_lst_hsv[1];
 double scrv_sat=curr_rgb_dst_lst_hsv[1]*2;
 scrv_sat=(scrv_sat<0.5)?pow(fabs(0.5*scrv_sat),scrv):1-(0.5*pow(fabs(2-scrv_sat),scrv));
-curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(initSat,MIN(scrv_sat,MIN(curr_rgb_dst_lst_hsv[1],man_dst)),Y_diff_scr*whiteB));
+curr_rgb_dst_lst_hsv[1]=MAX(0,lerp_clamp(MIN(scrv_sat,MIN(curr_rgb_dst_lst_hsv[1],man_dst)),initSat,Y_diff_scr*whiteB));
 }
 
 
