@@ -2,6 +2,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
+#define lerp_clamp(a,b,t) MIN((b),(MAX(lerp((a),(b),(t)),(a))))
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
 #define third 1.0/3.0
 #define rcptwoFiveFive 1.0/255.0

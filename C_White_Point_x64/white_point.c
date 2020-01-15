@@ -101,7 +101,6 @@ x+=3;
       double rcp_counterAll=(counterAll==0)?1:pow(counterAll,-1);
 
 
-
 avg_rgb_gc[0]=sumR_gc*rcp_counterAll;
 avg_rgb_gc[1]=sumG_gc*rcp_counterAll;
 avg_rgb_gc[2]=sumB_gc*rcp_counterAll;
@@ -154,19 +153,19 @@ double initSat=curr_rgb_dst_lst_hsv[1];
     dnm=(dnm==0)?0:pow(Sc_lst,1.0/dnm);
 double dst=pow(0.5*(0.5*(Sc_diff_scr*Sc_lst)*dnm+Sc_lst),1-Sc_lst);
 double curr_sat=initSat*(1-(dst));
-curr_sat=MIN(initSat,lerp(curr_sat,initSat,0.5*(Sc_diff_scr+initSat)*Sat_diff_scr));
+curr_sat=lerp_clamp(curr_sat,initSat,0.5*(Sc_diff_scr+initSat)*Sat_diff_scr);
 
-curr_sat=MIN(initSat,lerp(curr_sat,initSat,0.5*(initSat+(1-Sc_diff_scr))));
+curr_sat=lerp_clamp(curr_sat,initSat,0.5*(initSat+(1-Sc_diff_scr)));
 double curr_diff=fabs(curr_sat-initSat)/(MAX(curr_sat,MAX(1-curr_sat,MAX(initSat,1-initSat))));
-curr_rgb_dst_lst_hsv[1]=MAX(0,MIN(initSat,lerp(curr_sat,initSat,0.5*(((curr_sat)+(curr_diff))))));
-man_dst=curr_rgb_dst_lst_hsv[1];
+curr_rgb_dst_lst_hsv[1]=lerp_clamp(curr_sat,initSat,0.5*(((curr_sat)+(curr_diff))));
+man_dst=initSat;
 if(dest!=0){
 
 
-//man_dst=MAX(0,lerp(man_dst,-dest+dest*man_dst+man_dst,(Y*(curr_rgb_dst_lst_hsv[2]*man_dst))));
-
-man_dst=(man_dst,-dest+dest*man_dst+man_dst);
-double man_dst_sat=MAX(0,(man_dst,-dest+dest*man_dst+man_dst));
+//man_dst=MAX(0,lerp_clamp(man_dst,-dest+dest*man_dst+man_dst,(Y*(curr_rgb_dst_lst_hsv[2]*man_dst))));
+man_dst=curr_rgb_dst_lst_hsv[1];
+man_dst=-dest*Y+dest*man_dst*Y+man_dst;
+double man_dst_sat=MAX(0,man_dst);
     curr_rgb_dst_lst_hsv[1]=man_dst_sat;
     double pst_dst_rgb[3];
     hsv2rgb(curr_rgb_dst_lst_hsv,pst_dst_rgb);
@@ -178,7 +177,7 @@ if(scrv!=-1){
 double post_sat=curr_rgb_dst_lst_hsv[1];
 double scrv_sat=curr_rgb_dst_lst_hsv[1]*2;
 scrv_sat=(scrv_sat<0.5)?pow(fabs(0.5*scrv_sat),scrv):1-(0.5*pow(fabs(2-scrv_sat),scrv));
-curr_rgb_dst_lst_hsv[1]=MAX(0,lerp(MAX(scrv_sat,man_dst),MIN(scrv_sat,man_dst),Y));
+curr_rgb_dst_lst_hsv[1]=lerp_clamp(initSat,MIN(scrv_sat,MIN(curr_rgb_dst_lst_hsv[1],man_dst)),Y);
 }
 
 
