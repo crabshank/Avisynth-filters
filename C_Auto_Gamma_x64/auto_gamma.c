@@ -58,10 +58,10 @@ bOG=currBlue/255.0;     // B
  double mx=MAX(rOG,MAX(gOG,bOG));
 
 double sat=(mx==0)?0:(mx-mn)/mx;
-
-runTot_r+=rOG*sat;
-runTot_g+=gOG*sat;
-runTot_b+=bOG*sat;
+double wb=MIN(1-mn,mx);
+runTot_r+=rOG*wb;
+runTot_g+=gOG*wb;
+runTot_b+=bOG*wb    ;
 counter+=1;
 
         x=x+3;
