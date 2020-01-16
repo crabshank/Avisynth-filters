@@ -1,8 +1,7 @@
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
-#define lerp_clamp(a,b,t) MIN((b),(MAX(lerp((a),(b),(t)),(a))))
+#define lerp_clamp(a,b,t) fmax((fmin((b),((1 - (t)) * (a) + (t) * (b) ))),(a))
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
 #define third 1.0/3.0
 #define rcptwoFiveFive 1.0/255.0
@@ -15,8 +14,8 @@ double g=rgb[1];
 double b=rgb[2];
 
 
-    double max = MAX(r,MAX(g, b));
-    double min = MIN(r,MIN(g, b));
+    double max = fmax(r,fmax(g, b));
+    double min = fmin(r,fmin(g, b));
 
     double diff=max-min;
 
@@ -65,8 +64,8 @@ double g=rgb[1];
 double b=rgb[2];
 
 
-    double max = MAX(r,MAX(g, b));
-    double min = MIN(r,MIN(g, b));
+    double max = fmax(r,fmax(g, b));
+    double min = fmin(r,fmin(g, b));
 
     double diff=max-min;
 
@@ -204,7 +203,7 @@ if (a<0){
     b=lerp(hmv[2],m[0],one_t);
 }
 
-hsv[2]=MAX(a,b);
+hsv[2]=fmax(a,b);
 hsv[1]=((-2*m[0])/hsv[2])+2;
 
 
@@ -510,21 +509,21 @@ if(RGBtot==0){
 
 void rgb2RGB_White(double rgb[3],double RGB[3]){
 
-	double mx_prp=MAX( rgb[0],MAX( rgb[1], rgb[2]));
+	double mx_prp=fmax( rgb[0],fmax( rgb[1], rgb[2]));
 	double rcp_mx_prp=(mx_prp==0)?0:pow(mx_prp,-1);
 
     RGB[0]=rgb[0]*rcp_mx_prp;
     RGB[1]=rgb[1]*rcp_mx_prp;
     RGB[2]=rgb[2]*rcp_mx_prp;
 
-double mx_RGB=MAX( RGB[0],MAX( RGB[1], RGB[2]));
+double mx_RGB=fmax( RGB[0],fmax( RGB[1], RGB[2]));
 double rcp_mx_RGB=(mx_RGB==0)?0:pow(mx_RGB,-1);
 
     RGB[0]=RGB[0]*rcp_mx_RGB;
     RGB[1]=RGB[1]*rcp_mx_RGB;
     RGB[2]=RGB[2]*rcp_mx_RGB;
 
-if(MAX( RGB[0],MAX( RGB[1], RGB[2]))==0){
+if(fmax( RGB[0],fmax( RGB[1], RGB[2]))==0){
     RGB[0]=1;
     RGB[1]=1;
     RGB[2]=1;
@@ -534,21 +533,21 @@ if(MAX( RGB[0],MAX( RGB[1], RGB[2]))==0){
 
 void rgb2RGB_val(double rgb[3],double val[1],double RGB[3]){
 
-	double mx_prp=MAX( rgb[0],MAX( rgb[1], rgb[2]));
+	double mx_prp=fmax( rgb[0],fmax( rgb[1], rgb[2]));
 	double rcp_mx_prp=(mx_prp==0)?0:pow(mx_prp,-1);
 
     RGB[0]=rgb[0]*rcp_mx_prp;
     RGB[1]=rgb[1]*rcp_mx_prp;
     RGB[2]=rgb[2]*rcp_mx_prp;
 
-double mx_RGB=MAX( RGB[0],MAX( RGB[1], RGB[2]));
+double mx_RGB=fmax( RGB[0],fmax( RGB[1], RGB[2]));
 double rcp_mx_RGB=(mx_RGB==0)?0:pow(mx_RGB,-1);
 
     RGB[0]=(RGB[0]*rcp_mx_RGB)*val[0];
     RGB[1]=(RGB[1]*rcp_mx_RGB)*val[0];
     RGB[2]=(RGB[2]*rcp_mx_RGB)*val[0];
 
-if(MAX( RGB[0],MAX( RGB[1], RGB[2]))==0){
+if(fmax( RGB[0],fmax( RGB[1], RGB[2]))==0){
     RGB[0]=1;
     RGB[1]=1;
     RGB[2]=1;
@@ -580,80 +579,56 @@ void XYZ2xyY_Grey(double XYZ[3],double outp[3]){
 
 
 void xyY2rgb(double xyY[3],double RGB[3]){
-double X;
-double Z;
 
-double x;
-double y;
-double Y;
-
-
-
-    double *pxyY = &xyY[0];
-
-    xyY[0]=*(pxyY);
-xyY[1]=*(pxyY+1);
-xyY[2]=*(pxyY+2);
-
- Y=*(pxyY+2);
-  y=*(pxyY+1);
- x=*(pxyY);
-  X=(Y/y)*x;
- Z=(Y/y)*(1.0-x-y);
+ double Y=xyY[2];
+double  y=xyY[1];
+double x=xyY[0];
+ double X=(Y/y)*x;
+ double Z=(Y/y)*(1.0-x-y);
 
 
 
-    double *pRGB = &RGB[0];
-*(pRGB)=0; *(pRGB+1)=0; *(pRGB+2)=0;
+double r=0;
+double g=0;
+double b=0;
+
+r=3.2404542*X-1.5371385*Y-0.4985314*Z;
+g=-0.969266*X+1.8760108*Y+0.041556*Z;
+b=0.0556434*X-0.2040259*Y+1.0572252*Z;
 
 
-*(pRGB)=3.2404542*X-1.5371385*Y-0.4985314*Z;
-*(pRGB+1)=-0.969266*X+1.8760108*Y+0.041556*Z;
-*(pRGB+2)=0.0556434*X-0.2040259*Y+1.0572252*Z;
+   r=(r> 0.00313066844250063)?1.055 * pow(r,1.0/2.4) - 0.055:12.92 *r;
+   g=(g> 0.00313066844250063)?1.055 * pow(g,1.0/2.4) - 0.055:12.92 *g;
+   b=(b> 0.00313066844250063)?1.055 * pow(b,1.0/2.4) - 0.055:12.92 *b;
 
-for (int i=0;i<3;i++){
-
-   *(pRGB+i)=(*(pRGB+i)> 0.00313066844250063)?1.055 * pow(*(pRGB+i),1/2.4) - 0.055:12.92 **(pRGB+i);
-}
-
-
+RGB[0]=r;
+RGB[1]=g;
+RGB[2]=b;
 }
 
 
 //Source: http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
 void xyY2LinRGB(double xyY[3],double RGB[3]){
-double X;
-double Z;
-
-double x;
-double y;
-double Y;
-
-
-
-    double *pxyY = &xyY[0];
-
-    xyY[0]=*(pxyY);
-xyY[1]=*(pxyY+1);
-xyY[2]=*(pxyY+2);
-
- Y=*(pxyY+2);
-  y=*(pxyY+1);
- x=*(pxyY);
-  X=(Y/y)*x;
- Z=(Y/y)*(1.0-x-y);
+ double Y=xyY[2];
+double  y=xyY[1];
+double x=xyY[0];
+ double X=(Y/y)*x;
+ double Z=(Y/y)*(1.0-x-y);
 
 
 
-    double *pRGB = &RGB[0];
-*(pRGB)=0; *(pRGB+1)=0; *(pRGB+2)=0;
+double r=0;
+double g=0;
+double b=0;
 
+r=3.2404542*X-1.5371385*Y-0.4985314*Z;
+g=-0.969266*X+1.8760108*Y+0.041556*Z;
+b=0.0556434*X-0.2040259*Y+1.0572252*Z;
 
-*(pRGB)=3.2404542*X-1.5371385*Y-0.4985314*Z;
-*(pRGB+1)=-0.969266*X+1.8760108*Y+0.041556*Z;
-*(pRGB+2)=0.0556434*X-0.2040259*Y+1.0572252*Z;
-
+RGB[0]=r;
+RGB[1]=g;
+RGB[2]=b;
 }
 
 
@@ -853,7 +828,7 @@ if(RGB[0]==RGB[1] && (RGB[1]==RGB[2])){
 }else{
 
 double w=0.5*(2*RGB[0]-RGB[1]-RGB[2])/sqrt((  RGB[0]-RGB[1]  )*(  RGB[0]-RGB[1]  )  + (  RGB[0]-RGB[2]  )*(  RGB[1]-RGB[2]  )     );
-w=MIN(MAX(w,-1),1);
+w=fmin(fmax(w,-1),1);
 HSI[0]=acos(w);
 HSI[0]=(RGB[2]>RGB[1])?2*PI-HSI[0]:HSI[0];
 
