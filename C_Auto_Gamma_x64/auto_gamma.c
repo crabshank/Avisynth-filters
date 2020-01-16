@@ -54,14 +54,16 @@ bOG=currBlue/255.0;     // B
          rOG=currRed/255.0;  // R
 
 
-   double      mn=MIN(rOG,MIN(gOG,bOG));
- double mx=MAX(rOG,MAX(gOG,bOG));
+  // double      mn=MIN(rOG,MIN(gOG,bOG));
+   double      K=1-MIN(1-rOG,MIN(1-gOG,1-bOG));
+ /*double mx=MAX(rOG,MAX(gOG,bOG));
 
 double sat=(mx==0)?0:(mx-mn)/mx;
 double wb=1-sat;
-runTot_r+=rOG*wb;
-runTot_g+=gOG*wb;
-runTot_b+=bOG*wb    ;
+*/
+runTot_r+=rOG*K;
+runTot_g+=gOG*K;
+runTot_b+=bOG*K;
 counter+=1;
 
         x=x+3;
