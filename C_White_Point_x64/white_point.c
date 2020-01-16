@@ -306,9 +306,9 @@ WPchgRGB_lst[2]=bOG;
 
 
 
-             srcp[x] = fmax(fmin(round(WPchgRGB_lst[2]*255),255),0);
-             srcp[x+1] =fmax(fmin(round(WPchgRGB_lst[1]*255),255),0);
-        srcp[x+2] = fmax(fmin(round(WPchgRGB_lst[0]*255),255),0);
+             srcp[x] = MAX(MIN(round(WPchgRGB_lst[2]*255),255),0);
+             srcp[x+1] =MAX(MIN(round(WPchgRGB_lst[1]*255),255),0);
+        srcp[x+2] = MAX(MIN(round(WPchgRGB_lst[0]*255),255),0);
 
 
 
