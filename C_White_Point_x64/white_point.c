@@ -192,7 +192,8 @@ double man_dst=initSat;
 if(dest!=0){
 
 man_dst=curr_rgb_dst_lst_hsv[1];
-man_dst=-dest*Y_diff_scr*white_diff_scr*invK_diff_scr+dest*man_dst*Y_diff_scr*white_diff_scr*invK_diff_scr+man_dst;
+double dst_cnt=(man_dst==1)?0:1-pow(man_dst,initSat)/(1-man_dst);
+man_dst=-dest*Y_diff_scr*white_diff_scr*invK_diff_scr*dst_cnt+dest*man_dst*Y_diff_scr*white_diff_scr*invK_diff_scr*dst_cnt  +man_dst;
 double man_dst_sat=fmax(0,man_dst);
     curr_rgb_dst_lst_hsv[1]=man_dst_sat;
     double pst_dst_rgb[3];
@@ -208,7 +209,8 @@ invK=1-fmin(1-pst_dst_rgb[0],fmin(1-pst_dst_rgb[1],1-pst_dst_rgb[2]));
 
 if(cont!=0){
         double col_scr=Y_diff_scr*white_diff_scr*invK_diff_scr;
-curr_rgb_dst_lst_hsv[1]=fmax(0,lerp_clamp(0,initSat,pow(pow(initSat,cont),   pow((1-     col_scr ),initSat ))));
+double cnt=(curr_rgb_dst_lst_hsv[1]==1)?0:1-pow(curr_rgb_dst_lst_hsv[1],initSat)/(1-curr_rgb_dst_lst_hsv[1]);
+curr_rgb_dst_lst_hsv[1]=fmax(0,lerp_clamp(0,initSat,pow(pow(initSat,cont),   cnt*pow((1-     col_scr ),initSat ))));
 }
 
 
