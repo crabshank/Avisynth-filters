@@ -19,7 +19,7 @@ AVS_VideoFrame* AVSC_CC Auto_Gamma_get_frame(AVS_FilterInfo* fi, int n)
 
 
 
-   int row_size, height, src_pitch,x, y, p,count,max_iters,tol,tolr,sgn_c,sgn_a,opt,lmr;
+   int row_size, height, src_pitch,x, y, p,max_iters,tol,tolr,opt,lmr;
    BYTE* srcp;
    double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter;
 
@@ -58,7 +58,7 @@ bOG=currBlue/255.0;     // B
  double mx=MAX(rOG,MAX(gOG,bOG));
 
 double sat=(mx==0)?0:(mx-mn)/mx;
-double wb=MIN(1-mn,mx);
+double wb=1-sat;
 runTot_r+=rOG*wb;
 runTot_g+=gOG*wb;
 runTot_b+=bOG*wb    ;
