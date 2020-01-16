@@ -1,4 +1,5 @@
-
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define lerp_clamp(a,b,t) fmax((fmin((b),((1 - (t)) * (a) + (t) * (b) ))),(a))

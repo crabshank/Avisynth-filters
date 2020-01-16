@@ -183,6 +183,7 @@ double curr_diff=fabs(curr_sat-initSat)/(fmax(curr_sat,fmax(1-curr_sat,fmax(init
 
 curr_sat=lerp_clamp(0,initSat,1-    0.5*((1-curr_diff)*(1-    initSat)+Sc_lst*(Sat_diff_scr)));
 curr_sat=(curr_sat==1)?1:fmin(initSat,lerp_clamp(0,initSat,1-pow(curr_sat,initSat))/(1-curr_sat));
+curr_sat=pow(curr_sat,(1.0/(2*initSat)));
 
 
 curr_rgb_dst_lst_hsv[1]=curr_sat;
