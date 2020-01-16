@@ -209,9 +209,10 @@ invK=1-fmin(1-pst_dst_rgb[0],fmin(1-pst_dst_rgb[1],1-pst_dst_rgb[2]));
 
 
 if(cont!=0){
-        double col_scr=Y_diff_scr*white_diff_scr*invK_diff_scr;
-double cnt=(curr_rgb_dst_lst_hsv[1]==1)?0:1-pow(curr_rgb_dst_lst_hsv[1],initSat)/(1-curr_rgb_dst_lst_hsv[1]);
-curr_rgb_dst_lst_hsv[1]=fmax(0,lerp_clamp(0,initSat,pow(pow(initSat,cont),   cnt*pow((1-     col_scr ),initSat ))));
+        double col_scr=pow(cont,1-Y_diff_scr*white_diff_scr*invK_diff_scr)    ;
+double cnt=(curr_rgb_dst_lst_hsv[1]==1)?1:pow(curr_rgb_dst_lst_hsv[1],initSat)/(1-curr_rgb_dst_lst_hsv[1]);
+curr_rgb_dst_lst_hsv[1]=fmin(initSat,curr_rgb_dst_lst_hsv[1]+cnt*col_scr*cont*initSat);
+
 }
 
 
@@ -304,9 +305,7 @@ WPchgRGB_lst[2]=bOG;
       }
 
 
-
-
-             srcp[x] = MAX(MIN(round(WPchgRGB_lst[2]*255),255),0);
+          srcp[x] = MAX(MIN(round(WPchgRGB_lst[2]*255),255),0);
              srcp[x+1] =MAX(MIN(round(WPchgRGB_lst[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(WPchgRGB_lst[0]*255),255),0);
 
