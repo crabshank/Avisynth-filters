@@ -61,9 +61,9 @@ bOG=currBlue/255.0;     // B
 double sat=(mx==0)?0:(mx-mn)/mx;
 double wb=1-sat;
 */
-runTot_r+=rOG*K;
-runTot_g+=gOG*K;
-runTot_b+=bOG*K;
+runTot_r+=rOG;
+runTot_g+=gOG;
+runTot_b+=bOG;
 counter+=1;
 
         x=x+3;
