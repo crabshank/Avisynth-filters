@@ -6,5 +6,6 @@
      float "desat"=0 (disabled by default),
      float "contrast"=0 (disabled by default; may be positive or negative),
      bool "debug"=false,
-     float "debug_pwr"=1
+     float "debug_pwr"=1,
+     bool "neg_bias"=true (biased towards subtracting 90deg rather than adding by default)
 )
