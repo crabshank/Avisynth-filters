@@ -227,12 +227,13 @@ hsv2rgb(curr_rgb_dst_lst_hsv,curr_hsv_rgb);
 double hue=curr_rgb_dst_lst_hsv[0];
 double bias=0.25;
 
-if(  ((hue>=thirty_deg)&&(hue<sixty_deg)) || ((hue>=oneFifty_deg)&&(hue<0.5))  || ((hue>=0.75)&&(hue<threeHun_deg)) ){
+if(  ((hue>sixty_deg)&&(hue<=0.25)) || ((hue>0.5)&&(hue<=twoTen_deg))  || ((hue>threeHun_deg)&&(hue<=threeThirty_deg)) ) {
 
     bias=0.25;
-}else if (  ((hue>sixty_deg)&&(hue<=0.25)) || ((hue>0.5)&&(hue<=twoTen_deg))  || ((hue>threeHun_deg)&&(hue<=threeThirty_deg)) || (hbis==1) ){
+}else if (     ((hue>=thirty_deg)&&(hue<sixty_deg)) || ((hue>=oneFifty_deg)&&(hue<0.5))  || ((hue>=0.75)&&(hue<threeHun_deg))  || (hbis==1) ){
 bias=-0.25;
 }
+
 
 double invhuehsv[3] ={mod(curr_rgb_dst_lst_hsv[0]+bias,1),curr_rgb_dst_lst_hsv[1],curr_rgb_dst_lst_hsv[2]};
 hsv2rgb(invhuehsv,invhuehsv_rgb);
