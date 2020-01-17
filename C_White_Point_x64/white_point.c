@@ -31,8 +31,7 @@ cust_y=params->y;
 cont=params->contrast;
 dest=params->desat;
 dbg=params->debug;
-pwr=params->debug_pwr;;
-
+pwr=params->debug_pwr;
 
    CIEx= 0.312727;
       CIEy= 0.329023;
@@ -216,6 +215,23 @@ curr_rgb_dst_lst_hsv[1]=fmin(initSat,curr_rgb_dst_lst_hsv[1]+cnt*col_scr*cont*in
 }
 
 
+        double curr_hsv_rgb[3] ;
+  double invhuehsv_rgb[3] ;
+  double invhuehsv_bk[3] ;
+
+
+hsv2rgb(curr_rgb_dst_lst_hsv,curr_hsv_rgb);
+
+     double invhuehsv[3] ={mod(curr_rgb_dst_lst_hsv[0]-0.25,1),curr_rgb_dst_lst_hsv[1],curr_rgb_dst_lst_hsv[2]};
+hsv2rgb(invhuehsv,invhuehsv_rgb);
+
+double col=(initSat==0)?1:0.5*((initSat-curr_rgb_dst_lst_hsv[1]/(initSat)));
+
+  double shifted_rgb[3]={lerp(curr_hsv_rgb[0],invhuehsv_rgb[0],col),lerp(curr_hsv_rgb[1],invhuehsv_rgb[1],col),lerp(curr_hsv_rgb[2],invhuehsv_rgb[2],col)};
+  rgb2hsv(shifted_rgb,invhuehsv_bk);
+curr_rgb_dst_lst_hsv[0]=invhuehsv_bk[0];
+
+
 double rgb_xyY[3];
 double xyY_OG[3];
 double xyY_dst[3];
@@ -350,7 +366,6 @@ if (!params)
 
           params->debug = avs_defined(avs_array_elt(args, 6))?avs_as_bool(avs_array_elt(args, 6)):false;
           params->debug_pwr = avs_defined(avs_array_elt(args, 7))?avs_as_float(avs_array_elt(args, 7)):1;
-
 
    fi->user_data = (void*) params;
    fi->get_frame = WhitePoint_get_frame;
