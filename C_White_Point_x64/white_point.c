@@ -12,6 +12,7 @@ typedef struct WhitePoint {
         double desat;
         int debug;
         double debug_pwr;
+        int neg_bias;
 } WhitePoint;
 
 
@@ -21,7 +22,7 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 
    AVS_VideoFrame* src = avs_get_frame(fi->child, n);
 
-   int row_size, height, src_pitch,x, y, p,pst,dbg;
+   int row_size, height, src_pitch,x, y, p,pst,dbg,hbis;
    BYTE* srcp;
    double CIEx,CIEy,rOG,bOG,gOG,cust_x,cust_y,cont,dest,pwr;
 
@@ -32,7 +33,7 @@ cont=params->contrast;
 dest=params->desat;
 dbg=params->debug;
 pwr=params->debug_pwr;
-
+hbis=   params->neg_bias ;
    CIEx= 0.312727;
       CIEy= 0.329023;
       double D65XYZ[3]={0.95047,1,1.08883};
@@ -216,13 +217,24 @@ curr_rgb_dst_lst_hsv[1]=fmin(initSat,curr_rgb_dst_lst_hsv[1]+cnt*col_scr*cont*in
 
 
         double curr_hsv_rgb[3] ;
+        double curr_hsv1[3] ;
+        double curr_hsv2[3] ;
   double invhuehsv_rgb[3] ;
   double invhuehsv_bk[3] ;
 
 
 hsv2rgb(curr_rgb_dst_lst_hsv,curr_hsv_rgb);
+double hue=curr_rgb_dst_lst_hsv[0];
+double bias=0.25;
 
-     double invhuehsv[3] ={mod(curr_rgb_dst_lst_hsv[0]-0.25,1),curr_rgb_dst_lst_hsv[1],curr_rgb_dst_lst_hsv[2]};
+if(  ((hue>=thirty_deg)&&(hue<sixty_deg)) || ((hue>=oneFifty_deg)&&(hue<0.5))  || ((hue>=0.75)&&(hue<threeHun_deg)) ){
+
+    bias=0.25;
+}else if (  ((hue>sixty_deg)&&(hue<=0.25)) || ((hue>0.5)&&(hue<=twoTen_deg))  || ((hue>threeHun_deg)&&(hue<=threeThirty_deg)) || (hbis==1) ){
+bias=-0.25;
+}
+
+double invhuehsv[3] ={mod(curr_rgb_dst_lst_hsv[0]+bias,1),curr_rgb_dst_lst_hsv[1],curr_rgb_dst_lst_hsv[2]};
 hsv2rgb(invhuehsv,invhuehsv_rgb);
 
 double col=(initSat==0)?1:0.5*((initSat-curr_rgb_dst_lst_hsv[1]/(initSat)));
@@ -366,6 +378,7 @@ if (!params)
 
           params->debug = avs_defined(avs_array_elt(args, 6))?avs_as_bool(avs_array_elt(args, 6)):false;
           params->debug_pwr = avs_defined(avs_array_elt(args, 7))?avs_as_float(avs_array_elt(args, 7)):1;
+          params->neg_bias = avs_defined(avs_array_elt(args, 8))?avs_as_bool(avs_array_elt(args, 8)):true;
 
    fi->user_data = (void*) params;
    fi->get_frame = WhitePoint_get_frame;
@@ -380,6 +393,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[desat]f[contrast]f[debug]b[debug_pwr]f", create_WhitePoint, 0);
+   avs_add_function(env, "WhitePoint", "c[post]b[x]f[y]f[desat]f[contrast]f[debug]b[debug_pwr]f[neg_bias]b", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }

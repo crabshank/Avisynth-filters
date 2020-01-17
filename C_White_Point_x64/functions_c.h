@@ -6,6 +6,12 @@
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
 #define third 1.0/3.0
 #define rcptwoFiveFive 1.0/255.0
+#define thirty_deg 1.0/12.0
+#define sixty_deg 1.0/6.0
+#define oneFifty_deg 5.0/12.0
+#define twoTen_deg 7.0/12.0
+#define threeHun_deg 5.0/6.0
+#define threeThirty_deg 11.0/12.0
 
 void rgb2hsv (double rgb[3],double hsv[3])
 {
