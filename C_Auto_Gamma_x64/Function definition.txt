@@ -1,7 +1,7 @@
 (
      clip
      float "a"=0,
-     float "b"=12 (adjust this to set desired frame brightness),
+     float "b"=8 (adjust this to set desired frame brightness),
      int "tolerance"=2 (accurate to n decimal places),
      bool "limitedRange"=false,
 )
