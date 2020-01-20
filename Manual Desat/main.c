@@ -75,7 +75,6 @@ for (int i=359; i>=0; i--){
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
-//double x_shift=(double)x/(double)row_size;
                  double currBlue=(double)srcp[x];
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
@@ -133,6 +132,7 @@ for (int i=0; i<360; i++){
             for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
+double x_shift=(double)x/(double)row_size;
                  double currBlue=(double)srcp[x];
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
@@ -196,17 +196,19 @@ double pre_shift_rgb_Lin[3];
 hsv2rgb(curr_rgb_dst_fnl_hsv,pre_shift_rgb_Lin);
 
 double hued=curr_rgb_dst_fnl_hsv[0];
-double bias=-third;
+double bias=-third*rel_sat_redu;
 
 if(  ((hued>0)&&(hued<sixty_deg)) || ((hued>third)&&(hued<0.5))  || ((hued>2*third)&&(hued<threeHun_deg)) ) {
 
-    bias=-third;
+    bias=-third*rel_sat_redu;
 }else if (     ((hued>sixty_deg)&&(hued<third)) || ((hued>0.5)&&(hued<2*third))  || ((hued>threeHun_deg)&&(hued<1))  || (bis==0) ){
-bias=third;
+bias=third*rel_sat_redu;
 }
-curr_rgb_dst_fnl_hsv[0]=mod(curr_rgb_dst_fnl_hsv[0]+bias,1);
 
 double col=1-   0.5*(rel_sat_redu);
+curr_rgb_dst_fnl_hsv[0]=mod(curr_rgb_dst_fnl_hsv[0]+bias,1);
+
+
 
 /*
 double sat_diff=fabs(init_Sat-curr_rgb_dst_fnl_hsv[1]);
