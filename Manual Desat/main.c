@@ -24,10 +24,9 @@ AVS_VideoFrame* AVSC_CC Manual_Desat_get_frame(AVS_FilterInfo* fi, int n)
 
    int row_size, height, src_pitch,x,y,dbg,bis;
    BYTE* srcp;
-   double CIEx,CIEy,rOG,bOG,gOG,strt,dest,cont;
+   double rOG,bOG,gOG,dest,cont;
 
 dbg=params->debug;
-strt=params->start;
 dest=params->desat;
 cont=params->contrast;
 bis=params->neg_bias;
@@ -44,9 +43,9 @@ src = avs_get_frame(fi->child, n);
       row_size = avs_get_row_size_p(src, planes[0]);
       height = avs_get_height_p(src, planes[0]);
 
-
-double counterAll=0;
 /*
+double counterAll=0;
+
 double sumR=0;
 double sumG=0;
 double sumB=0;
@@ -132,7 +131,7 @@ for (int i=0; i<360; i++){
             for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
-double x_shift=(double)x/(double)row_size;
+//double x_shift=(double)x/(double)row_size;
                  double currBlue=(double)srcp[x];
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
@@ -143,7 +142,7 @@ bOG=currBlue*rcptwoFiveFive;     // B
      //    double invK=fastPrecisePow(1-MIN(1-rOG,MIN(1-gOG,1-bOG)),7.97850774);
 
        //  double Y=0.212673*rOG+0.715152*gOG+0.072175*bOG;
-         double subt;
+
          double curr_rgb_dst_fnl_prp[3];
 double WPchgRGB_bk[3];
 double curr_rgb_dst_fnl_hsv[3];
@@ -171,7 +170,7 @@ int hue=round(curr_rgb_dst_fnl_hsv[0]*360);
 hue=(hue==360)?0:hue;
 double Sc=MAX(curr_rgb_dst_fnl_Lin[0],MAX(curr_rgb_dst_fnl_Lin[1],curr_rgb_dst_fnl_Lin[2]))-MIN(curr_rgb_dst_fnl_Lin[0],MIN(curr_rgb_dst_fnl_Lin[1],curr_rgb_dst_fnl_Lin[2]));
 
- subt= 0.25*((curr_rgb_dst_fnl_xyY[2])+invK+2*Sc);
+// double subt= 0.25*((curr_rgb_dst_fnl_xyY[2])+invK+2*Sc);
  //MIN(1,(fastPrecisePow(fastPrecisePow(0.25*(2*Sc+Y+invK),1-*(curr_rgb_dst_fnl_hsv+1)),1.08880107)));
 double hue_pr=1-(hueCount_prp[hue]);
 double lrp= hue_pr*0.5*((1-Sc)+fastPrecisePow(0.5*(invK)*(curr_rgb_dst_fnl_xyY[2]),(1-Sc)*(curr_rgb_dst_fnl_xyY[2])));
@@ -227,7 +226,6 @@ curr_rgb_dst_fnl_hsv[1]=(curr_rgb_dst_fnl_hsv[2]==0)?curr_rgb_dst_fnl_hsv[1]:MAX
 double WPchgRGB_Lin_shft[3];
 double WPchgRGB_Lin_shft_h[3];
 double WPchgRGB_Lin[3];
-double WPchgRGB_gc[3];
 double WPchgRGB_xyY[3];
 
 hsv2rgb(curr_rgb_dst_fnl_hsv,WPchgRGB_Lin_shft);
@@ -297,10 +295,9 @@ if (!params)
    }
 
           params->debug = avs_defined(avs_array_elt(args, 1))?avs_as_bool(avs_array_elt(args, 1)):false;
-          params->start = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):1.0;
-          params->desat = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.0;
-          params->contrast = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):0.0;
-          params->neg_bias = avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(args, 5)):true;
+          params->desat = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.0;
+          params->contrast = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.0;
+          params->neg_bias = avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):true;
 
    fi->user_data = (void*) params;
    fi->get_frame = Manual_Desat_get_frame;
@@ -315,6 +312,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "Manual_Desat", "c[debug]b[start]f[desat]f[contrast]f[neg_bias]b", create_Manual_Desat, 0);
+   avs_add_function(env, "Manual_Desat", "c[debug]b[desat]f[contrast]f[neg_bias]b", create_Manual_Desat, 0);
    return "Manual_Desat sample C plugin";
 }
