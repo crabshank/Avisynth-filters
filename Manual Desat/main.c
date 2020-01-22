@@ -199,10 +199,11 @@ hue=(hue==360)?0:hue;
 */
 //int hsv_fnl_el=round(curr_rgb_dst_fnl_hsvnc[1]*100);
 //double sat_pr=fastPrecisePow(sat_Count_prp[hsv_fnl_el],0.23533962);
-    if(dest>0){
-double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(1-ds*init_Sat));
-curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(            satL_fnl)*(1-sat1)),1));
+  double dlpw=fastPrecisePow(init_Sat,ds);
 
+    if(dest>0){
+double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw));
+curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(            satL_fnl)*(1-sat1)),1));
 }
 
 if (mnch<1){
