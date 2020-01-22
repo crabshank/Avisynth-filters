@@ -2,7 +2,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define PI  3.14159265358979323846
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
-#define lerp_clamp(a,b,t) MAX((MIN((b),((1 - (t)) * (a) + (t) * (b) ))),(a))
+#define lerp_clamp(a,b,t) MAX((MIN((a),((1 - (t)) * (a) + (t) * (b) ))),(b))
 #define  mod(a,N) ((a) - (N)*floor((a)/(N)))
 #define third 1.0/3.0
 #define rcptwoFiveFive 1.0/255.0
@@ -40,6 +40,58 @@ inline double fastPrecisePow(double a, double b) {
 //Source: https://martin.ankerl.com/2012/01/25/optimized-approximative-fastPrecisePow-in-c-and-cpp/
 
 
+void rgb2hsv_min_chr (double rgb[3],double hsvnc[5])
+{
+
+double r=rgb[0];
+double g=rgb[1];
+double b=rgb[2];
+
+
+    double max = MAX(r,MAX(g, b));
+    double min = MIN(r,MIN(g, b));
+
+    hsvnc[3]=min;
+
+    double diff =max-min;
+    hsvnc[4]=diff;
+
+    hsvnc[2] = max;
+
+    if (max == 0.0f) {
+        hsvnc[1] = 0;
+        hsvnc[0] = 0;
+    }
+
+   else  if (diff == 0.0f) {
+        hsvnc[1] = 0;
+        hsvnc[0] = 0;
+    }
+
+    else {
+        hsvnc[1] = diff / max;
+
+        if (max == r) {
+            hsvnc[0] = (g-b)/diff;
+        }
+        else if (max == g) {
+            hsvnc[0] = 2+(b-r)/diff;
+        }
+        else {
+            hsvnc[0] = 4+(r-g)/diff;
+    }
+
+
+    if(hsvnc[0]!=0){
+    hsvnc[0]/=6;
+hsvnc[0]=hsvnc[0]-(double)floor(hsvnc[0]);
+    }
+
+    hsvnc[0]=(hsvnc[0] < 0)?hsvnc[0]+1:hsvnc[0];
+
+    }
+
+}
 
 
 void rgb2hsv (double rgb[3],double hsv[3])
@@ -142,6 +194,29 @@ hsv[0]=hsv[0]-(double)floor(hsv[0]);
 
 }
 
+void hsvnc2rgb(double hsv[5], double rgb[3])
+{
+double h=hsv[0];
+double s=hsv[1];
+double v=hsv[2];
+
+
+   int i = floor(h * 6);
+   double f = h * 6 - i;
+   double p = v * (1 - s);
+    double q = v * (1 - f * s);
+   double t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: rgb[0] = v, rgb[1] = t, rgb[2] = p; break;
+        case 1: rgb[0] = q, rgb[1] = v, rgb[2] = p; break;
+        case 2: rgb[0] = p, rgb[1] = v, rgb[2] = t; break;
+        case 3: rgb[0] = p, rgb[1] = q, rgb[2] = v; break;
+        case 4: rgb[0] = t, rgb[1] = p, rgb[2] = v; break;
+        case 5: rgb[0] = v, rgb[1] = p, rgb[2] = q; break;
+    }
+
+
+}
 
 
 void hsv2rgb(double hsv[3], double rgb[3])
