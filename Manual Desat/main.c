@@ -206,7 +206,7 @@ double curr_rgb_dst_fnl_xyY[3];
 double curr_rgb_dst_fnl_prp[3];
 LinRGB2xyY(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_xyY);
 double invK=fastPrecisePow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
-RGB2rgb(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_prp);
+//RGB2rgb(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_prp);
 
 //double Sc=MAX(curr_rgb_dst_fnl_prp[0],MAX(curr_rgb_dst_fnl_prp[1],curr_rgb_dst_fnl_prp[2]))-MIN(curr_rgb_dst_fnl_prp[0],MIN(curr_rgb_dst_fnl_prp[1],curr_rgb_dst_fnl_prp[2]));
 
@@ -214,13 +214,15 @@ RGB2rgb(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_prp);
 hue=(hue==360)?0:hue;
  double hue_pr=1-fastPrecisePow(hueCount_prp[hue],0.1807568);*/
 int hsv_fnl_el=round(curr_rgb_dst_fnl_hsvnc[1]*100);
+int hsL_fnl_el=round(satL_fnl*100);
 double sat_pr=fastPrecisePow(sat_Count_prp[hsv_fnl_el],0.23533962);
+double satl_pr=sat_Count_l_prp[hsL_fnl_el];
   double dlpw=fastPrecisePow(init_Sat,ds);
   double dlpw_l=fastPrecisePow(satL_fnl,ds_l);
 
     if(dest>0){
-double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw)*dlpw_l*(invK)*(1-sat_pr));
-curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(            satL_fnl)*(1-sat1)*(1-satL_fnl)),1));
+double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw)*dlpw_l*(invK)*(1-sat_pr)*(1-satl_pr));
+curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(            satL_fnl)*(1-sat1)*(1-satL_fnl)*(1-(satl_pr)*( 1-sat_pr))),1));
 }
 
 if (mnch<1){
