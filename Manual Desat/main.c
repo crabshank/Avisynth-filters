@@ -164,11 +164,12 @@ bOG=currBlue*rcptwoFiveFive;
 
 
 double WPchgRGB_bk[3];
+double WPchgRGB_bk_gc[3];
 if ((rOG==0)&&(gOG==0)&&(bOG==0)){
 
-    WPchgRGB_bk[0]=0;
-    WPchgRGB_bk[1]=0;
-    WPchgRGB_bk[2]=0;
+    WPchgRGB_bk_gc[0]=0;
+    WPchgRGB_bk_gc[1]=0;
+    WPchgRGB_bk_gc[2]=0;
 }else{
 
 double curr_rgb_dst_fnl[3]={rOG,gOG,bOG};
@@ -263,7 +264,8 @@ hsvnc2rgb(curr_rgb_dst_fnl_hsvnc,WPchgRGB_Lin);
 
 LinRGB2xyY(WPchgRGB_Lin,WPchgRGB_xyY);
 WPchgRGB_xyY[2]=curr_rgb_dst_fnl_xyY[2];
-xyY2rgb(WPchgRGB_xyY,WPchgRGB_bk);
+xyY2LinRGB(WPchgRGB_xyY,WPchgRGB_bk);
+Linear2sRGB(WPchgRGB_bk,WPchgRGB_bk_gc);
 }
 
 if(dbg==1){
@@ -276,9 +278,9 @@ if(dbg==1){
 
 
 }else{
-                srcp[x] = MAX(MIN(round(WPchgRGB_bk[2]*255),255),0);
-             srcp[x+1] =MAX(MIN(round(WPchgRGB_bk[1]*255),255),0);
-        srcp[x+2] = MAX(MIN(round(WPchgRGB_bk[0]*255),255),0);
+                srcp[x] = MAX(MIN(round(WPchgRGB_bk_gc[2]*255),255),0);
+             srcp[x+1] =MAX(MIN(round(WPchgRGB_bk_gc[1]*255),255),0);
+        srcp[x+2] = MAX(MIN(round(WPchgRGB_bk_gc[0]*255),255),0);
 }
 
 
