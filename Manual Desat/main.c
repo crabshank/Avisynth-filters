@@ -238,7 +238,17 @@ if (mnch<1){
 double rel_sat_redu=(init_Sat==0)?1:fabs(init_Sat-curr_rgb_dst_fnl_hsvnc[1])/init_Sat;
 
 double pre_shift_rgb_Lin[3];
+double pre_shift_rgb_gc[3];
 hsvnc2rgb(curr_rgb_dst_fnl_hsvnc,pre_shift_rgb_Lin);
+
+double pre_shift_rgb_bk_Lin[3];
+
+
+pre_shift_rgb_bk_Lin[0]=MAX(pre_shift_rgb_Lin[0],curr_rgb_dst_fnl_Lin[0]);
+pre_shift_rgb_bk_Lin[1]=MAX(pre_shift_rgb_Lin[1],curr_rgb_dst_fnl_Lin[1]);
+pre_shift_rgb_bk_Lin[2]=MAX(pre_shift_rgb_Lin[2],curr_rgb_dst_fnl_Lin[2]);
+
+rgb2hsv_min_chr(pre_shift_rgb_bk_Lin,curr_rgb_dst_fnl_hsvnc);
 
 double hued=curr_rgb_dst_fnl_hsvnc[0];
 double bias=-third*rel_sat_redu;
@@ -289,9 +299,6 @@ WPchgRGB_xyY[2]=curr_rgb_dst_fnl_xyY[2];
 xyY2LinRGB(WPchgRGB_xyY,WPchgRGB_bk);
 Linear2sRGB(WPchgRGB_bk,WPchgRGB_bk_gc);
 
-WPchgRGB_bk_gc[0]=MAX(WPchgRGB_bk_gc[0],curr_rgb_dst_fnl[0]);
-WPchgRGB_bk_gc[1]=MAX(WPchgRGB_bk_gc[1],curr_rgb_dst_fnl[1]);
-WPchgRGB_bk_gc[2]=MAX(WPchgRGB_bk_gc[2],curr_rgb_dst_fnl[2]);
 }
 
 if(dbg==1){
