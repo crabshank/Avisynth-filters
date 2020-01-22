@@ -180,7 +180,7 @@ bOG=currBlue*rcptwoFiveFive;
        gOG=currGreen*rcptwoFiveFive;
          rOG=currRed*rcptwoFiveFive;
 
-
+double curr_rgb_dst_fnl[3];
 double WPchgRGB_bk[3];
 double WPchgRGB_bk_gc[3];
 if ((rOG==0)&&(gOG==0)&&(bOG==0)){
@@ -190,7 +190,9 @@ if ((rOG==0)&&(gOG==0)&&(bOG==0)){
     WPchgRGB_bk_gc[2]=0;
 }else{
 
-double curr_rgb_dst_fnl[3]={rOG,gOG,bOG};
+curr_rgb_dst_fnl[0]=rOG;
+curr_rgb_dst_fnl[1]=gOG;
+curr_rgb_dst_fnl[2]=bOG;
 double curr_rgb_dst_fnl_Lin[3];
 sRGB2Linear(curr_rgb_dst_fnl,curr_rgb_dst_fnl_Lin);
 
@@ -203,7 +205,7 @@ double satL_fnl=((hsvightness_fnl==1)||(hsvightness_fnl==0))?0:curr_rgb_dst_fnl_
 double init_Sat=curr_rgb_dst_fnl_hsvnc[1];
 double init_chr=curr_rgb_dst_fnl_hsvnc[4];
 double curr_rgb_dst_fnl_xyY[3];
-double curr_rgb_dst_fnl_prp[3];
+//double curr_rgb_dst_fnl_prp[3];
 LinRGB2xyY(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_xyY);
 double invK=fastPrecisePow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
 //RGB2rgb(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_prp);
@@ -286,6 +288,10 @@ LinRGB2xyY(WPchgRGB_Lin,WPchgRGB_xyY);
 WPchgRGB_xyY[2]=curr_rgb_dst_fnl_xyY[2];
 xyY2LinRGB(WPchgRGB_xyY,WPchgRGB_bk);
 Linear2sRGB(WPchgRGB_bk,WPchgRGB_bk_gc);
+
+WPchgRGB_bk_gc[0]=MAX(WPchgRGB_bk_gc[0],curr_rgb_dst_fnl[0]);
+WPchgRGB_bk_gc[1]=MAX(WPchgRGB_bk_gc[1],curr_rgb_dst_fnl[1]);
+WPchgRGB_bk_gc[2]=MAX(WPchgRGB_bk_gc[2],curr_rgb_dst_fnl[2]);
 }
 
 if(dbg==1){
