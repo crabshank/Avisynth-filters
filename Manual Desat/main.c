@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
@@ -12,9 +11,6 @@ typedef struct Manual_Desat {
         double desat;
         double neg_bias;
 } Manual_Desat;
-
-
-
 
 AVS_VideoFrame* AVSC_CC Manual_Desat_get_frame(AVS_FilterInfo* fi, int n)
 {
@@ -187,6 +183,7 @@ rgb2hsv_min_chr(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_hsvnc);
 double satL_fnl=((hsvightness_fnl==1)||(hsvightness_fnl==0))?0:curr_rgb_dst_fnl_hsvnc[4]/(1-ABS(2*hsvightness_fnl-1));
 
 double init_Sat=curr_rgb_dst_fnl_hsvnc[1];
+double init_chr=curr_rgb_dst_fnl_hsvnc[4];
 double curr_rgb_dst_fnl_xyY[3];
 double curr_rgb_dst_fnl_prp[3];
 LinRGB2xyY(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_xyY);
@@ -207,28 +204,12 @@ curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(     
 
 }
 
-if (mnch>0){
-    double chr=curr_rgb_dst_fnl_hsvnc[1]*curr_rgb_dst_fnl_hsvnc[2];
-        curr_rgb_dst_fnl_hsvnc[1]=((chr<mnch)&&(curr_rgb_dst_fnl_hsvnc[2]>0))?MIN(init_Sat,mnch/curr_rgb_dst_fnl_hsvnc[2]):  curr_rgb_dst_fnl_hsvnc[1];
+if (mnch<1){
+    double chr_dff=ABS(init_chr - curr_rgb_dst_fnl_hsvnc[1]*curr_rgb_dst_fnl_hsvnc[2]);
+
+        curr_rgb_dst_fnl_hsvnc[1]=((chr_dff>mnch)&&(init_chr>0))?MAX(0,MIN(init_Sat,lerp(curr_rgb_dst_fnl_hsvnc[1],(init_chr-mnch)*curr_rgb_dst_fnl_hsvnc[2],chr_dff/init_chr))):  curr_rgb_dst_fnl_hsvnc[1];
 //curr_rgb_dst_fnl_hsvnc[1]=(raw_sat_avg==0)?init_Sat-dest:lerp_clamp(init_Sat,0 ,mnch+((sat_pr)*hue_pr*(1-init_Sat)*(1-satL_fnl)*(1-invK)*(curr_rgb_dst_fnl_xyY[2])*(1-Sc)*ds*(1-init_Sat))*(1-raw_sat_avg));
 }
-
-/*
-if(dest>0){
-
-double mid_dist=2*ABS(0.5-init_Sat);
-
-double initSat2=2*init_Sat;
-
-double mid_cnt=(initSat2<1)?0.5*(1-fastPrecisePow(ABS(1-initSat2),dest)):0.5*(fastPrecisePow(ABS(initSat2-1),dest)+1);
-double hl_cnt=(initSat2<1)?fastPrecisePow(ABS(0.5*initSat2),dest):0.5*(2-fastPrecisePow(ABS(2-initSat2),dest));
-double lrp1=lerp(mid_cnt,hl_cnt,(   ds)*(1-mid_dist));
-curr_rgb_dst_fnl_hsvnc[1]=lerp(curr_rgb_dst_fnl_hsvnc[1],lrp1,(1-(1-init_Sat)*(2*ABS(0.5-curr_rgb_dst_fnl_hsvnc[1])))    )  ;
-
-
-}*/
-
-
 
 double rel_sat_redu=(init_Sat==0)?1:ABS(init_Sat-curr_rgb_dst_fnl_hsvnc[1])/init_Sat;
 
@@ -337,7 +318,7 @@ if (!params)
           params->debug = avs_defined(avs_array_elt(args, 1))?avs_as_bool(avs_array_elt(args, 1)):false;
 
           params->desat = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.0;
-                  params->min_chroma = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.0;
+                  params->min_chroma = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):1.0;
           params->neg_bias = avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):true;
 
    fi->user_data = (void*) params;
