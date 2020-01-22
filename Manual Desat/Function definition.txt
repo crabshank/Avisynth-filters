@@ -1,6 +1,6 @@
 (   
      bool "debug"=false,
      float "desat"=0,
-     float "min_chroma"=0, 
+     float "min_chroma"=1 (target max difference in chroma after desaturation), 
      bool "neg_bias" =true (tend to subtract from hues rather than add to them in auto hue correction)
 )
