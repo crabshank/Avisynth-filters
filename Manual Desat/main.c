@@ -212,15 +212,14 @@ RGB2rgb(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_prp);
 
 /*int hue=round(curr_rgb_dst_fnl_hsvnc[0]*360);
 hue=(hue==360)?0:hue;
- double hue_pr=1-fastPrecisePow(hueCount_prp[hue],0.1807568);
-*/
-//int hsv_fnl_el=round(curr_rgb_dst_fnl_hsvnc[1]*100);
-//double sat_pr=fastPrecisePow(sat_Count_prp[hsv_fnl_el],0.23533962);
+ double hue_pr=1-fastPrecisePow(hueCount_prp[hue],0.1807568);*/
+int hsv_fnl_el=round(curr_rgb_dst_fnl_hsvnc[1]*100);
+double sat_pr=fastPrecisePow(sat_Count_prp[hsv_fnl_el],0.23533962);
   double dlpw=fastPrecisePow(init_Sat,ds);
   double dlpw_l=fastPrecisePow(satL_fnl,ds_l);
 
     if(dest>0){
-double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw)*dlpw_l);
+double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw)*dlpw_l*(invK)*(1-sat_pr));
 curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(            satL_fnl)*(1-sat1)*(1-satL_fnl)),1));
 }
 
