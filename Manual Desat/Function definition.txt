@@ -1,0 +1,6 @@
+(   
+     bool "debug"=false,
+     float "desat"=0,
+     float "min_chroma"=0, 
+     bool "neg_bias" =true (tend to subtract from hues rather than add to them in auto hue correction)
+)
