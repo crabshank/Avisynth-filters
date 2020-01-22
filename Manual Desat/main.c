@@ -202,7 +202,7 @@ hue=(hue==360)?0:hue;
   double dlpw=fastPrecisePow(init_Sat,ds);
 
     if(dest>0){
-double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw));
+double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw)*(1-satL_fnl));
 curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(            satL_fnl)*(1-sat1)),1));
 }
 
@@ -270,12 +270,16 @@ Linear2sRGB(WPchgRGB_bk,WPchgRGB_bk_gc);
 }
 
 if(dbg==1){
-    double chroma=MAX(WPchgRGB_bk[0],MAX(WPchgRGB_bk[1],WPchgRGB_bk[2]))-MIN(WPchgRGB_bk[0],MIN(WPchgRGB_bk[1],WPchgRGB_bk[2]));
+        double dbg_mx=MAX(WPchgRGB_bk[0],MAX(WPchgRGB_bk[1],WPchgRGB_bk[2]));
+        double dbg_mn=MIN(WPchgRGB_bk[0],MIN(WPchgRGB_bk[1],WPchgRGB_bk[2]));
+    double chroma=dbg_mx-dbg_mn;
+ double dbg_light=0.5*(dbg_mx+dbg_mn);
+double dbg_satL=((dbg_light==1)||(dbg_light==0))?0:chroma/(1-ABS(2*dbg_light-1));
 
 
-                srcp[x] = MAX(MIN(round(chroma*255),255),0);
-             srcp[x+1] =MAX(MIN(round(chroma*255),255),0);
-        srcp[x+2] = MAX(MIN(round(chroma*255),255),0);
+                srcp[x] = MAX(MIN(round(dbg_satL*255),255),0);
+             srcp[x+1] =MAX(MIN(round(dbg_satL*255),255),0);
+        srcp[x+2] = MAX(MIN(round(dbg_satL*255),255),0);
 
 
 }else{
