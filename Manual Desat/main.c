@@ -206,8 +206,8 @@ curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(     
 
 if (mnch<1){
     double chr_dff=ABS(init_chr - curr_rgb_dst_fnl_hsvnc[1]*curr_rgb_dst_fnl_hsvnc[2]);
-
-        curr_rgb_dst_fnl_hsvnc[1]=((chr_dff>mnch)&&(init_chr>0))?MAX(0,MIN(init_Sat,lerp(curr_rgb_dst_fnl_hsvnc[1],(init_chr-mnch)*curr_rgb_dst_fnl_hsvnc[2],1-(1-(chr_dff/init_chr)*(1-ds))))):  curr_rgb_dst_fnl_hsvnc[1];
+double lrp_chr=(init_chr==0)?0:(chr_dff* (invK - 1)* (satL_fnl - 1)* (1 - ds))/init_chr + invK;
+        curr_rgb_dst_fnl_hsvnc[1]=((chr_dff>mnch)&&(init_chr>0))?MAX(0,MIN(init_Sat,lerp(curr_rgb_dst_fnl_hsvnc[1],(init_chr-mnch)*curr_rgb_dst_fnl_hsvnc[2],lrp_chr))):  curr_rgb_dst_fnl_hsvnc[1];
 //curr_rgb_dst_fnl_hsvnc[1]=(raw_sat_avg==0)?init_Sat-dest:lerp_clamp(init_Sat,0 ,mnch+((sat_pr)*hue_pr*(1-init_Sat)*(1-satL_fnl)*(1-invK)*(curr_rgb_dst_fnl_xyY[2])*(1-Sc)*ds*(1-init_Sat))*(1-raw_sat_avg));
 }
 
