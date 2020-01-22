@@ -221,8 +221,8 @@ double satl_pr=sat_Count_l_prp[hsL_fnl_el];
   double dlpw_l=fastPrecisePow(satL_fnl,ds_l);
 
     if(dest>0){
-double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw)*dlpw_l*(invK)*(1-sat_pr)*(1-satl_pr));
-curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(            satL_fnl)*(1-sat1)*(1-satL_fnl)*(1-(satl_pr)*( 1-sat_pr))),1));
+double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(dlpw)*dlpw_l*(1-sat_pr)*(1-satl_pr));
+curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*(invK)*(            satL_fnl)*(1-sat1)*(1-satL_fnl)*(1-(satl_pr)*( 1-sat_pr))),1));
 }
 
 if (mnch<1){
