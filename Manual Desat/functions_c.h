@@ -12,7 +12,7 @@
 #define twoTen_deg 7.0*thirty_deg
 #define threeHun_deg 5.0*sixty_deg
 #define threeThirty_deg 11.0*thirty_deg
-#define ABS(a) (((a)<0)?((a)-(2*(a))):(a))
+#define ABS(a) (((a)<0)?MAX(0,((a)-(2*(a)))):(a))
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
@@ -38,7 +38,6 @@ inline double fastPrecisePow(double a, double b) {
   return r * u.d;
 }
 //Source: https://martin.ankerl.com/2012/01/25/optimized-approximative-fastPrecisePow-in-c-and-cpp/
-
 
 void rgb2hsv_min_chr (double rgb[3],double hsvnc[5])
 {
@@ -507,7 +506,7 @@ mul(3,3,1,convBrad,XYZ,outp);
 void sRGB2Linear(double rgb[3],double outp[3]){
 
 	for (int p=2;p>=0;p--){
-        outp[p]=(rgb[p] > 0.0404482362771082 )?fastPrecisePow(ABS((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
+        outp[p]=(rgb[p] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
 }
 
 }
@@ -525,9 +524,9 @@ for (int p=2; p>=0; p--){
 void rgb2xyY(double rgb[3],double outp[3]){
 
 
-      double  n1=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(ABS((rgb[0]+0.055)/1.055),2.4):rgb[0]/12.92;
-     double   n2=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(ABS((rgb[1]+0.055)/1.055),2.4):rgb[1]/12.92;
-      double  n3=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(ABS((rgb[2]+0.055)/1.055),2.4):rgb[2]/12.92;
+      double  n1=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)/1.055),2.4):rgb[0]/12.92;
+     double   n2=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)/1.055),2.4):rgb[1]/12.92;
+      double  n3=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)/1.055),2.4):rgb[2]/12.92;
 
 
 
@@ -719,8 +718,8 @@ void rgb2Other_XYZ (double rgb[3], double rgbTo[3], double XYZog[3],double XYZne
 	  double rgbNew[3];
 
 	for (int p=0;p<3;p++){
-        rgbLin[p]=(rgb[p] > 0.0404482362771082 )?fastPrecisePow(ABS((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
-        rgbNew[p]=(rgbTo[p] > 0.0404482362771082 )?fastPrecisePow(ABS((rgbTo[p]+0.055)/1.055),2.4):rgbTo[p]/12.92;
+        rgbLin[p]=(rgb[p] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
+        rgbNew[p]=(rgbTo[p] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbTo[p]+0.055)/1.055),2.4):rgbTo[p]/12.92;
 }
 
 
@@ -768,7 +767,7 @@ void rgb2Grey_XYZ (double rgb[3], double XYZog[3],double XYZnew[3]){
 	  double rgbLin[3];
 
 	for (int p=0;p<3;p++){
-        rgbLin[p]=(rgb[p] > 0.0404482362771082 )?fastPrecisePow(ABS((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
+        rgbLin[p]=(rgb[p] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[p]+0.055)/1.055),2.4):rgb[p]/12.92;
 }
 
 
