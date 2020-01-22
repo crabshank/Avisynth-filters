@@ -8,8 +8,8 @@
 typedef struct Manual_Desat {
     int debug;
         double start;
+        double min_chroma;
         double desat;
-        double contrast;
         double neg_bias;
 } Manual_Desat;
 
@@ -24,11 +24,11 @@ AVS_VideoFrame* AVSC_CC Manual_Desat_get_frame(AVS_FilterInfo* fi, int n)
 
    int row_size, height, src_pitch,x,y,dbg,bis;
    BYTE* srcp;
-   double rOG,bOG,gOG,dest,cont;
+   double rOG,bOG,gOG,mnch,dest;
 
 dbg=params->debug;
-dest=params->desat;
-cont=params->contrast;
+mnch=params->min_chroma ;
+dest=params-> desat ;
 bis=params->neg_bias;
 
    //CIEx= 0.312727;
@@ -54,17 +54,32 @@ double sumR_dst=0;
 double sumG_dst=0;
 double sumB_dst=0;
 */
-double hueCount[360];
-double hueCount_prp[360];
+//double hueCount[360];
+//double hueCount_prp[360];
+double sat_Count[101];
+double sat_Count_prp[101];
+double ds=0;
+//double raw_sat_sum=0;
+//double raw_sat_avg=0;
+//double counter=0;
 /*double hueCount_sat[360];
 double hueCount_sat_avg[360];
 double hueCount_sat_dst[360];
 double hueCount_sat_sum[360];
 double last_hueCount_sd[360];
 */
+/*
 for (int i=359; i>=0; i--){
     hueCount[i]=0;
     hueCount_prp[i]=0;
+   // hueCount_sat_sum[i]=0;
+    //hueCount_sat[i]=0;
+    //last_hueCount_sd[i]=0;
+}*/
+
+for (int i=100; i>=0; i--){
+    sat_Count[i]=0;
+    sat_Count_prp[i]=0;
    // hueCount_sat_sum[i]=0;
     //hueCount_sat[i]=0;
     //last_hueCount_sd[i]=0;
@@ -88,24 +103,22 @@ double curr_rgb_dst[3]={rOG,gOG,bOG};
 double curr_rgb_dst_lin[3];
 
 sRGB2Linear(curr_rgb_dst,curr_rgb_dst_lin);
-        double curr_rgb_dst_hsv[3];
-rgb2hsv(curr_rgb_dst_lin,curr_rgb_dst_hsv);
-
-int hueEl=round(curr_rgb_dst_hsv[0]*360);
-hueEl=(hueEl==360)?0:hueEl;
+        double curr_rgb_dst_hsvnc[5];
+rgb2hsv_min_chr(curr_rgb_dst_lin,curr_rgb_dst_hsvnc);
 /*
-if(hueCount[hueEl]<1){ //If first eligible pixel, add current dist to sum
-last_hueCount_sd[hueEl]=curr_rgb_dst_hsv[1];
-hueCount_sat_sum[hueEl]+=curr_rgb_dst_hsv[1];
-}else{
-
-last_hueCount_sd[hueEl]+=(curr_rgb_dst_hsv[1]-((hueCount_sat_sum[hueEl]+curr_rgb_dst_hsv[1])/(hueCount[hueEl]+1)))*(curr_rgb_dst_hsv[1]-(hueCount_sat_sum[hueEl]/hueCount[hueEl]));
-
-hueCount_sat_sum[hueEl]+=curr_rgb_dst_hsv[1];
-
-}
+double hsvightness=0.5*(curr_rgb_dst_hsvnc[2]+curr_rgb_dst_hsvnc[3]);
+double sat=((hsvightness==1)||(hsvightness==0))?0:curr_rgb_dst_hsvnc[4]/(1-fabs(2*hsvightness-1));
 */
-hueCount[hueEl]++;
+/*
+int hueEl=round(curr_rgb_dst_hsvnc[0]*360);
+hueEl=(hueEl==360)?0:hueEl;
+*/
+int hsv_el=round(curr_rgb_dst_hsvnc[1]*100);
+//raw_sat_sum+=curr_rgb_dst_hsvnc[1];
+//counter+=1;
+
+sat_Count[hsv_el]+=1;
+//hueCount[hueEl]+=1;
 
       }
 
@@ -115,19 +128,32 @@ x+=3;
 
 
 
-double hueSum=0;
-
-for (int i=0; i<360; i++){
+//double hueSum=0;
+double hsvSum=0;/*
+raw_sat_avg=raw_sat_sum/counter;
+for (int i=359; i>=0; i--){
     hueSum+=hueCount[i];
    // last_hueCount_sd[i]*=(hueCount[i])/(hueCount[i]-1); //Bessel correct
 }
-for (int i=0; i<360; i++){
+for (int i=359; i>=0; i--){
     hueCount_prp[i]=hueCount[i]/hueSum;
    // hueCount_sat_avg[i]=(hueCount[i]==0)?0:hueCount_sat_sum[i]/hueCount[i];
  //   hueCount_sat_dst[i]= hueCount_sat_avg[i]+ last_hueCount_sd[i]; //x standard devs from mean
+}*/
+
+for (int i=100; i>=0; i--){
+    hsvSum+=sat_Count[i];
 }
 
 
+double i_dbl=100;
+for (int i=100; i>=0; i--){
+    ds=(i<100)?ds+fabs(sat_Count_prp[i+1]-sat_Count_prp[i])*(1-(i+0.5)*0.01):ds;
+    sat_Count_prp[i]=sat_Count[i]/hsvSum;
+i_dbl-=1;
+}
+
+ds=ds*0.01;
             for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
@@ -136,16 +162,12 @@ for (int i=0; i<360; i++){
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
 
-bOG=currBlue*rcptwoFiveFive;     // B
-       gOG=currGreen*rcptwoFiveFive;   //G
-         rOG=currRed*rcptwoFiveFive;     // R
-     //    double invK=fastPrecisePow(1-MIN(1-rOG,MIN(1-gOG,1-bOG)),7.97850774);
+bOG=currBlue*rcptwoFiveFive;
+       gOG=currGreen*rcptwoFiveFive;
+         rOG=currRed*rcptwoFiveFive;
 
-       //  double Y=0.212673*rOG+0.715152*gOG+0.072175*bOG;
 
-         double curr_rgb_dst_fnl_prp[3];
 double WPchgRGB_bk[3];
-double curr_rgb_dst_fnl_hsv[3];
 if ((rOG==0)&&(gOG==0)&&(bOG==0)){
 
     WPchgRGB_bk[0]=0;
@@ -156,45 +178,64 @@ if ((rOG==0)&&(gOG==0)&&(bOG==0)){
 double curr_rgb_dst_fnl[3]={rOG,gOG,bOG};
 double curr_rgb_dst_fnl_Lin[3];
 sRGB2Linear(curr_rgb_dst_fnl,curr_rgb_dst_fnl_Lin);
+
+
+        double curr_rgb_dst_fnl_hsvnc[5];
+rgb2hsv_min_chr(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_hsvnc);
+
+ double hsvightness_fnl=0.5*(curr_rgb_dst_fnl_hsvnc[2]+curr_rgb_dst_fnl_hsvnc[3]);
+double satL_fnl=((hsvightness_fnl==1)||(hsvightness_fnl==0))?0:curr_rgb_dst_fnl_hsvnc[4]/(1-fabs(2*hsvightness_fnl-1));
+
+double init_Sat=curr_rgb_dst_fnl_hsvnc[1];
+double curr_rgb_dst_fnl_xyY[3];
+double curr_rgb_dst_fnl_prp[3];
+LinRGB2xyY(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_xyY);
 double invK=fastPrecisePow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
-
-
-
 RGB2rgb(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_prp);
 
-double curr_rgb_dst_fnl_xyY[3];
-LinRGB2xyY(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_xyY);
-rgb2hsv(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_hsv);
-double init_Sat=curr_rgb_dst_fnl_hsv[1];
-int hue=round(curr_rgb_dst_fnl_hsv[0]*360);
+//double Sc=MAX(curr_rgb_dst_fnl_prp[0],MAX(curr_rgb_dst_fnl_prp[1],curr_rgb_dst_fnl_prp[2]))-MIN(curr_rgb_dst_fnl_prp[0],MIN(curr_rgb_dst_fnl_prp[1],curr_rgb_dst_fnl_prp[2]));
+
+/*int hue=round(curr_rgb_dst_fnl_hsvnc[0]*360);
 hue=(hue==360)?0:hue;
-double Sc=MAX(curr_rgb_dst_fnl_Lin[0],MAX(curr_rgb_dst_fnl_Lin[1],curr_rgb_dst_fnl_Lin[2]))-MIN(curr_rgb_dst_fnl_Lin[0],MIN(curr_rgb_dst_fnl_Lin[1],curr_rgb_dst_fnl_Lin[2]));
+ double hue_pr=1-fastPrecisePow(hueCount_prp[hue],0.1807568);
+*/
+//int hsv_fnl_el=round(curr_rgb_dst_fnl_hsvnc[1]*100);
+//double sat_pr=fastPrecisePow(sat_Count_prp[hsv_fnl_el],0.23533962);
+    if(dest>0){
+double sat1=curr_rgb_dst_fnl_hsvnc[1]-(dest*(1-ds*init_Sat));
+curr_rgb_dst_fnl_hsvnc[1]= MAX(0,MIN(lerp(init_Sat,sat1,(1-init_Sat)*invK*(            satL_fnl)*(1-sat1)),1));
 
-// double subt= 0.25*((curr_rgb_dst_fnl_xyY[2])+invK+2*Sc);
- //MIN(1,(fastPrecisePow(fastPrecisePow(0.25*(2*Sc+Y+invK),1-*(curr_rgb_dst_fnl_hsv+1)),1.08880107)));
-double hue_pr=1-(hueCount_prp[hue]);
-double lrp= hue_pr*0.5*((1-Sc)+fastPrecisePow(0.5*(invK)*(curr_rgb_dst_fnl_xyY[2]),(1-Sc)*(curr_rgb_dst_fnl_xyY[2])));
-curr_rgb_dst_fnl_hsv[1]=lerp_clamp(0,init_Sat,dest* lrp);
-
-
-
-if(cont>0){
-double mid_dist=2*fabs(0.5-init_Sat);
-//curr_rgb_dst_fnl_hsv[1]*=2;
-double initSat2=2*init_Sat;
-//double mid_cnt=(curr_rgb_dst_fnl_hsv[1]<1)?0.5*(1-fastPrecisePow(fabs(1-curr_rgb_dst_fnl_hsv[1]),cont)):0.5*(fastPrecisePow(fabs(curr_rgb_dst_fnl_hsv[1]-1),cont)+1);
-double mid_cnt=(initSat2<1)?0.5*(1-fastPrecisePow(fabs(1-initSat2),cont)):0.5*(fastPrecisePow(fabs(initSat2-1),cont)+1);
-double hl_cnt=(initSat2<1)?fastPrecisePow(fabs(0.5*initSat2),cont):0.5*(2-fastPrecisePow(fabs(2-initSat2),cont));
-double lrp1=lerp(mid_cnt,hl_cnt,mid_dist);
-curr_rgb_dst_fnl_hsv[1]=lerp(curr_rgb_dst_fnl_hsv[1],lrp1,(1-(1-init_Sat)*(2*fabs(0.5-curr_rgb_dst_fnl_hsv[1])))    )  ;
 }
 
-double rel_sat_redu=(init_Sat==0)?1:fabs(init_Sat-curr_rgb_dst_fnl_hsv[1])/init_Sat;
+if (mnch>0){
+    double chr=curr_rgb_dst_fnl_hsvnc[1]*curr_rgb_dst_fnl_hsvnc[2];
+        curr_rgb_dst_fnl_hsvnc[1]=((chr<mnch)&&(curr_rgb_dst_fnl_hsvnc[2]>0))?MIN(init_Sat,mnch/curr_rgb_dst_fnl_hsvnc[2]):  curr_rgb_dst_fnl_hsvnc[1];
+//curr_rgb_dst_fnl_hsvnc[1]=(raw_sat_avg==0)?init_Sat-dest:lerp_clamp(init_Sat,0 ,mnch+((sat_pr)*hue_pr*(1-init_Sat)*(1-satL_fnl)*(1-invK)*(curr_rgb_dst_fnl_xyY[2])*(1-Sc)*ds*(1-init_Sat))*(1-raw_sat_avg));
+}
+
+/*
+if(dest>0){
+
+double mid_dist=2*fabs(0.5-init_Sat);
+
+double initSat2=2*init_Sat;
+
+double mid_cnt=(initSat2<1)?0.5*(1-fastPrecisePow(fabs(1-initSat2),dest)):0.5*(fastPrecisePow(fabs(initSat2-1),dest)+1);
+double hl_cnt=(initSat2<1)?fastPrecisePow(fabs(0.5*initSat2),dest):0.5*(2-fastPrecisePow(fabs(2-initSat2),dest));
+double lrp1=lerp(mid_cnt,hl_cnt,(   ds)*(1-mid_dist));
+curr_rgb_dst_fnl_hsvnc[1]=lerp(curr_rgb_dst_fnl_hsvnc[1],lrp1,(1-(1-init_Sat)*(2*fabs(0.5-curr_rgb_dst_fnl_hsvnc[1])))    )  ;
+
+
+}*/
+
+
+
+double rel_sat_redu=(init_Sat==0)?1:fabs(init_Sat-curr_rgb_dst_fnl_hsvnc[1])/init_Sat;
 
 double pre_shift_rgb_Lin[3];
-hsv2rgb(curr_rgb_dst_fnl_hsv,pre_shift_rgb_Lin);
+hsvnc2rgb(curr_rgb_dst_fnl_hsvnc,pre_shift_rgb_Lin);
 
-double hued=curr_rgb_dst_fnl_hsv[0];
+double hued=curr_rgb_dst_fnl_hsvnc[0];
 double bias=-third*rel_sat_redu;
 
 if(  ((hued>0)&&(hued<sixty_deg)) || ((hued>third)&&(hued<0.5))  || ((hued>2*third)&&(hued<threeHun_deg)) ) {
@@ -205,30 +246,28 @@ bias=third*rel_sat_redu;
 }
 
 double col=1-   0.5*(rel_sat_redu);
-curr_rgb_dst_fnl_hsv[0]=mod(curr_rgb_dst_fnl_hsv[0]+bias,1);
-
-
+curr_rgb_dst_fnl_hsvnc[0]=mod(curr_rgb_dst_fnl_hsvnc[0]+bias,1);
 
 /*
 double sat_diff=fabs(init_Sat-curr_rgb_dst_fnl_hsv[1]);
 double sat_diff_prp=(init_Sat==0)?0:sat_diff/(init_Sat);
 double chr_chg=sat_diff_prp*curr_rgb_dst_fnl_hsv[2];
-if(cont>0){
-curr_rgb_dst_fnl_hsv[1]=(curr_rgb_dst_fnl_hsv[2]==0)?curr_rgb_dst_fnl_hsv[1]:MAX(curr_rgb_dst_fnl_hsv[1],MIN(init_Sat,lerp(curr_rgb_dst_fnl_hsv[1],curr_rgb_dst_fnl_hsv[1]+sat_diff*(cont/curr_rgb_dst_fnl_hsv[2]),   lrp)));
+if(dest>0){
+curr_rgb_dst_fnl_hsv[1]=(curr_rgb_dst_fnl_hsv[2]==0)?curr_rgb_dst_fnl_hsv[1]:MAX(curr_rgb_dst_fnl_hsv[1],MIN(init_Sat,lerp(curr_rgb_dst_fnl_hsv[1],curr_rgb_dst_fnl_hsv[1]+sat_diff*(dest/curr_rgb_dst_fnl_hsv[2]),   lrp)));
 }
 */
  //subt=MIN(1,(fastPrecisePow(fastPrecisePow(0.25*(2*Sc+Y+invK),1-curr_rgb_dst_fnl_hsv[1]),1.08880107)));
 
-//curr_rgb_dst_fnl_hsv[1]=MAX(0,(curr_rgb_dst_fnl_hsv[1]-dest*subt*(1-hueCount_prp[hue])));
+//curr_rgb_dst_fnl_hsv[1]=MAX(0,(curr_rgb_dst_fnl_hsv[1]-mnch*subt*(1-hueCount_prp[hue])));
 //double lrp=(init_Sat==0)?1-subt:(1-(1-hueCount_prp[hue])*(fabs(curr_rgb_dst_fnl_hsv[1]-init_Sat)/init_Sat))*(1-subt);
-//curr_rgb_dst_fnl_hsv[1]=lerp_clamp(curr_rgb_dst_fnl_hsv[1],init_Sat,(1-hueCount_prp[hue])*pow((curr_rgb_dst_fnl_hsv[1]*init_Sat),pow(lrp,cont) ));
+//curr_rgb_dst_fnl_hsv[1]=lerp_clamp(curr_rgb_dst_fnl_hsv[1],init_Sat,(1-hueCount_prp[hue])*pow((curr_rgb_dst_fnl_hsv[1]*init_Sat),pow(lrp,dest) ));
 
 double WPchgRGB_Lin_shft[3];
 double WPchgRGB_Lin_shft_h[3];
 double WPchgRGB_Lin[3];
 double WPchgRGB_xyY[3];
 
-hsv2rgb(curr_rgb_dst_fnl_hsv,WPchgRGB_Lin_shft);
+hsvnc2rgb(curr_rgb_dst_fnl_hsvnc,WPchgRGB_Lin_shft);
 
   WPchgRGB_Lin_shft[0]=lerp(WPchgRGB_Lin_shft[0],pre_shift_rgb_Lin[0],col);
   WPchgRGB_Lin_shft[1]=lerp(WPchgRGB_Lin_shft[1],pre_shift_rgb_Lin[1],col);
@@ -236,8 +275,9 @@ hsv2rgb(curr_rgb_dst_fnl_hsv,WPchgRGB_Lin_shft);
 
 
 rgb2hsv(WPchgRGB_Lin_shft,WPchgRGB_Lin_shft_h);
-curr_rgb_dst_fnl_hsv[0]=WPchgRGB_Lin_shft_h[0];
-hsv2rgb(curr_rgb_dst_fnl_hsv,WPchgRGB_Lin);
+curr_rgb_dst_fnl_hsvnc[0]=WPchgRGB_Lin_shft_h[0];
+
+hsvnc2rgb(curr_rgb_dst_fnl_hsvnc,WPchgRGB_Lin);
 
 LinRGB2xyY(WPchgRGB_Lin,WPchgRGB_xyY);
 WPchgRGB_xyY[2]=curr_rgb_dst_fnl_xyY[2];
@@ -295,8 +335,9 @@ if (!params)
    }
 
           params->debug = avs_defined(avs_array_elt(args, 1))?avs_as_bool(avs_array_elt(args, 1)):false;
+
           params->desat = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.0;
-          params->contrast = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.0;
+                  params->min_chroma = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0.0;
           params->neg_bias = avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):true;
 
    fi->user_data = (void*) params;
@@ -312,6 +353,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "Manual_Desat", "c[debug]b[desat]f[contrast]f[neg_bias]b", create_Manual_Desat, 0);
+   avs_add_function(env, "Manual_Desat", "c[debug]b[desat]f[min_chroma]f[neg_bias]b", create_Manual_Desat, 0);
    return "Manual_Desat sample C plugin";
 }
