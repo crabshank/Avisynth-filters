@@ -144,7 +144,7 @@ for (int i=100; i>=0; i--){
 
 double i_dbl=100;
 for (int i=100; i>=0; i--){
-    ds=(i<100)?ds+ABS(sat_Count_prp[i+1]-sat_Count_prp[i])*(1-(i+0.5)*0.01):ds;
+    ds=(i<100)?ds+ABS(sat_Count_prp[i+1]-sat_Count_prp[i])*(1-(i_dbl+0.5)*0.01):ds;
     sat_Count_prp[i]=sat_Count[i]/hsvSum;
 i_dbl-=1;
 }
