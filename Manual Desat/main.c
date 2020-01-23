@@ -243,7 +243,6 @@ hsvnc2rgb(curr_rgb_dst_fnl_hsvnc,pre_shift_rgb_Lin);
 
 double pre_shift_rgb_bk_Lin[3];
 
-
 pre_shift_rgb_bk_Lin[0]=MAX(pre_shift_rgb_Lin[0],curr_rgb_dst_fnl_Lin[0]);
 pre_shift_rgb_bk_Lin[1]=MAX(pre_shift_rgb_Lin[1],curr_rgb_dst_fnl_Lin[1]);
 pre_shift_rgb_bk_Lin[2]=MAX(pre_shift_rgb_Lin[2],curr_rgb_dst_fnl_Lin[2]);
@@ -298,19 +297,18 @@ LinRGB2xyY(WPchgRGB_Lin,WPchgRGB_xyY);
 WPchgRGB_xyY[2]=curr_rgb_dst_fnl_xyY[2];
 xyY2LinRGB(WPchgRGB_xyY,WPchgRGB_bk);
 Linear2sRGB(WPchgRGB_bk,WPchgRGB_bk_gc);
-
 }
 
 if(dbg==1){
         double dbg_mx=MAX(WPchgRGB_bk_gc[0],MAX(WPchgRGB_bk_gc[1],WPchgRGB_bk_gc[2]));
         double dbg_mn=MIN(WPchgRGB_bk_gc[0],MIN(WPchgRGB_bk_gc[1],WPchgRGB_bk_gc[2]));
-    double chroma=dbg_mx-dbg_mn;
+    double sat_dbg=(dbg_mx==0)?0:(dbg_mx-dbg_mn)/dbg_mx    ;
  //double dbg_light=0.5*(dbg_mx+dbg_mn);
 //double dbg_satL=((dbg_light==1)||(dbg_light==0))?0:chroma/(1-fabs(2*dbg_light-1));
 
-                srcp[x] = MAX(MIN(round(chroma*255),255),0);
-             srcp[x+1] =MAX(MIN(round(chroma*255),255),0);
-        srcp[x+2] = MAX(MIN(round(chroma*255),255),0);
+                srcp[x] = MAX(MIN(round(sat_dbg*255),255),0);
+             srcp[x+1] =MAX(MIN(round(sat_dbg*255),255),0);
+        srcp[x+2] = MAX(MIN(round(sat_dbg*255),255),0);
 
 }else{
                 srcp[x] = MAX(MIN(round(WPchgRGB_bk_gc[2]*255),255),0);
@@ -346,7 +344,6 @@ Manual_Desat *params = (Manual_Desat*)malloc(sizeof(Manual_Desat));
 
 if (!params)
       return avs_void;
-
 
 
    if (!avs_is_rgb(&fi->vi)) {
