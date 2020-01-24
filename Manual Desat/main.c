@@ -196,7 +196,7 @@ double intp;
 double h_rgb_avg=0;
 for (int i=359; i>=0; i--){
 
-hueCount_prp[i]=hueCount[i]/h_sum;
+hueCount_prp[i]=1-hueCount[i]/h_sum;
 
 h_rgb_avg+=hueCount_prp[i];
 }
@@ -237,7 +237,7 @@ bOG=currBlue*rcptwoFiveFive;
         double curr_rgb_dst_hsvnc[5];
         double curr_rgb_dst[3]={rOG,gOG,bOG};
          double curr_rgb_dst_fnl[3];
-
+double invK;
            if((currRed==currGreen)&&(currGreen==currBlue)){
 curr_rgb_dst_fnl[0]=curr_rgb_dst[0];
 curr_rgb_dst_fnl[1]=curr_rgb_dst[1];
@@ -258,7 +258,10 @@ hueEl=(hueEl==360)?0:hueEl;
 double curr_hue=hueCount_prp[hueEl];
 //double delt_sgn=(curr_hue<h_rgb_avg)?1:-1;
 double Sc=(MAX(curr_rgb_dst[0],MAX(curr_rgb_dst[1],curr_rgb_dst[2]))-MIN(curr_rgb_dst[0],MIN(curr_rgb_dst[1],curr_rgb_dst[2])));
-  curr_rgb_dst_hsvnc[1]=lerp(init_Sat,(curr_rgb_dst_hsvnc[1])*Sc,dest*(1-0.5*(dest+(1-curr_hue))*(curr_rgb_dst_hsvnc[1])));
+ invK=MIN(1-curr_rgb_dst[0],MIN(1-curr_rgb_dst[1],1-curr_rgb_dst[2]));
+ invK=0.5*(invK+fastPrecisePow(invK,0.45880599));
+
+  curr_rgb_dst_hsvnc[1]=lerp(init_Sat,(curr_rgb_dst_hsvnc[1])*Sc,dest*(1-0.5*(dest+(curr_hue))*invK*(1-curr_rgb_dst_hsvnc[1])));
 /*
 double r_delt=h_red_sum-h_rgb_avg;
 double g_delt=h_green_sum-h_rgb_avg;
