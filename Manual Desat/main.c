@@ -189,38 +189,14 @@ for (int i=359; i>=0; i--){
 
 }
 
-/*
-double i_dbl=100;
-double intp;
-*/
-double h_rgb_avg=0;
+
 for (int i=359; i>=0; i--){
 
 hueCount_prp[i]=1-hueCount[i]/h_sum;
 
-h_rgb_avg+=hueCount_prp[i];
 }
 
-h_rgb_avg/=360;
-/*
-double h_rgb_sum=h_red_sum+h_green_sum+h_blue_sum;
 
-
-for (int i=100; i>=0; i--){
-         intp=(1-(i_dbl+0.5)*0.01);
-
-sat_Count_prp[i]=sat_Count[i]/hsvSum;
-        ds=(i<100)?ds+fabs(sat_Count_prp[i+1]-sat_Count_prp[i])*intp:ds;
-      sat_Count_l_prp[i]=sat_Count_l[i]/hslSum;
-    ds_l=(i<100)?ds_l+fabs(sat_Count_l_prp[i+1]-sat_Count_l_prp[i]):ds_l;
-
-i_dbl-=1;
-}
-
-ds=ds*0.01;
-ds_l=ds_l*0.01;
-
-*/
             for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
@@ -234,7 +210,6 @@ bOG=currBlue*rcptwoFiveFive;
        gOG=currGreen*rcptwoFiveFive;
          rOG=currRed*rcptwoFiveFive;
 
-        double curr_rgb_dst_hsvnc[5];
         double curr_rgb_dst[3]={rOG,gOG,bOG};
          double curr_rgb_dst_fnl[3];
 double invK;
@@ -252,6 +227,7 @@ rgb2xyY(curr_rgb_dst,curr_rgb_dst_xyY);
         double curr_rgb_dst_hsvnc[5];
 rgb2hsv_min_chr(curr_rgb_dst,curr_rgb_dst_hsvnc);
 double init_Sat=curr_rgb_dst_hsvnc[1];
+double init_chr=curr_rgb_dst_hsvnc[4];
 int hueEl=round(curr_rgb_dst_hsvnc[0]*360);
 hueEl=(hueEl==360)?0:hueEl;
 
@@ -284,7 +260,6 @@ curr_rgb_dst_hsvnc[0]=mod(hued+bias,1);
 
 double WPchgRGB_shft[3];
 double WPchgRGB_shft_h[3];
-double WPchgRGB[3];
 
 hsvnc2rgb(curr_rgb_dst_hsvnc,WPchgRGB_shft);
 
@@ -294,6 +269,14 @@ hsvnc2rgb(curr_rgb_dst_hsvnc,WPchgRGB_shft);
 
 rgb2hsv(WPchgRGB_shft,WPchgRGB_shft_h);
 curr_rgb_dst_hsvnc[0]=WPchgRGB_shft_h[0];
+
+
+if (mnch<1){
+        double chr=curr_rgb_dst_hsvnc[1]*curr_rgb_dst_hsvnc[2];
+    double chr_dff=((init_chr==0)||(init_chr<chr))?0:(init_chr - chr)/init_chr;
+        curr_rgb_dst_hsvnc[1]=(chr_dff>mnch)?MIN(init_Sat,MAX(0,init_chr*(1-mnch)*curr_rgb_dst_hsvnc[2])):  curr_rgb_dst_hsvnc[1];
+}
+
 
 double curr_rgb_dst_4xyY[3];
 hsvnc2rgb(curr_rgb_dst_hsvnc,curr_rgb_dst_4xyY);
