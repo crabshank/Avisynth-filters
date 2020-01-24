@@ -237,7 +237,11 @@ double Sc=(MAX(curr_rgb_dst[0],MAX(curr_rgb_dst[1],curr_rgb_dst[2]))-MIN(curr_rg
  invK=MIN(1-curr_rgb_dst[0],MIN(1-curr_rgb_dst[1],1-curr_rgb_dst[2]));
  invK=0.5*(invK+fastPrecisePow(invK,0.45880599));
 
-  curr_rgb_dst_hsvnc[1]=lerp(init_Sat,(curr_rgb_dst_hsvnc[1])*Sc,dest*(1-0.5*(dest+(curr_hue))*invK*(1-curr_rgb_dst_hsvnc[1])));
+
+ double hsLightness_fnl=0.5*(curr_rgb_dst_hsvnc[2]+curr_rgb_dst_hsvnc[3]);
+double satL_fnl=((hsLightness_fnl==1)||(hsLightness_fnl==0))?0:curr_rgb_dst_hsvnc[4]/(1-fabs(2*hsLightness_fnl-1));
+
+  curr_rgb_dst_hsvnc[1]=lerp(init_Sat,(curr_rgb_dst_hsvnc[1])*Sc,(dest*0.5*((1-satL_fnl)+(1-0.5*(dest+(curr_hue))*invK*(1-curr_rgb_dst_hsvnc[1])))));
    curr_rgb_dst_hsvnc[1]=lerp( curr_rgb_dst_hsvnc[1],init_Sat,fastPrecisePow(init_Sat,0.5*((1-curr_rgb_dst_xyY[2])+(1-((init_Sat)*(Sc)*(1-curr_hue)*(1-invK))))));
 
 curr_rgb_dst_hsvnc[1]=MIN(init_Sat,MAX(0, curr_rgb_dst_hsvnc[1]));
@@ -286,6 +290,7 @@ double curr_rgb_dst_fnl_xyY[3];
 curr_rgb_dst_fnl_xyY[2]=curr_rgb_dst_xyY[2];
 xyY2rgb(curr_rgb_dst_fnl_xyY,curr_rgb_dst_fnl);
            }
+
 
 if (dbg==1){
 
