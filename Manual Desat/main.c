@@ -262,7 +262,8 @@ double Sc=(MAX(curr_rgb_dst[0],MAX(curr_rgb_dst[1],curr_rgb_dst[2]))-MIN(curr_rg
  invK=0.5*(invK+fastPrecisePow(invK,0.45880599));
 
   curr_rgb_dst_hsvnc[1]=lerp(init_Sat,(curr_rgb_dst_hsvnc[1])*Sc,dest*(1-0.5*(dest+(curr_hue))*invK*(1-curr_rgb_dst_hsvnc[1])));
-   curr_rgb_dst_hsvnc[1]=lerp( curr_rgb_dst_hsvnc[1],init_Sat,fastPrecisePow(init_Sat,1-(init_Sat)*(Sc)*(1-curr_hue)*(1-invK)));
+   curr_rgb_dst_hsvnc[1]=lerp( curr_rgb_dst_hsvnc[1],init_Sat,fastPrecisePow(init_Sat,0.5*((1-curr_rgb_dst_xyY[2])+(1-((init_Sat)*(Sc)*(1-curr_hue)*(1-invK))))));
+
 
   /*
 double r_delt=h_red_sum-h_rgb_avg;
