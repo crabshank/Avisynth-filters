@@ -7,7 +7,7 @@
 typedef struct Manual_Desat {
     int debug;
         double start;
-        double min_chroma;
+        double contrast;
         double desat;
         double neg_bias;
 } Manual_Desat;
@@ -20,10 +20,10 @@ AVS_VideoFrame* AVSC_CC Manual_Desat_get_frame(AVS_FilterInfo* fi, int n)
 
    int row_size, height, src_pitch,x,y,dbg,bis;
    BYTE* srcp;
-   double rOG,bOG,gOG,mnch,dest;
+   double rOG,bOG,gOG,cont,dest;
 
 dbg=params->debug;
-mnch=params->min_chroma ;
+cont=params->contrast ;
 dest=params-> desat ;
 bis=params->neg_bias;
 
@@ -121,7 +121,10 @@ bOG=currBlue*rcptwoFiveFive;     // B
 
          if(!((currRed==currGreen)&&(currGreen==currBlue))){
 
-double curr_rgb_dst[3]={rOG,gOG,bOG};
+        double curr_rgb_dst_OG[3]={rOG,gOG,bOG};
+        double curr_rgb_dst[3];
+
+         sRGB2Linear(curr_rgb_dst_OG,curr_rgb_dst);
 double curr_rgb_dst_prp[3];
 //double curr_rgb_dst_lin[3];
 
@@ -188,14 +191,16 @@ for (int i=359; i>=0; i--){
 
 
 }
-
+double min_hue=1;
+double max_hue=0;
 
 for (int i=359; i>=0; i--){
 
-hueCount_prp[i]=1-hueCount[i]/h_sum;
-
+double curr=1-hueCount[i]/h_sum;
+min_hue=(curr<min_hue)?curr:min_hue;
+max_hue=(curr>max_hue)?curr:max_hue;
+hueCount_prp[i]=curr;
 }
-
 
             for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -209,42 +214,46 @@ hueCount_prp[i]=1-hueCount[i]/h_sum;
 bOG=currBlue*rcptwoFiveFive;
        gOG=currGreen*rcptwoFiveFive;
          rOG=currRed*rcptwoFiveFive;
-
-        double curr_rgb_dst[3]={rOG,gOG,bOG};
+double curr_hue;
+        double curr_rgb_dst_OG[3]={rOG,gOG,bOG};
+        double curr_rgb_dst[3];
          double curr_rgb_dst_fnl[3];
+         sRGB2Linear(curr_rgb_dst_OG,curr_rgb_dst);
 double invK;
+double dist;
+double Sc;
+double init_Sat;
            if((currRed==currGreen)&&(currGreen==currBlue)){
-curr_rgb_dst_fnl[0]=curr_rgb_dst[0];
-curr_rgb_dst_fnl[1]=curr_rgb_dst[1];
-curr_rgb_dst_fnl[2]=curr_rgb_dst[2];
+curr_rgb_dst_fnl[0]=curr_rgb_dst_OG[0];
+curr_rgb_dst_fnl[1]=curr_rgb_dst_OG[1];
+curr_rgb_dst_fnl[2]=curr_rgb_dst_OG[2];
            }else{
 double curr_rgb_dst_xyY[3];
 
-rgb2xyY(curr_rgb_dst,curr_rgb_dst_xyY);
+LinRGB2xyY(curr_rgb_dst,curr_rgb_dst_xyY);
 
 
 
         double curr_rgb_dst_hsvnc[5];
 rgb2hsv_min_chr(curr_rgb_dst,curr_rgb_dst_hsvnc);
-double init_Sat=curr_rgb_dst_hsvnc[1];
+ init_Sat=curr_rgb_dst_hsvnc[1];
 double init_chr=curr_rgb_dst_hsvnc[4];
 int hueEl=round(curr_rgb_dst_hsvnc[0]*360);
 hueEl=(hueEl==360)?0:hueEl;
-
-double curr_hue=hueCount_prp[hueEl];
+double rgb_avg=(curr_rgb_dst[0]+curr_rgb_dst[1]+curr_rgb_dst[2])*third;
+ dist=fastPrecisePow(sqrt((curr_rgb_dst[0]-rgb_avg)*(curr_rgb_dst[0]-rgb_avg) + (curr_rgb_dst[1]-rgb_avg)*(curr_rgb_dst[1]-rgb_avg) + (curr_rgb_dst[2]-rgb_avg)*(curr_rgb_dst[2]-rgb_avg))/sqrt(3),0.4711087);
+ curr_hue=(max_hue==0)?0:((hueCount_prp[hueEl]-min_hue)/max_hue);
 //double delt_sgn=(curr_hue<h_rgb_avg)?1:-1;
-double Sc=(MAX(curr_rgb_dst[0],MAX(curr_rgb_dst[1],curr_rgb_dst[2]))-MIN(curr_rgb_dst[0],MIN(curr_rgb_dst[1],curr_rgb_dst[2])));
- invK=MIN(1-curr_rgb_dst[0],MIN(1-curr_rgb_dst[1],1-curr_rgb_dst[2]));
- invK=0.5*(invK+fastPrecisePow(invK,0.45880599));
+/*
+ Sc=(MAX(curr_rgb_dst[0],MAX(curr_rgb_dst[1],curr_rgb_dst[2]))-MIN(curr_rgb_dst[0],MIN(curr_rgb_dst[1],curr_rgb_dst[2])));
+double wht=(MIN(curr_rgb_dst[0],MIN(curr_rgb_dst[1],curr_rgb_dst[2])));
 
  double hsLightness_fnl=0.5*(curr_rgb_dst_hsvnc[2]+curr_rgb_dst_hsvnc[3]);
 double satL_fnl=((hsLightness_fnl==1)||(hsLightness_fnl==0))?0:curr_rgb_dst_hsvnc[4]/(1-fabs(2*hsLightness_fnl-1));
+*/
 
-  curr_rgb_dst_hsvnc[1]=init_Sat*(1-((dest*0.5*((1-satL_fnl)+(1-0.5*(dest+(curr_hue))*invK*(1-curr_rgb_dst_hsvnc[1]))))));
-   curr_rgb_dst_hsvnc[1]=lerp( curr_rgb_dst_hsvnc[1],init_Sat,fastPrecisePow(init_Sat,0.5*((1-curr_rgb_dst_xyY[2])+(1-((init_Sat)*(Sc)*(1-curr_hue)*(1-invK))))));
-
+curr_rgb_dst_hsvnc[1]-=dest*(1-fastPrecisePow(0.5*(init_Sat+(1-dist)),0.5*((1-init_chr)+(1-curr_hue))))     ;
 curr_rgb_dst_hsvnc[1]=MIN(init_Sat,MAX(0, curr_rgb_dst_hsvnc[1]));
-
 double rel_sat_redu=(init_Sat==0)?1:fabs(init_Sat-curr_rgb_dst_hsvnc[1])/init_Sat;
 double pre_shift_rgb[3];
 hsvnc2rgb(curr_rgb_dst_hsvnc,pre_shift_rgb);
@@ -273,21 +282,24 @@ hsvnc2rgb(curr_rgb_dst_hsvnc,WPchgRGB_shft);
 rgb2hsv(WPchgRGB_shft,WPchgRGB_shft_h);
 curr_rgb_dst_hsvnc[0]=WPchgRGB_shft_h[0];
 
-
-if (mnch<1){
+/*
+if (cont<1){
         double chr=curr_rgb_dst_hsvnc[1]*curr_rgb_dst_hsvnc[2];
     double chr_dff=((init_chr==0)||(init_chr<chr))?0:(init_chr - chr)/init_chr;
-        curr_rgb_dst_hsvnc[1]=(chr_dff>mnch)?MIN(init_Sat,MAX(0,init_chr*(1-mnch)*curr_rgb_dst_hsvnc[2])):  curr_rgb_dst_hsvnc[1];
+        curr_rgb_dst_hsvnc[1]=(chr_dff>cont)?MIN(init_Sat,MAX(0,init_chr*(1-cont)*curr_rgb_dst_hsvnc[2])):  curr_rgb_dst_hsvnc[1];
 }
-
+*/
 
 double curr_rgb_dst_4xyY[3];
 hsvnc2rgb(curr_rgb_dst_hsvnc,curr_rgb_dst_4xyY);
 
 double curr_rgb_dst_fnl_xyY[3];
-    rgb2xyY(curr_rgb_dst_4xyY,curr_rgb_dst_fnl_xyY);
+    LinRGB2xyY(curr_rgb_dst_4xyY,curr_rgb_dst_fnl_xyY);
 curr_rgb_dst_fnl_xyY[2]=curr_rgb_dst_xyY[2];
 xyY2rgb(curr_rgb_dst_fnl_xyY,curr_rgb_dst_fnl);
+
+
+
            }
 
 
@@ -345,7 +357,7 @@ if (!params)
           params->debug = avs_defined(avs_array_elt(args, 1))?avs_as_bool(avs_array_elt(args, 1)):false;
 
           params->desat = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.0;
-                  params->min_chroma = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):1.0;
+                  params->contrast = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):1.0;
           params->neg_bias = avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):true;
 
    fi->user_data = (void*) params;
@@ -361,6 +373,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "Manual_Desat", "c[debug]b[desat]f[min_chroma]f[neg_bias]b", create_Manual_Desat, 0);
+   avs_add_function(env, "Manual_Desat", "c[debug]b[desat]f[contrast]f[neg_bias]b", create_Manual_Desat, 0);
    return "Manual_Desat sample C plugin";
 }
