@@ -58,10 +58,10 @@ bOG=currBlue*rcptwoFiveFive;     // B
 double rgbXYZ[3];
 double WPConvXYZ[3];
 double WPConvXYZ_xyY[3];
-double WPchgRGB[3]={rOG,gOG,bOG};
-rgb2xyY(WPchgRGB,rgbxyY);
+double OG_RGB[3]={rOG,gOG,bOG};
+double WPchgRGB[3];
+rgb2xyY(OG_RGB,rgbxyY);
 xyY2XYZ(rgbxyY,rgbXYZ);
-
 
 if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[0]=0;
@@ -86,8 +86,8 @@ xyY2rgb(WPConvXYZ_xyY,WPchgRGB);
 }
 
 if(dbg==1){
-        double mx=MAX(rOG,MAX(gOG,bOG));
-    double sat=(mx-MIN(rOG,MIN(gOG,bOG)))/mx;
+        double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
+    double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
     double dbg_out=(amp==1)?sat:fastPrecisePow(sat,amp);
     WPchgRGB[0]=dbg_out;
     WPchgRGB[1]=dbg_out;
