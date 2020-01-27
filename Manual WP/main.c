@@ -20,15 +20,15 @@ AVS_VideoFrame* AVSC_CC Manual_WP_get_frame(AVS_FilterInfo* fi, int n)
 
    int row_size, height, src_pitch,x, y,dbg;
    BYTE* srcp;
-   double rOG,bOG,gOG,cust_x,cust_y,amp;
+   double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y;
 
 cust_x=params->x;
 cust_y=params->y;
 dbg=params->debug;
 amp=params->debug_val;
 
-  // double D65_x= 0.312727;
-    //double  D65_y= 0.329023;
+D65_x= 0.312727;
+   D65_y= 0.329023;
       double D65XYZ[3]={0.95047,1,1.08883};
             int planes[] ={AVS_CS_BGR32};
 src = avs_get_frame(fi->child, n);
@@ -59,7 +59,7 @@ double rgbXYZ[3];
 double WPConvXYZ[3];
 double WPConvXYZ_xyY[3];
 double OG_RGB[3]={rOG,gOG,bOG};
-double WPchgRGB[3];
+double WPchgRGB[3]={rOG,gOG,bOG};
 rgb2xyY(OG_RGB,rgbxyY);
 xyY2XYZ(rgbxyY,rgbXYZ);
 
@@ -68,7 +68,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
 }else{
-
+if (cust_x!=D65_x || (cust_y!=D65_y)){
 double cust_xy[2]={cust_x,cust_y};
 double cust_XYZ[3];
 xy2XYZ(cust_xy,cust_XYZ);
@@ -78,7 +78,7 @@ WPconv(rgbXYZ,D65XYZ,cust_XYZ,WPConvXYZ);
 XYZ2xyY(WPConvXYZ,WPConvXYZ_xyY);
 
 xyY2rgb(WPConvXYZ_xyY,WPchgRGB);
-
+}
 
 }
 
