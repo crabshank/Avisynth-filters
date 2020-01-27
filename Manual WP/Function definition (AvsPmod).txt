@@ -1,0 +1,6 @@
+(
+float "x"=0.312727 (0 to 1 by 0.0001),
+float "y"=0.329023 (0 to 1 by 0.0001),
+bool "debug"=False,
+float "debug_amp"=1
+)
