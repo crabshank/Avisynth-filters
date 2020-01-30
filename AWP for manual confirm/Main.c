@@ -225,7 +225,6 @@ if (!params)
 
 
       FILE *fptr;
-   // use appropriate location if you are using MacOS or Linux
    fptr = fopen(file_name,"w");
    if(fptr == NULL)
    {
