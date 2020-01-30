@@ -66,7 +66,8 @@ if ((rOG==0)&&(gOG==0)&&(bOG==0)){
 
 double curr_rgb_dst[3]={rOG,gOG,bOG};
 double curr_rgb_dst_lin[3];
-
+double avg_rgb_hsv[3];
+rgb2hsv(curr_rgb_dst,avg_rgb_hsv);
 
 double curr_rgb_dst_lin_xyY[3];
 sRGB2Linear(curr_rgb_dst,curr_rgb_dst_lin);
@@ -79,7 +80,10 @@ double Sc=(mx_prp==0)?0:1-(mx_prp-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_l
 double mx_sat=MAX(curr_rgb_dst_lin[0],MAX(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2]));
 double sat=(mx_sat==0)?0:(mx_sat-MIN(curr_rgb_dst_lin[0],MIN(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2])))/mx_sat;
 
-        Sc*=curr_rgb_dst_lin_xyY[2]*(1-sat);
+double hd_min=fabs(mod((round(avg_rgb_hsv[0]*6.0)/6.0)-avg_rgb_hsv[0],1))*12;
+
+
+        Sc*=curr_rgb_dst_lin_xyY[2]*(1-sat)*hd_min;
 
 
 sumR_+=curr_rgb_dst_lin[0]*Sc;
@@ -124,10 +128,13 @@ XYZ2xyY(XYZ_conv2grey,XYZ_Forgrey_xy);
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
+             double currBlue=(double)srcp[x];
+                double currGreen=(double)srcp[x+1];
+                double currRed=(double)srcp[x+2];
 
-bOG=(double)srcp[x]*pow(255,-1);     // B
-        gOG=(double)srcp[x+1]*pow(255,-1);  //G
-         rOG=(double)srcp[x+2]*pow(255,-1); // R
+bOG=currBlue*rcptwoFiveFive;     // B
+       gOG=currGreen*rcptwoFiveFive;   //G
+         rOG=currRed*rcptwoFiveFive;     // R
 
 double WPchgRGB[3];
 
