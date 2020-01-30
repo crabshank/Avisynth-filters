@@ -1,18 +1,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
-#define PI  3.14159265358979323846
-#define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
-#define lerp_clamp(a,b,t) MAX((MIN((a),((1 - (t)) * (a) + (t) * (b) ))),(b))
-#define  mod(a,N) ((a) - (N)*floor((a)/(N)))
 #define third 1.0/3.0
 #define rcptwoFiveFive 1.0/255.0
-#define thirty_deg 1.0/12.0
-#define sixty_deg 1.0/6.0
-#define oneFifty_deg 5.0*thirty_deg
-#define twoTen_deg 7.0*thirty_deg
-#define threeHun_deg 5.0*sixty_deg
-#define threeThirty_deg 11.0*thirty_deg
-#define ABS(a) (((a)<0)?MAX(0,((a)-(2*(a)))):(a))
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
@@ -38,7 +27,6 @@ inline double fastPrecisePow(double a, double b) {
   return r * u.d;
 }
 //Source: https://martin.ankerl.com/2012/01/25/optimized-approximative-fastPrecisePow-in-c-and-cpp/
-
 
 void RGB2rgb(double RGB[3],double rgb[3]){
 	double RGBtot=RGB[0]+RGB[1]+RGB[2];
