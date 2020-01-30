@@ -248,6 +248,6 @@ if (!params)
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
 {
-   avs_add_function(env, "WhitePoint", "c[debug]b[thresh]f[file]s", create_WhitePoint, 0);
+   avs_add_function(env, "AWP_For_Manual", "c[debug]b[thresh]f[file]s", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
