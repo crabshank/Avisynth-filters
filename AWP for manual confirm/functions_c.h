@@ -2,6 +2,8 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define third 1.0/3.0
 #define rcptwoFiveFive 1.0/255.0
+#define  mod(a,N) ((a) - (N)*floor((a)/(N)))
+
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
@@ -44,6 +46,57 @@ if(RGBtot==0){
 }
 }
 
+
+
+void rgb2hsv (double rgb[3],double hsv[3])
+{
+
+double r=rgb[0];
+double g=rgb[1];
+double b=rgb[2];
+
+
+    double max = MAX(r,MAX(g, b));
+    double min = MIN(r,MIN(g, b));
+
+    double diff=max-min;
+
+    hsv[2] = max;
+
+    if (max == 0.0f) {
+        hsv[1] = 0;
+        hsv[0] = 0;
+    }
+
+   else  if (diff == 0.0f) {
+        hsv[1] = 0;
+        hsv[0] = 0;
+    }
+
+    else {
+        hsv[1] = diff / max;
+
+        if (max == r) {
+            hsv[0] = (g-b)/diff;
+        }
+        else if (max == g) {
+            hsv[0] = 2+(b-r)/diff;
+        }
+        else {
+            hsv[0] = 4+(r-g)/diff;
+    }
+
+
+    if(hsv[0]!=0){
+    hsv[0]/=6;
+hsv[0]=hsv[0]-(double)floor(hsv[0]);
+    }
+
+    hsv[0]=(hsv[0] < 0)?hsv[0]+1:hsv[0];
+
+    }
+
+}
 
 void zeroMatrix( int rows_a, int cols_a, void* ma){
 
