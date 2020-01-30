@@ -76,8 +76,10 @@ double curr_rgb_dst_lin_prp[3];
 RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
 double mx_prp=MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]));
 double Sc=(mx_prp==0)?0:1-(mx_prp-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])))/mx_prp;
+double mx_sat=MAX(curr_rgb_dst_lin[0],MAX(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2]));
+double sat=(mx_sat==0)?0:(mx_sat-MIN(curr_rgb_dst_lin[0],MIN(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2])))/mx_sat;
 
-  Sc*=Sc*curr_rgb_dst_lin_xyY[2];
+        Sc*=curr_rgb_dst_lin_xyY[2]*(1-sat);
 
 
 sumR_+=curr_rgb_dst_lin[0]*Sc;
