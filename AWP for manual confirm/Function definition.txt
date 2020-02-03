@@ -1,0 +1,6 @@
+(
+clip,
+bool "debug"=true,
+float "thresh"=0.02,
+string "file"=C:\xy.txt
+)
