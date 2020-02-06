@@ -91,13 +91,23 @@ if(dbg==1){
     WPchgRGB[2]=dbg_out;
 }else if(dbg==2){
         double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
-    double sat=(mx==0)?0:100*((mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx);
+       double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
 
     WPchgRGB[0]=(sat<=amp)?WPchgRGB[0]:0;
     WPchgRGB[1]=(sat<=amp)?WPchgRGB[1]:0;
     WPchgRGB[2]=(sat<=amp)?WPchgRGB[2]:0;
-}
+}else if (dbg==3){
+        double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
+    double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
 
+
+            double mxOG=MAX(rOG,MAX(gOG,bOG));
+    double satOG=(mxOG==0)?0:(mxOG-MIN(rOG,MIN(gOG,bOG)))/mxOG;
+satOG=(amp>=0)?satOG*(1-amp):satOG;
+    WPchgRGB[0]=(sat>=satOG)?WPchgRGB[0]:0;
+    WPchgRGB[1]=(sat>=satOG)?WPchgRGB[1]:0;
+    WPchgRGB[2]=(sat>=satOG)?WPchgRGB[2]:0;
+}
 
 
 
