@@ -91,7 +91,8 @@ if(dbg==1){
     WPchgRGB[2]=dbg_out;
 }else if(dbg==2){
         double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
-       double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
+    double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
+
 
     WPchgRGB[0]=(sat<=amp)?WPchgRGB[0]:0;
     WPchgRGB[1]=(sat<=amp)?WPchgRGB[1]:0;
