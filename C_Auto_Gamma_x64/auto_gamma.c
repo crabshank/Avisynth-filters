@@ -51,9 +51,9 @@ counter=0;
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
 
-bOG=currBlue/255.0;     // B
-       gOG=currGreen/255.0;   //G
-         rOG=currRed/255.0;  // R
+bOG=currBlue*rcptwoFiveFive;     // B
+       gOG=currGreen*rcptwoFiveFive;   //G
+         rOG=currRed*rcptwoFiveFive;     // R
 
 runTot_r+=rOG;
 runTot_g+=gOG;
@@ -68,11 +68,10 @@ counter+=1;
 
 //Bisection method solver/////////////////////////////////////////
 p=1;
-tolr=pow(1,(double)tol*-1);
+tolr=1.0/fastPrecisePow(10,(double)tol);
 max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 opt=0;
 double mxMean[3]={runTot_r/counter,runTot_g/counter,runTot_b/counter};
-
 while(p<=max_iters){
     c=0.5*(a+b);
     f_gammaLow(mxMean, c,gamma_high,f_c);
@@ -107,23 +106,23 @@ double x_shift=(double)x/(double)row_size;
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
 
-bOG=currBlue/255.0;     // B
-       gOG=currGreen/255.0;   //G
-         rOG=currRed/255.0;  // R
+bOG=currBlue*rcptwoFiveFive;     // B
+       gOG=currGreen*rcptwoFiveFive;   //G
+         rOG=currRed*rcptwoFiveFive;     // R
 R=rOG;
 G=gOG;
 B=bOG;
          if(opt==1){
 
-R=lerp(pow(rOG,gamma_low),pow(rOG,gamma_high),rOG);
-G=lerp(pow(gOG,gamma_low),pow(gOG,gamma_high),gOG);
-B=lerp(pow(bOG,gamma_low),pow(bOG,gamma_high),bOG);
+R=lerp(fastPrecisePow(rOG,gamma_low),fastPrecisePow(rOG,gamma_high),rOG);
+G=lerp(fastPrecisePow(gOG,gamma_low),fastPrecisePow(gOG,gamma_high),gOG);
+B=lerp(fastPrecisePow(bOG,gamma_low),fastPrecisePow(bOG,gamma_high),bOG);
 
 
 if(lmr==1){
-    R=(( R*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
-     G=(( G*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
-      B=(( B*255*(235-16)*pow(255,-1) )+16)*pow(255,-1);
+    R=(( R*255*(235-16)*rcptwoFiveFive )+16)*rcptwoFiveFive;
+     G=(( G*255*(235-16)*rcptwoFiveFive )+16)*rcptwoFiveFive;
+      B=(( B*255*(235-16)*rcptwoFiveFive )+16)*rcptwoFiveFive;
 }
 
          }
