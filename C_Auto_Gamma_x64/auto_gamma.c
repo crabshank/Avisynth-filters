@@ -25,6 +25,8 @@ AVS_VideoFrame* AVSC_CC Auto_Gamma_get_frame(AVS_FilterInfo* fi, int n)
 
 a =   params->bracketA;
 b=params->bracketB;
+a*=100;
+b*=100;
 tol=params->tolerance;
 lmr=params->limitedRange;
             int planes[] ={AVS_CS_BGR32};
@@ -53,14 +55,6 @@ bOG=currBlue/255.0;     // B
        gOG=currGreen/255.0;   //G
          rOG=currRed/255.0;  // R
 
-
-  // double      mn=MIN(rOG,MIN(gOG,bOG));
-   double      K=1-MIN(1-rOG,MIN(1-gOG,1-bOG));
- /*double mx=MAX(rOG,MAX(gOG,bOG));
-
-double sat=(mx==0)?0:(mx-mn)/mx;
-double wb=1-sat;
-*/
 runTot_r+=rOG;
 runTot_g+=gOG;
 runTot_b+=bOG;
@@ -102,12 +96,12 @@ while(p<=max_iters){
 }
 ///////////////////////////////////////////////////////
 
-double x_shift;
+
 ///////////////ACTUALLY DRAW PIXELS///////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
-x_shift=(double)x/(double)row_size;
+double x_shift=(double)x/(double)row_size;
 
                  double currBlue=(double)srcp[x];
                 double currGreen=(double)srcp[x+1];
@@ -174,7 +168,7 @@ if (!params)
    }
 
          params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
-        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):8;
+        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):12;
                 params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):2;
 params->limitedRange= avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):false;
 
