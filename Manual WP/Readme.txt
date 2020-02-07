@@ -4,5 +4,5 @@ Debug modes:
 
 0 - Off
 1 - pow(Saturation, debug_val)
-2 - Outputs all pixels <= debug_val (0-1), and blacks out any other pixels.
+2 - Outputs all pixels >= debug_val (0-1), and blacks out all pixels < debug_val in saturation.
 3 - Outputs, in black, all pixels that have had at least a (debug_val)% reduction in saturation.
