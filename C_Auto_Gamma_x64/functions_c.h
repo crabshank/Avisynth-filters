@@ -46,9 +46,16 @@ outcol[i]=1-fabs((fastPrecisePow(-col,gamma+1)+fastPrecisePow(col,gamma_hi+1)+fa
 		outcol[1] = shift + outcol[1];
 		outcol[2] = shift + outcol[2];
 
- dist=(rgb[0]-outcol[0])+(rgb[1]-outcol[1])+((outcol[2]-rgb[2]));
+		double tot=outcol[0]+outcol[1]+outcol[2];
+		double totOG=rgb[0]+rgb[1]+rgb[2];
+ dist=tot-totOG;
 
        double  mxOG=MAX(rgb[0],MAX(rgb[1],rgb[2]));
        double  mx=MAX(outcol[0],MAX(outcol[1],outcol[2]));
- dist=(mx>mxOG)?dist+(mx-mxOG):dist;
+
+       if(mx>mxOG){
+            double diff=mx-mxOG;
+ dist=(dist<0)?dist-diff:dist+diff;
+       }
+
 }
