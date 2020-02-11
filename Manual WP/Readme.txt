@@ -1,3 +1,5 @@
+DEPRECATED!! "White Point Avisynth.hlsl" with https://github.com/mysteryx93/AviSynthShader
+
 Change the white point of the frame. All the dependencies required to compile this can be found in Auto White Point's folder.
 
 Debug modes:
