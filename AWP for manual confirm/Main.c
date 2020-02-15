@@ -40,6 +40,7 @@ double  bOG,gOG,rOG,sumR_,sumG_,sumB_,thrsh;
 //strt=params->start;
 thrsh=params->thresh;
 dbg=params->debug;
+dbg=round(dbg);
 nm=params->file;
 
 
@@ -60,14 +61,12 @@ sumB_=0;
 bOG=currBlue*rcptwoFiveFive;     // B
        gOG=currGreen*rcptwoFiveFive;   //G
          rOG=currRed*rcptwoFiveFive;     // R
-if ((rOG==0)&&(gOG==0)&&(bOG==0)){
-        avgCountAll+=1;
-}else{
+if ((rOG!=0)&&(gOG!=0)&&(bOG!=0)){
+
 
 double curr_rgb_dst[3]={rOG,gOG,bOG};
 double curr_rgb_dst_lin[3];
-double avg_rgb_hsv[3];
-rgb2hsv(curr_rgb_dst,avg_rgb_hsv);
+
 
 double curr_rgb_dst_lin_xyY[3];
 sRGB2Linear(curr_rgb_dst,curr_rgb_dst_lin);
@@ -77,13 +76,8 @@ double curr_rgb_dst_lin_prp[3];
 RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
 double mx_prp=MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]));
 double Sc=(mx_prp==0)?0:1-(mx_prp-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])))/mx_prp;
-double mx_sat=MAX(curr_rgb_dst_lin[0],MAX(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2]));
-double sat=(mx_sat==0)?0:(mx_sat-MIN(curr_rgb_dst_lin[0],MIN(curr_rgb_dst_lin[1],curr_rgb_dst_lin[2])))/mx_sat;
 
-double hd_min=fabs(mod((round(avg_rgb_hsv[0]*6.0)/6.0)-avg_rgb_hsv[0],1))*12;
-
-
-        Sc*=curr_rgb_dst_lin_xyY[2]*(1-sat)*hd_min;
+  Sc*=Sc*curr_rgb_dst_lin_xyY[2];
 
 
 sumR_+=curr_rgb_dst_lin[0]*Sc;
@@ -91,8 +85,8 @@ sumG_+= curr_rgb_dst_lin[1]*Sc;
 sumB_+=curr_rgb_dst_lin[2]*Sc;
         avgCountAll+=1;
 
-      }
 
+}
          x+=3;
       }
 
@@ -128,13 +122,10 @@ XYZ2xyY(XYZ_conv2grey,XYZ_Forgrey_xy);
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
-             double currBlue=(double)srcp[x];
-                double currGreen=(double)srcp[x+1];
-                double currRed=(double)srcp[x+2];
 
-bOG=currBlue*rcptwoFiveFive;     // B
-       gOG=currGreen*rcptwoFiveFive;   //G
-         rOG=currRed*rcptwoFiveFive;     // R
+bOG=(double)srcp[x]*pow(255,-1);     // B
+        gOG=(double)srcp[x+1]*pow(255,-1);  //G
+         rOG=(double)srcp[x+2]*pow(255,-1); // R
 
 double WPchgRGB[3];
 
@@ -224,7 +215,7 @@ if (!params)
 
   char* file_name ="";
 
-       params->debug = (avs_as_bool(avs_array_elt(args, 1)))?avs_as_bool(avs_array_elt(args, 1)):true;
+       params->debug = (avs_as_bool(avs_array_elt(args, 1)))?avs_as_bool(avs_array_elt(args, 1)):false;
        params->thresh = (avs_as_float(avs_array_elt(args, 2)))?avs_as_float(avs_array_elt(args, 2)):0.03;
       file_name = (avs_as_string(avs_array_elt(args, 3)))?avs_as_string(avs_array_elt(args, 3)):"C:\\xy.txt";
        params->file = file_name;
@@ -251,7 +242,7 @@ if (!params)
    v = avs_new_value_clip(new_clip);
 
    avs_release_clip(new_clip);
- //  free(params);
+  // free(params);
    return v;
 }
 
