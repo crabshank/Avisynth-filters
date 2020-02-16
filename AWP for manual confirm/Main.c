@@ -78,7 +78,7 @@ RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
 double mx_prp=MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]));
 double Sc=(mx_prp==0)?0:1-(mx_prp-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])))/mx_prp;
 
- // Sc*=Sc*curr_rgb_dst_lin_xyY[2];
+  Sc*=Sc*curr_rgb_dst_lin_xyY[2];
 
 
 sumR_+=curr_rgb_dst_lin[0]*Sc;
