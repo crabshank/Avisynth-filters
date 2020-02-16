@@ -26,7 +26,6 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 double D65XYZ[3]={0.95047,1,1.08883};
 
 
-
       int planes[] ={AVS_CS_BGR32};
 src = avs_get_frame(fi->child, n);
    avs_make_writable(fi->env, &src);
@@ -61,7 +60,9 @@ sumB_=0;
 bOG=currBlue*rcptwoFiveFive;     // B
        gOG=currGreen*rcptwoFiveFive;   //G
          rOG=currRed*rcptwoFiveFive;     // R
-if ((rOG!=0)&&(gOG!=0)&&(bOG!=0)){
+if ((currRed==0)&&(currGreen==0)&&(currBlue==0)){
+  x+=3;
+}else{
 
 
 double curr_rgb_dst[3]={rOG,gOG,bOG};
@@ -85,9 +86,9 @@ sumG_+= curr_rgb_dst_lin[1]*Sc;
 sumB_+=curr_rgb_dst_lin[2]*Sc;
         avgCountAll+=1;
 
-
+  x+=3;
 }
-         x+=3;
+
       }
 
       }
@@ -123,13 +124,18 @@ XYZ2xyY(XYZ_conv2grey,XYZ_Forgrey_xy);
       for (x=0; x<row_size; x++) {
 
 
-bOG=(double)srcp[x]*pow(255,-1);     // B
-        gOG=(double)srcp[x+1]*pow(255,-1);  //G
-         rOG=(double)srcp[x+2]*pow(255,-1); // R
+                 double currBlue=(double)srcp[x];
+                double currGreen=(double)srcp[x+1];
+                double currRed=(double)srcp[x+2];
+
+bOG=currBlue*rcptwoFiveFive;     // B
+       gOG=currGreen*rcptwoFiveFive;   //G
+         rOG=currRed*rcptwoFiveFive;     // R
+
 
 double WPchgRGB[3];
 
-if ((rOG==0)&&(gOG==0)&&(bOG==0)){
+if ((currRed==0)&&(currGreen==0)&&(currBlue==0)){
     WPchgRGB[0]=0;
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
@@ -220,7 +226,7 @@ if (!params)
       file_name = (avs_as_string(avs_array_elt(args, 3)))?avs_as_string(avs_array_elt(args, 3)):"C:\\xy.txt";
        params->file = file_name;
 
-   fi->user_data = (void*) params;
+    fi->user_data = (void*) params;
 
 
 
