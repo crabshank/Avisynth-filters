@@ -16,7 +16,9 @@ AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
 {
  White_Point* params = (White_Point*) fi->user_data;
 
-   AVS_VideoFrame* src = avs_get_frame(fi->child, n);
+
+  AVS_VideoFrame *src = avs_get_frame (fi->child, n);
+
 
 
    int row_size, height, src_pitch,x, y,avgCountAll,dbg;
@@ -60,7 +62,7 @@ sumB_=0;
 bOG=currBlue*rcptwoFiveFive;     // B
        gOG=currGreen*rcptwoFiveFive;   //G
          rOG=currRed*rcptwoFiveFive;     // R
-if ((currRed==0)&&(currGreen==0)&&(currBlue==0)){
+if ((round(currRed)==0)&&(round(currGreen)==0)&&(round(currBlue)==0)){
   x+=3;
 }else{
 
@@ -135,7 +137,7 @@ bOG=currBlue*rcptwoFiveFive;     // B
 
 double WPchgRGB[3];
 
-if ((currRed==0)&&(currGreen==0)&&(currBlue==0)){
+if ((round(currRed)==0)&&(round(currGreen)==0)&&(round(currBlue)==0)){
     WPchgRGB[0]=0;
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
@@ -201,22 +203,27 @@ if(dbg==1){
 
 AVS_Value AVSC_CC create_WhitePoint(AVS_ScriptEnvironment* env, AVS_Value args, void* user_data)
 {
-   AVS_Value v;
-   AVS_FilterInfo* fi;
+
+  AVS_Clip *clip;
+
+  clip = avs_take_clip (avs_array_elt (args, 0), env);
+  const AVS_VideoInfo *vi = avs_get_video_info (clip);
 
 
-   AVS_Clip* new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
+  if (vi->pixel_type != AVS_CS_BGR32)
+    return avs_new_value_error ("Input video must be in RGB format!");
+
+
+  AVS_FilterInfo *fi;
+  AVS_Clip *new_clip;
+
+  new_clip = avs_new_c_filter (env, &fi, avs_array_elt (args, 0), 1);
 
 White_Point *params = (White_Point*)malloc(sizeof(White_Point));
 
 if (!params)
       return avs_void;
 
-
-
-   if (!avs_is_rgb(&fi->vi)) {
-      return avs_new_value_error("Input video must be in RGB format!");
-   }
 
 
   char* file_name ="";
@@ -243,13 +250,10 @@ if (!params)
 
 
    fi->get_frame = WhitePoint_get_frame;
+  AVS_Value v = avs_new_value_clip (new_clip);
+  avs_release_clip (new_clip);
 
-
-   v = avs_new_value_clip(new_clip);
-
-   avs_release_clip(new_clip);
-  // free(params);
-   return v;
+  return v;
 }
 
 const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
