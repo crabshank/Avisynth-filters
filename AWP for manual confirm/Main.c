@@ -78,7 +78,7 @@ RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
 double mx_prp=MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]));
 double Sc=(mx_prp==0)?0:1-(mx_prp-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])))/mx_prp;
 
-  Sc*=Sc*curr_rgb_dst_lin_xyY[2];
+ // Sc*=Sc*curr_rgb_dst_lin_xyY[2];
 
 
 sumR_+=curr_rgb_dst_lin[0]*Sc;
@@ -92,7 +92,7 @@ sumB_+=curr_rgb_dst_lin[2]*Sc;
       }
 
       }
-if((avgCountAll>0) && (sumR_+sumG_+sumB_!=0) ){
+if(avgCountAll>0){
 
 double rcp_avgCountAll=1.0/avgCountAll;
 double rgbForGrey[3]={sumR_*rcp_avgCountAll,sumG_*rcp_avgCountAll,sumB_*rcp_avgCountAll};
