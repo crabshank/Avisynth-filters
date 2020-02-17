@@ -12,16 +12,24 @@ typedef struct Manual_WP {
 } Manual_WP;
 
 
-AVS_VideoFrame* AVSC_CC Manual_WP_get_frame(AVS_FilterInfo* fi, int n)
+AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 {
- Manual_WP* params = (Manual_WP*) fi->user_data;
+  AVS_VideoFrame * src;
+   Manual_WP* params = (Manual_WP*) p->user_data;
 
-   AVS_VideoFrame* src = avs_get_frame(fi->child, n);
+  src = avs_get_frame(p->child, n);
 
    int row_size, height, src_pitch,x, y,dbg;
    BYTE* srcp;
    double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y;
 
+double D65XYZ[3]={0.95047,1,1.08883};
+  avs_make_writable(p->env, &src);
+
+      srcp = avs_get_write_ptr(src);
+      src_pitch = avs_get_pitch(src);
+      row_size = avs_get_row_size(src);
+      height = avs_get_height(src);
 cust_x=params->x;
 cust_y=params->y;
 dbg=params->debug;
@@ -29,15 +37,6 @@ amp=params->debug_val;
 
 D65_x= 0.312727;
    D65_y= 0.329023;
-      double D65XYZ[3]={0.95047,1,1.08883};
-            int planes[] ={AVS_CS_BGR32};
-src = avs_get_frame(fi->child, n);
-   avs_make_writable(fi->env, &src);
-
-      srcp = avs_get_write_ptr_p(src, planes[0]);
-      src_pitch = avs_get_pitch_p(src, planes[0]);
-      row_size = avs_get_row_size_p(src, planes[0]);
-      height = avs_get_height_p(src, planes[0]);
 
 
       for (y=0; y<height; y++) {
@@ -121,50 +120,38 @@ x+=3;
             srcp += src_pitch;
       }
 
-
-
-   return src;
+  return src;
 }
 
-
-AVS_Value AVSC_CC create_Manual_WP(AVS_ScriptEnvironment* env, AVS_Value args, void* user_data)
+AVS_Value AVSC_CC create_Manual_WP (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
 {
-   AVS_Value v;
-   AVS_FilterInfo* fi;
-
-
-   AVS_Clip* new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
-
-Manual_WP *params = (Manual_WP*)malloc(sizeof(Manual_WP));
+  AVS_Value v;
+  AVS_FilterInfo * fi;
+  AVS_Clip * new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
+  Manual_WP *params = (Manual_WP*)malloc(sizeof(Manual_WP));
 
 if (!params)
       return avs_void;
 
-
-
-   if (!avs_is_rgb(&fi->vi)) {
-      return avs_new_value_error("Input video must be in RGB format!");
-   }
-
-          params->x = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0.312727;
+                params->x = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0.312727;
           params->y = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.329023;
           params->debug = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):0;
           params->debug_val = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):1;
 
-
-
-   fi->user_data = (void*) params;
-   fi->get_frame = Manual_WP_get_frame;
-
-
-   v = avs_new_value_clip(new_clip);
-
-   avs_release_clip(new_clip);
-  // free(params);
-   return v;
+  if (!avs_is_rgb32(&fi->vi)) {
+    return avs_new_value_error ("Input video must be in RGB format!");
+  } else {
+         fi->user_data = (void*) params;
+    fi->get_frame = Manual_WP_get_frame;
+    v = avs_new_value_clip(new_clip);
+  }
+  avs_release_clip(new_clip);
+  return v;
 }
 
-const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
+
+
+const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
    avs_add_function(env, "Manual_WP", "c[x]f[y]f[debug]i[debug_val]f", create_Manual_WP, 0);
    return "Manual_WP sample C plugin";
