@@ -6,38 +6,31 @@
 #include "../avisynth_c.h"
 #include "functions_c.h"
 
-typedef struct White_Point {
+    typedef struct White_Point {
    int debug;
    double thresh;
    char* file;
-
-  AVS_VideoFrame *frme;
 } White_Point;
 
-AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
+AVS_VideoFrame * AVSC_CC WhitePoint_get_frame (AVS_FilterInfo * p, int n)
 {
- White_Point* params = (White_Point*) fi->user_data;
+  AVS_VideoFrame * src;
+   White_Point* params = (White_Point*) p->user_data;
 
-
-  AVS_VideoFrame *src = avs_get_frame (fi->child, n);
-
-
+  src = avs_get_frame(p->child, n);
 
    int row_size, height, src_pitch,x, y,avgCountAll,dbg;
    BYTE* srcp;
   char* nm;
 
 double D65XYZ[3]={0.95047,1,1.08883};
+  avs_make_writable(p->env, &src);
 
+      srcp = avs_get_write_ptr(src);
+      src_pitch = avs_get_pitch(src);
+      row_size = avs_get_row_size(src);
+      height = avs_get_height(src);
 
-      int planes[] ={AVS_CS_BGR32};
-src = avs_get_frame(fi->child, n);
-   avs_make_writable(fi->env, &src);
-
-      srcp = avs_get_write_ptr_p(src, planes[0]);
-      src_pitch = avs_get_pitch_p(src, planes[0]);
-      row_size = avs_get_row_size_p(src, planes[0]);
-      height = avs_get_height_p(src, planes[0]);
 double  bOG,gOG,rOG,sumR_,sumG_,sumB_,thrsh;
 
 //strt=params->start;
@@ -197,31 +190,17 @@ if(dbg==1){
 /////////////////DRAW PIXELS END/////////////////////////////////
 
 
-params->frme=src;
-avs_release_video_frame(src);
-   return params->frme;
+  return src;
 }
 
-
-
-AVS_Value AVSC_CC create_WhitePoint(AVS_ScriptEnvironment* env, AVS_Value args, void* user_data)
+AVS_Value AVSC_CC create_WhitePoint (AVS_ScriptEnvironment * env,
+                                   AVS_Value args, void * dg)
 {
 
-  AVS_Clip *clip;
-
-  clip = avs_take_clip (avs_array_elt (args, 0), env);
-  const AVS_VideoInfo *vi = avs_get_video_info (clip);
-
-
-  if (vi->pixel_type != AVS_CS_BGR32)
-    return avs_new_value_error ("Input video must be in RGB format!");
-
-  AVS_FilterInfo *fi;
-  AVS_Clip *new_clip;
-
-  new_clip = avs_new_c_filter (env, &fi, avs_array_elt (args, 0), 1);
-
-White_Point *params = (White_Point*)malloc(sizeof(White_Point));
+  AVS_Value v;
+  AVS_FilterInfo * fi;
+  AVS_Clip * new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
+  White_Point *params = (White_Point*)malloc(sizeof(White_Point));
 
 if (!params)
       return avs_void;
@@ -234,10 +213,7 @@ if (!params)
        params->thresh = (avs_as_float(avs_array_elt(args, 2)))?avs_as_float(avs_array_elt(args, 2)):0.03;
       file_name = (avs_as_string(avs_array_elt(args, 3)))?avs_as_string(avs_array_elt(args, 3)):"C:\\xy.txt";
        params->file = file_name;
-params->frme=avs_get_frame (fi->child, 0);
     fi->user_data = (void*) params;
-
-
 
       FILE *fptr;
    fptr = fopen(file_name,"w");
@@ -249,16 +225,19 @@ params->frme=avs_get_frame (fi->child, 0);
 
    fprintf(fptr,"%s\n",file_name);
    fclose(fptr);
-
-
-   fi->get_frame = WhitePoint_get_frame;
-  AVS_Value v = avs_new_value_clip (new_clip);
-  avs_release_clip (new_clip);
-params->frme=0;
+  if (!avs_is_rgb32(&fi->vi)) {
+    return avs_new_value_error ("Input video must be in RGB format!");
+  } else {
+    fi->get_frame = WhitePoint_get_frame;
+    v = avs_new_value_clip(new_clip);
+  }
+  avs_release_clip(new_clip);
   return v;
 }
 
-const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
+
+
+const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
    avs_add_function(env, "AWP_For_Manual", "c[debug]b[thresh]f[file]s", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
