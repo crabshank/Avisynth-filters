@@ -193,10 +193,8 @@ if(dbg==1){
   return src;
 }
 
-AVS_Value AVSC_CC create_WhitePoint (AVS_ScriptEnvironment * env,
-                                   AVS_Value args, void * dg)
-{
-
+AVS_Value AVSC_CC create_WhitePoint (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
+{   
   AVS_Value v;
   AVS_FilterInfo * fi;
   AVS_Clip * new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
