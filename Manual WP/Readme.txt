@@ -1,4 +1,4 @@
-DEPRECATED!! "White Point Avisynth.hlsl" with https://github.com/mysteryx93/AviSynthShader
+N.B. For speed use "White Point Avisynth.hlsl" with https://github.com/mysteryx93/AviSynthShader instead.
 
 Change the white point of the frame. All the dependencies required to compile this can be found in Auto White Point's folder.
 
