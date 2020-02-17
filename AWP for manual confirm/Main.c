@@ -10,6 +10,8 @@ typedef struct White_Point {
    int debug;
    double thresh;
    char* file;
+
+  AVS_VideoFrame *frme;
 } White_Point;
 
 AVS_VideoFrame* AVSC_CC WhitePoint_get_frame(AVS_FilterInfo* fi, int n)
@@ -195,8 +197,9 @@ if(dbg==1){
 /////////////////DRAW PIXELS END/////////////////////////////////
 
 
-
-   return src;
+params->frme=src;
+avs_release_video_frame(src);
+   return params->frme;
 }
 
 
@@ -212,7 +215,6 @@ AVS_Value AVSC_CC create_WhitePoint(AVS_ScriptEnvironment* env, AVS_Value args, 
 
   if (vi->pixel_type != AVS_CS_BGR32)
     return avs_new_value_error ("Input video must be in RGB format!");
-
 
   AVS_FilterInfo *fi;
   AVS_Clip *new_clip;
@@ -232,7 +234,7 @@ if (!params)
        params->thresh = (avs_as_float(avs_array_elt(args, 2)))?avs_as_float(avs_array_elt(args, 2)):0.03;
       file_name = (avs_as_string(avs_array_elt(args, 3)))?avs_as_string(avs_array_elt(args, 3)):"C:\\xy.txt";
        params->file = file_name;
-
+params->frme=avs_get_frame (fi->child, 0);
     fi->user_data = (void*) params;
 
 
@@ -252,7 +254,7 @@ if (!params)
    fi->get_frame = WhitePoint_get_frame;
   AVS_Value v = avs_new_value_clip (new_clip);
   avs_release_clip (new_clip);
-
+params->frme=0;
   return v;
 }
 
