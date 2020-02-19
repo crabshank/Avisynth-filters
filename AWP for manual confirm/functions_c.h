@@ -46,7 +46,29 @@ if(RGBtot==0){
 }
 }
 
+void rgb2RGB_White(double rgb[3],double RGB[3]){
 
+	double mx_prp=MAX( rgb[0],MAX( rgb[1], rgb[2]));
+	double rcp_mx_prp=(mx_prp==0)?0:pow(mx_prp,-1);
+
+    RGB[0]=rgb[0]*rcp_mx_prp;
+    RGB[1]=rgb[1]*rcp_mx_prp;
+    RGB[2]=rgb[2]*rcp_mx_prp;
+
+double mx_RGB=MAX( RGB[0],MAX( RGB[1], RGB[2]));
+double rcp_mx_RGB=(mx_RGB==0)?0:pow(mx_RGB,-1);
+
+    RGB[0]=RGB[0]*rcp_mx_RGB;
+    RGB[1]=RGB[1]*rcp_mx_RGB;
+    RGB[2]=RGB[2]*rcp_mx_RGB;
+
+if(MAX( RGB[0],MAX( RGB[1], RGB[2]))==0){
+    RGB[0]=1;
+    RGB[1]=1;
+    RGB[2]=1;
+}
+
+}
 
 void rgb2hsv (double rgb[3],double hsv[3])
 {
