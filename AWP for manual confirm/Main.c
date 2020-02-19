@@ -66,21 +66,24 @@ double curr_rgb_dst[3]={rOG,gOG,bOG};
 double curr_rgb_dst_lin[3];
 
 
+
 double curr_rgb_dst_lin_xyY[3];
 sRGB2Linear(curr_rgb_dst,curr_rgb_dst_lin);
 LinRGB2xyY(curr_rgb_dst_lin,curr_rgb_dst_lin_xyY);
 double curr_rgb_dst_lin_prp[3];
 
 RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
+double curr_rgb_dst_lin_prp_wht[3];
+rgb2RGB_White(curr_rgb_dst_lin_prp,curr_rgb_dst_lin_prp_wht);
 double mx_prp=MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]));
 double Sc=(mx_prp==0)?0:1-(mx_prp-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])))/mx_prp;
 
-  Sc*=Sc*curr_rgb_dst_lin_xyY[2];
+   Sc*=curr_rgb_dst_lin_xyY[2];
 
 
-sumR_+=curr_rgb_dst_lin[0]*Sc;
-sumG_+= curr_rgb_dst_lin[1]*Sc;
-sumB_+=curr_rgb_dst_lin[2]*Sc;
+sumR_+=curr_rgb_dst_lin_prp_wht[0]*Sc;
+sumG_+= curr_rgb_dst_lin_prp_wht[1]*Sc;
+sumB_+=curr_rgb_dst_lin_prp_wht[2]*Sc;
         avgCountAll+=1;
 
   x+=3;
@@ -194,7 +197,7 @@ if(dbg==1){
 }
 
 AVS_Value AVSC_CC create_WhitePoint (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
-{   
+{
   AVS_Value v;
   AVS_FilterInfo * fi;
   AVS_Clip * new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
