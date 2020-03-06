@@ -8,7 +8,7 @@ except TypeError:
     bookmarks = avsp.GetBookmarkList()
 bookmarks.sort()
 filename = avsp.GetSaveFilename(
-                title=_('Save chapter file as...'), 
+                title=_('Save bookmarks list as...'), 
                 default=os.path.splitext(
                     avsp.GetScriptFilename(propose='general', only='base'))[0],
                 filefilter = '|'.join((_('Text files') + ' (*.txt)|*.txt', 
