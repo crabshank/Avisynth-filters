@@ -66,9 +66,9 @@ double curr_rgb_dst_lin[3];
 
 
 
-double curr_rgb_dst_lin_xyY[3];
+double curr_rgb_dst_lin_XYZ[3];
 sRGB2Linear(curr_rgb_dst,curr_rgb_dst_lin);
-LinRGB2xyY(curr_rgb_dst_lin,curr_rgb_dst_lin_xyY);
+LinRGB2XYZ(curr_rgb_dst_lin,curr_rgb_dst_lin_XYZ);
 double curr_rgb_dst_lin_prp[3];
 
 RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
@@ -77,7 +77,7 @@ rgb2RGB_White(curr_rgb_dst_lin_prp,curr_rgb_dst_lin_prp_wht);
 double mx_prp=MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]));
 double Sc=(mx_prp==0)?0:1-(mx_prp-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])))/mx_prp;
 
-   Sc=0.5*(Sc+curr_rgb_dst_lin_xyY[2]);
+   Sc=0.5*(Sc+curr_rgb_dst_lin_XYZ[1]);
 
 
 sumR_+=curr_rgb_dst_lin_prp_wht[0]*Sc;
@@ -139,16 +139,14 @@ if ((round(currRed)==0)&&(round(currGreen)==0)&&(round(currBlue)==0)){
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
 }else{
-double curr_rgb_dst_4xyY[3]={rOG,gOG,bOG};
-    double curr_rgb_dst_fnl_xyY[3];
+double curr_rgb_dst_4XYZ[3]={rOG,gOG,bOG};
+
     double curr_rgb_dst_fnl_XYZ[3];
-    rgb2xyY(curr_rgb_dst_4xyY,curr_rgb_dst_fnl_xyY);
-    xyY2XYZ(curr_rgb_dst_fnl_xyY,curr_rgb_dst_fnl_XYZ);
+    rgb2XYZ(curr_rgb_dst_4XYZ,curr_rgb_dst_fnl_XYZ);
 WPconv(curr_rgb_dst_fnl_XYZ,D65XYZ,XYZ_conv2grey,WPConvXYZ);
-double WPConvXYZ_xyY[3];
-XYZ2xyY(WPConvXYZ,WPConvXYZ_xyY);
-//FINAL OUTPUT
-xyY2rgb(WPConvXYZ_xyY,WPchgRGB);
+
+XYZ2rgb(WPConvXYZ,WPchgRGB);
+
 
 
 if(dbg==1){
