@@ -53,14 +53,11 @@ bOG=currBlue*rcptwoFiveFive;     // B
        gOG=currGreen*rcptwoFiveFive;   //G
          rOG=currRed*rcptwoFiveFive;     // R
 
-    double rgbxyY[3];
 double rgbXYZ[3];
 double WPConvXYZ[3];
-double WPConvXYZ_xyY[3];
 double OG_RGB[3]={rOG,gOG,bOG};
 double WPchgRGB[3]={rOG,gOG,bOG};
-rgb2xyY(OG_RGB,rgbxyY);
-xyY2XYZ(rgbxyY,rgbXYZ);
+rgb2XYZ(OG_RGB,rgbXYZ);
 
 if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[0]=0;
@@ -74,9 +71,7 @@ xy2XYZ(cust_xy,cust_XYZ);
 
 WPconv(rgbXYZ,D65XYZ,cust_XYZ,WPConvXYZ);
 
-XYZ2xyY(WPConvXYZ,WPConvXYZ_xyY);
-
-xyY2rgb(WPConvXYZ_xyY,WPchgRGB);
+XYZ2rgb(WPConvXYZ,WPchgRGB);
 }
 
 }
