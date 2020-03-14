@@ -316,6 +316,24 @@ double Z=0.0193339*n1+0.119192*n2+0.9503041*n3;
 
 //Source: https://stackoverflow.com/a/45263428; http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
+
+void rgb2XYZ(double rgb[3],double outp[3]){
+
+
+      double  n1=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)/1.055),2.4):rgb[0]/12.92;
+     double   n2=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)/1.055),2.4):rgb[1]/12.92;
+      double  n3=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)/1.055),2.4):rgb[2]/12.92;
+
+
+outp[0] =0.4124564*n1+0.3575761*n2+0.1804375*n3;
+outp[1]=0.2126729*n1+0.7151522*n2+0.072175*n3;
+outp[2]=0.0193339*n1+0.119192*n2+0.9503041*n3;
+
+}
+
+//Source: https://stackoverflow.com/a/45263428; http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+
+
 void LinRGB2xyY(double rgb[3],double outp[3]){
 
       double  n1=rgb[0];
@@ -331,6 +349,18 @@ double Z=0.0193339*n1+0.119192*n2+0.9503041*n3;
 	outp[0]=X/XYZtot;
 	outp[1]=Y/XYZtot;
 	outp[2]=Y;
+
+}
+
+//Source: https://stackoverflow.com/a/45263428; http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+
+
+void LinRGB2XYZ(double rgb[3],double outp[3]){
+
+
+outp[0] =0.4124564*rgb[0]+0.3575761*rgb[1]+0.1804375*rgb[2];
+outp[1]=0.2126729*rgb[0]+0.7151522*rgb[1]+0.072175*rgb[2];
+outp[2]=0.0193339*rgb[0]+0.119192*rgb[1]+0.9503041*rgb[2];
 
 }
 
@@ -360,6 +390,21 @@ void XYZ2xyY(double XYZ[3],double outp[3]){
 
 
 
+void XYZ2rgb(double XYZ[3],double RGB[3]){
+
+double r=3.2404542*XYZ[0]-1.5371385*XYZ[1]-0.4985314*XYZ[2];
+double g=-0.969266*XYZ[0]+1.8760108*XYZ[1]+0.041556*XYZ[2];
+double b=0.0556434*XYZ[0]-0.2040259*XYZ[1]+1.0572252*XYZ[2];
+
+
+   r=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,1.0/2.4) - 0.055:12.92 *r;
+   g=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,1.0/2.4) - 0.055:12.92 *g;
+   b=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,1.0/2.4) - 0.055:12.92 *b;
+
+RGB[0]=r;
+RGB[1]=g;
+RGB[2]=b;
+}
 
 
 void xyY2rgb(double xyY[3],double RGB[3]){
