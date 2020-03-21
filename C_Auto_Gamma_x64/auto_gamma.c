@@ -11,42 +11,41 @@ typedef struct Auto_Gamma {
       int limitedRange;
 } Auto_Gamma;
 
-AVS_VideoFrame* AVSC_CC Auto_Gamma_get_frame(AVS_FilterInfo* fi, int n)
+AVS_VideoFrame * AVSC_CC Auto_Gamma_get_frame (AVS_FilterInfo * p, int n)
 {
- Auto_Gamma* params = (Auto_Gamma*) fi->user_data;
+  AVS_VideoFrame * src;
+   Auto_Gamma* params = (Auto_Gamma*) p->user_data;
 
-   AVS_VideoFrame* src = avs_get_frame(fi->child, n);
+  src = avs_get_frame(p->child, n);
 
-
-
-   int row_size, height, src_pitch,x, y, p,max_iters,tol,tolr,opt,lmr;
+    int row_size, height, src_pitch,x, y,max_iters,tol,tolr,opt,lmr;
    BYTE* srcp;
    double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter;
 
 a =   params->bracketA;
 b=params->bracketB;
-a*=100;
-b*=100;
 tol=params->tolerance;
 lmr=params->limitedRange;
-            int planes[] ={AVS_CS_BGR32};
-src = avs_get_frame(fi->child, n);
-   avs_make_writable(fi->env, &src);
 
-p=0;
-      srcp = avs_get_write_ptr_p(src, planes[p]);
-      src_pitch = avs_get_pitch_p(src, planes[p]);
-      row_size = avs_get_row_size_p(src, planes[p]);
-      height = avs_get_height_p(src, planes[p]);
+  avs_make_writable(p->env, &src);
+
+      srcp = avs_get_write_ptr(src);
+      src_pitch = avs_get_pitch(src);
+      row_size = avs_get_row_size(src);
+      height = avs_get_height(src);
 
 runTot_r=0;
 runTot_g=0;
 runTot_b=0;
 counter=0;
-//POLL FRAME/////////////////////////////////////////////////////////
+
+
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
+
+
+//double x_shift=(double)x/(double)row_size;
                  double currBlue=(double)srcp[x];
                 double currGreen=(double)srcp[x+1];
                 double currRed=(double)srcp[x+2];
@@ -55,16 +54,16 @@ bOG=currBlue*rcptwoFiveFive;     // B
        gOG=currGreen*rcptwoFiveFive;   //G
          rOG=currRed*rcptwoFiveFive;     // R
 
-runTot_r+=rOG;
-runTot_g+=gOG;
-runTot_b+=bOG;
+
+runTot_r+=rOG*0.2126729;
+runTot_g+=gOG*0.7151522;
+runTot_b+=bOG*0.072175;
 counter+=1;
 
         x=x+3;
-
+      }
       }
 
-      }
 
 //Bisection method solver/////////////////////////////////////////
 p=1;
@@ -112,11 +111,21 @@ bOG=currBlue*rcptwoFiveFive;     // B
 R=rOG;
 G=gOG;
 B=bOG;
+double Yog=0.2126729*rOG+0.7151522*gOG+0.072175*bOG;
+
          if(opt==1){
 
 R=lerp(fastPrecisePow(rOG,gamma_low),fastPrecisePow(rOG,gamma_high),rOG);
 G=lerp(fastPrecisePow(gOG,gamma_low),fastPrecisePow(gOG,gamma_high),gOG);
 B=lerp(fastPrecisePow(bOG,gamma_low),fastPrecisePow(bOG,gamma_high),bOG);
+
+double Ynw=0.2126729*R+0.7151522*G+0.072175*B;
+
+if (Ynw<Yog){
+R=rOG;
+G=gOG;
+B=bOG;
+}
 
 
 if(lmr==1){
@@ -137,52 +146,40 @@ if(lmr==1){
              x=x+3;
       }
             srcp += src_pitch;
-      } //END OF IMAGE DRAWING LOOP
+      }
 
-/////////////////DRAW PIXELS END/////////////////////////////////
-
- avs_release_frame(src);
-
-   return src;
+  return src;
 }
 
-
-AVS_Value AVSC_CC create_Auto_Gamma(AVS_ScriptEnvironment* env, AVS_Value args, void* user_data)
+AVS_Value AVSC_CC create_Auto_Gamma (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
 {
-   AVS_Value v;
-   AVS_FilterInfo* fi;
-
-
-   AVS_Clip* new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
-
-Auto_Gamma *params = (Auto_Gamma*)malloc(sizeof(Auto_Gamma));
+  AVS_Value v;
+  AVS_FilterInfo * fi;
+  AVS_Clip * new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
+  Auto_Gamma *params = (Auto_Gamma*)malloc(sizeof(Auto_Gamma));
 
 if (!params)
       return avs_void;
+        params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
+        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):11;
+        params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):3    ;
+        params->limitedRange= avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):false;
 
 
-
-   if (!avs_is_rgb(&fi->vi)) {
-      return avs_new_value_error("Input video must be in RGB format!");
-   }
-
-         params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
-        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):12;
-                params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):2;
-params->limitedRange= avs_defined(avs_array_elt(args, 4))?avs_as_bool(avs_array_elt(args, 4)):false;
-
-   fi->user_data = (void*) params;
-   fi->get_frame = Auto_Gamma_get_frame;
-
-
-   v = avs_new_value_clip(new_clip);
-
-   avs_release_clip(new_clip);
-  // free(params);
-   return v;
+  if (!avs_is_rgb32(&fi->vi)) {
+    return avs_new_value_error ("Input video must be in RGB format!");
+  } else {
+         fi->user_data = (void*) params;
+    fi->get_frame = Auto_Gamma_get_frame;
+    v = avs_new_value_clip(new_clip);
+  }
+  avs_release_clip(new_clip);
+  return v;
 }
 
-const char* AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment* env)
+
+
+const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
    avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[tolerance]i[limitedRange]b", create_Auto_Gamma, 0);
    return "Auto_Gamma sample C plugin";
