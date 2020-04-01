@@ -19,7 +19,7 @@ AVS_VideoFrame * AVSC_CC WhitePoint_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,avgCountAll,dbg;
+   int row_size, height, src_pitch,x, y,dbg;
    BYTE* srcp;
   char* nm;
 
@@ -31,7 +31,7 @@ double D65XYZ[3]={0.95047,1,1.08883};
       row_size = avs_get_row_size(src);
       height = avs_get_height(src);
 
-double  bOG,gOG,rOG,sumR_,sumG_,sumB_,thrsh;
+double  bOG,gOG,rOG,thrsh;
 
 //strt=params->start;
 thrsh=params->thresh;
@@ -39,13 +39,10 @@ dbg=params->debug;
 dbg=round(dbg);
 nm=params->file;
 
-
-
-
-avgCountAll=0;
-sumR_=0;
-sumG_=0;
-sumB_=0;
+double sc_max=0;
+double rf=1;
+double gf=1;
+double bf=1;
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -57,44 +54,28 @@ sumB_=0;
 bOG=currBlue*rcptwoFiveFive;     // B
        gOG=currGreen*rcptwoFiveFive;   //G
          rOG=currRed*rcptwoFiveFive;     // R
+
 if ((round(currRed)==0)&&(round(currGreen)==0)&&(round(currBlue)==0)){
   x+=3;
 }else{
 
-double curr_rgb_dst[3]={rOG,gOG,bOG};
-double curr_rgb_dst_lin[3];
-
-
-
-double curr_rgb_dst_lin_XYZ[3];
-sRGB2Linear(curr_rgb_dst,curr_rgb_dst_lin);
-LinRGB2XYZ(curr_rgb_dst_lin,curr_rgb_dst_lin_XYZ);
-double curr_rgb_dst_lin_prp[3];
-
-RGB2rgb(curr_rgb_dst_lin,curr_rgb_dst_lin_prp);
-double curr_rgb_dst_lin_prp_wht[3];
-rgb2RGB_White(curr_rgb_dst_lin_prp,curr_rgb_dst_lin_prp_wht);
-double mx_prp=MAX(curr_rgb_dst_lin_prp[0],MAX(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2]));
-double Sc=(mx_prp==0)?0:1-(mx_prp-MIN(curr_rgb_dst_lin_prp[0],MIN(curr_rgb_dst_lin_prp[1],curr_rgb_dst_lin_prp[2])))/mx_prp;
-
-   Sc=0.5*(Sc+curr_rgb_dst_lin_XYZ[1]);
-
-
-sumR_+=curr_rgb_dst_lin_prp_wht[0]*Sc;
-sumG_+= curr_rgb_dst_lin_prp_wht[1]*Sc;
-sumB_+=curr_rgb_dst_lin_prp_wht[2]*Sc;
-        avgCountAll+=1;
-
+ double mn=MIN(rOG,MIN(gOG,bOG));
+ double mx=MAX(rOG,MAX(gOG,bOG));
+ double sc=mn*(1-((mx-mn)/mx));
+ if(sc>sc_max){
+ sc_max=sc;
+ rf=rOG;
+ gf=gOG;
+ bf=bOG;
+ }
   x+=3;
 }
 
       }
 
       }
-if(avgCountAll>0){
 
-double rcp_avgCountAll=1.0/avgCountAll;
-double rgbForGrey[3]={sumR_*rcp_avgCountAll,sumG_*rcp_avgCountAll,sumB_*rcp_avgCountAll};
+double rgbForGrey[3]={rf,gf,bf};
 double XYZ_orig[3];
 double XYZ_grey[3];
 double XYZ_conv2grey[3];
@@ -168,23 +149,7 @@ if (dbg_sat>thrsh){
 }
  srcp += src_pitch;
 }
-}else{
 
-
-
-      for (y=0; y<height; y++) {
-      for (x=0; x<row_size; x++) {
-if(dbg==1){
-            srcp[x] = 0;
-            srcp[x+1] = 0;
-            srcp[x+2] = 0;
-}
-         x+=3;
-      }
-        srcp += src_pitch;
-}
-
-}
 
 
 /////////////////DRAW PIXELS END/////////////////////////////////
