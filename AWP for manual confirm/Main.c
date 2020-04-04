@@ -10,6 +10,7 @@
    int debug;
    double thresh;
    char* file;
+   double patch;
 } White_Point;
 
 AVS_VideoFrame * AVSC_CC WhitePoint_get_frame (AVS_FilterInfo * p, int n)
@@ -31,13 +32,15 @@ double D65XYZ[3]={0.95047,1,1.08883};
       row_size = avs_get_row_size(src);
       height = avs_get_height(src);
 
-double  bOG,gOG,rOG,thrsh;
+double  bOG,gOG,rOG,thrsh,ptch;
 
 //strt=params->start;
 thrsh=params->thresh;
 dbg=params->debug;
 dbg=round(dbg);
 nm=params->file;
+ptch=params->patch;
+ptch=MAX(0,MIN(1,ptch));
 
 double sc_max=0;
 double rf=1;
@@ -86,6 +89,7 @@ LinRGB2Grey_XYZ(rgbForGrey,XYZ_orig,XYZ_grey);
 WPconv2Grey(XYZ_orig,XYZ_grey,XYZ_conv2grey);
 XYZ2xyY(XYZ_conv2grey,XYZ_Forgrey_xy);
 
+if (nm!=""){
    //int num;
    FILE *fptr;
    // use appropriate location if you are using MacOS or Linux
@@ -99,7 +103,7 @@ XYZ2xyY(XYZ_conv2grey,XYZ_Forgrey_xy);
    fprintf(fptr,"%f %f %d\n",XYZ_Forgrey_xy[0],XYZ_Forgrey_xy[1],n );
    fclose(fptr);
 
-
+}
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
@@ -128,23 +132,34 @@ WPconv(curr_rgb_dst_fnl_XYZ,D65XYZ,XYZ_conv2grey,WPConvXYZ);
 
 XYZ2rgb(WPConvXYZ,WPchgRGB);
 
-
-
 if(dbg==1){
     double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
     double dbg_sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
-if (dbg_sat>thrsh){
+
+    if( ((double)(x)<=(double)(row_size)*ptch) && (((double)(y)>=(double)(height)*(1-ptch)))  ){
+    WPchgRGB[0]=rf;
+    WPchgRGB[1]=gf;
+    WPchgRGB[2]=bf;
+}else{
+if (dbg_sat<=thrsh){
     WPchgRGB[0]=0;
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
 }
-
 }
 
+
+
+}
                 srcp[x] = MAX(MIN(round(WPchgRGB[2]*255),255),0);
              srcp[x+1] =MAX(MIN(round(WPchgRGB[1]*255),255),0);
         srcp[x+2] = MAX(MIN(round(WPchgRGB[0]*255),255),0);
+
+
+
 }
+
+
         x+=3;
 }
  srcp += src_pitch;
@@ -173,11 +188,12 @@ if (!params)
   char* file_name ="";
 
        params->debug = (avs_as_bool(avs_array_elt(args, 1)))?avs_as_bool(avs_array_elt(args, 1)):false;
-       params->thresh = (avs_as_float(avs_array_elt(args, 2)))?avs_as_float(avs_array_elt(args, 2)):0.03;
-      file_name = (avs_as_string(avs_array_elt(args, 3)))?avs_as_string(avs_array_elt(args, 3)):"C:\\xy.txt";
+       params->thresh = (avs_as_float(avs_array_elt(args, 2)))?avs_as_float(avs_array_elt(args, 2)):0.015;
+      file_name = (avs_as_string(avs_array_elt(args, 3)))?avs_as_string(avs_array_elt(args, 3)):file_name;
        params->file = file_name;
+              params->patch = (avs_as_float(avs_array_elt(args, 4)))?avs_as_float(avs_array_elt(args, 4)):0.08;
     fi->user_data = (void*) params;
-
+if(file_name!=""){
       FILE *fptr;
    fptr = fopen(file_name,"w");
    if(fptr == NULL)
@@ -188,6 +204,8 @@ if (!params)
 
    fprintf(fptr,"%s\n",file_name);
    fclose(fptr);
+   }
+
   if (!avs_is_rgb32(&fi->vi)) {
     return avs_new_value_error ("Input video must be in RGB format!");
   } else {
@@ -201,6 +219,6 @@ if (!params)
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "AWP_For_Manual", "c[debug]b[thresh]f[file]s", create_WhitePoint, 0);
+   avs_add_function(env, "AWP_For_Manual", "c[debug]b[thresh]f[file]s[patch]f", create_WhitePoint, 0);
    return "WhitePoint sample C plugin";
 }
