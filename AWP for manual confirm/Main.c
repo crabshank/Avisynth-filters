@@ -89,7 +89,7 @@ LinRGB2Grey_XYZ(rgbForGrey,XYZ_orig,XYZ_grey);
 WPconv2Grey(XYZ_orig,XYZ_grey,XYZ_conv2grey);
 XYZ2xyY(XYZ_conv2grey,XYZ_Forgrey_xy);
 
-if (nm!=""){
+if ((nm!="")&&(nm!="NULL")){
    //int num;
    FILE *fptr;
    // use appropriate location if you are using MacOS or Linux
@@ -180,20 +180,20 @@ AVS_Value AVSC_CC create_WhitePoint (AVS_ScriptEnvironment * env,AVS_Value args,
   AVS_Clip * new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
   White_Point *params = (White_Point*)malloc(sizeof(White_Point));
 
-if (!params)
+if (!params){
       return avs_void;
-
-
+}
 
   char* file_name ="";
 
-       params->debug = (avs_as_bool(avs_array_elt(args, 1)))?avs_as_bool(avs_array_elt(args, 1)):false;
-       params->thresh = (avs_as_float(avs_array_elt(args, 2)))?avs_as_float(avs_array_elt(args, 2)):0.015;
-      file_name = (avs_as_string(avs_array_elt(args, 3)))?avs_as_string(avs_array_elt(args, 3)):file_name;
-       params->file = file_name;
-              params->patch = (avs_as_float(avs_array_elt(args, 4)))?avs_as_float(avs_array_elt(args, 4)):0.08;
+params->debug = (avs_as_bool(avs_array_elt(args, 1)))?avs_as_bool(avs_array_elt(args, 1)):false;
+params->thresh = (avs_as_float(avs_array_elt(args, 2)))?avs_as_float(avs_array_elt(args, 2)):0.015;
+file_name = ((avs_as_string(avs_array_elt(args, 3)))&&(avs_as_string(avs_array_elt(args, 3))!="NULL"))?avs_as_string(avs_array_elt(args, 3)):file_name;
+params->file = file_name;
+params->patch = (avs_as_float(avs_array_elt(args, 4)))?avs_as_float(avs_array_elt(args, 4)):0.08;
     fi->user_data = (void*) params;
-if(file_name!=""){
+
+if((file_name!="")&&(file_name!="NULL")){
       FILE *fptr;
    fptr = fopen(file_name,"w");
    if(fptr == NULL)
