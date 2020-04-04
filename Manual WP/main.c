@@ -144,8 +144,6 @@ if (!params)
   return v;
 }
 
-
-
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
    avs_add_function(env, "Manual_WP", "c[x]f[y]f[debug]i[debug_val]f", create_Manual_WP, 0);
