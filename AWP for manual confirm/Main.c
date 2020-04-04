@@ -207,7 +207,7 @@ if((file_name!="")&&(file_name!="NULL")){
    }
 
   if (!avs_is_rgb32(&fi->vi)) {
-    return avs_new_value_error ("Input video must be in RGB format!");
+    return avs_new_value_error ("Input video must be in RGB32 format!");
   } else {
     fi->get_frame = WhitePoint_get_frame;
     v = avs_new_value_clip(new_clip);
