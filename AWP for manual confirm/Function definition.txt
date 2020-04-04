@@ -1,6 +1,7 @@
 (
 clip,
-bool "debug"=true,
-float "thresh"=0.02,
-string "file"="C:\xy.txt"
+bool "debug"=True,
+float "thresh"=0.02 (0 to 1 by 0.001),
+string "file"="",
+float "patch"=0.08  (0 to 1 by 0.001)
 )
