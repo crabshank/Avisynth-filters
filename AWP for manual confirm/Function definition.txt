@@ -1,7 +1,7 @@
 (
 clip,
-bool "debug"=False,
+bool "debug"=True,
 float "thresh"=0.015 (0 to 1 by 0.001),
-string "file"="",
-float "patch"=0.08 (0 to 1 by 0.001)
+string "file"="NULL",
+float "patch"=0.08  (0 to 1 by 0.001)
 )
