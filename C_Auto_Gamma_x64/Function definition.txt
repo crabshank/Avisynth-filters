@@ -3,7 +3,7 @@
      float "a"=0.00 (0.00 to 20.00 by 0.01),
      float "b"=11.00 (0.00 to 20.00 by 0.01),
      int "tolerance"=3 (1 to 7 by 1),
-     int "crush"=0 (0 to 1 by 1),
+     int "crush"=0 (0 to 2 by 1),
      bool "limitedRange"=False,
      int "linear"=0 (0 to 2 by 1)
 )
