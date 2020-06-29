@@ -2,6 +2,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define rcptwoFiveFive 1.0/255.0
+#define rcptwo_four 1.0/2.4
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
