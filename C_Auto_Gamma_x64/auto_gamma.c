@@ -59,14 +59,10 @@ bOG=currBlue*rcptwoFiveFive;     // B
        gOG=currGreen*rcptwoFiveFive;   //G
          rOG=currRed*rcptwoFiveFive;     // R
 
-         if (lnr==1){
+         if (lnr!=2){
             bOG=(bOG > 0.0404482362771082)?fastPrecisePow(fabs((bOG+0.055)/1.055),2.4):bOG/12.92;
             gOG=(gOG > 0.0404482362771082)?fastPrecisePow(fabs((gOG+0.055)/1.055),2.4):gOG/12.92;
             rOG=(rOG > 0.0404482362771082)?fastPrecisePow(fabs((rOG+0.055)/1.055),2.4):rOG/12.92;
-         }else if(lnr==2){
-            bOG=(bOG > 0.00313066844250063)?1.055*(fastPrecisePow(bOG,rcptwo_four)) - 0.055:bOG*12.92;
-            gOG=(gOG > 0.00313066844250063)?1.055*(fastPrecisePow(gOG,rcptwo_four)) - 0.055:gOG*12.92;
-            rOG=(rOG > 0.00313066844250063)?1.055*(fastPrecisePow(rOG,rcptwo_four)) - 0.055:rOG*12.92;
          }
 
 runTot_r+=rOG*0.2126729;
