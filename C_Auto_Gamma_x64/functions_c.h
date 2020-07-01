@@ -2,7 +2,19 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define rcptwoFiveFive 1.0/255.0
-#define rcptwo_four 1.0/2.4
+#define rcpTwoFour 1.0/2.4
+#define rcptHiBit 1.0/65535.0
+#define third 1.0/3.0
+#define rcpOFiveFive 1.0/1.055
+#define rcpTwelveNineTwo 1.0/12.92
+#define rcpFourFive 1.0/4.5
+#define recAlpha 1.09929682680944
+#define rcpRecAlpha 1.0/1.09929682680944
+#define recBeta 0.018053968510807
+#define recBetaLin 0.004011993002402
+#define rcpTxFourFive 10.0/4.5
+
+
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
@@ -33,7 +45,7 @@ inline double fastPrecisePow(double a, double b) {
 
 void f_gammaLow(double rgb[3], double gamma,double gamma_hi, double dist){
     double outcol[3];
-double avg=(rgb[0]+rgb[1]+rgb[2])/3.0;
+double avg=(rgb[0]+rgb[1]+rgb[2])*third;
     for (int i=0; i<3; i++){
     double col=rgb[i];
     double ln=(col-(1-col)*fastPrecisePow(col,gamma));
