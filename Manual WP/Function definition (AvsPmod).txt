@@ -1,6 +1,9 @@
 (
+clip clip,
 float "x"=0.312727 (0 to 1 by 0.0001),
 float "y"=0.329023 (0 to 1 by 0.0001),
 int "debug"=0 (0 to 3 by 1),
-float "debug_val"=1 (0 to 1 by 0.001)
+float "debug_val"=1 (0 to 1 by 0.001),
+bool "Rec2020" = false,
+bool "sixtyFour" = false
 )
