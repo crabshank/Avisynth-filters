@@ -1,6 +1,16 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define rcptwoFiveFive 1.0/255.0
+#define rcptHiBit 1.0/65535.0
+#define rcpTwoFour 1.0/2.4
+#define rcpOFiveFive 1.0/1.055
+#define rcpTwelveNineTwo 1.0/12.92
+#define recAlpha 1.09929682680944
+#define rcpRecAlpha 1.0/1.09929682680944
+#define recBeta 0.018053968510807
+#define recBetaLin 0.004011993002402
+#define rcpFourFive 1.0/4.5
+#define rcpTxFourFive 10.0/4.5
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
@@ -117,18 +127,18 @@ double g=-0.969266*XYZ[0]+1.8760108*XYZ[1]+0.041556*XYZ[2];
 double b=0.0556434*XYZ[0]-0.2040259*XYZ[1]+1.0572252*XYZ[2];
 
 
-   RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,1.0/2.4) - 0.055:12.92 *r;
-   RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,1.0/2.4) - 0.055:12.92 *g;
-   RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,1.0/2.4) - 0.055:12.92 *b;
+   RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
+   RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
+   RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
 
 }
 
 void rgb2XYZ(double rgb[3],double outp[3]){
 
 
-      double  n1=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)/1.055),2.4):rgb[0]/12.92;
-     double   n2=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)/1.055),2.4):rgb[1]/12.92;
-      double  n3=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)/1.055),2.4):rgb[2]/12.92;
+      double  n1=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)*rcpOFiveFive),2.4):rgb[0]*rcpTwelveNineTwo;
+     double   n2=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)*rcpOFiveFive),2.4):rgb[1]*rcpTwelveNineTwo;
+      double  n3=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)*rcpOFiveFive),2.4):rgb[2]*rcpTwelveNineTwo;
 
 
 outp[0] =0.4124564*n1+0.3575761*n2+0.1804375*n3;
@@ -137,7 +147,33 @@ outp[2]=0.0193339*n1+0.119192*n2+0.9503041*n3;
 
 }
 
-//Source: https://stackoverflow.com/a/45263428; http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.htm
+void XYZ2rgb_2020(double XYZ[3],double RGB[3]){
+
+
+double r=1.71651066976197*XYZ[0]-0.355641669986716*XYZ[1]-0.253345541821907*XYZ[2];
+double g=-0.666693001182624*XYZ[0]+1.61650220834691*XYZ[1]+0.015768750389995*XYZ[2];
+double b=0.017643638767459*XYZ[0]-0.042779781669045*XYZ[1]+0.942305072720018*XYZ[2];
+
+  RGB[0]=(r< recBeta)?4.5*r:recAlpha*fastPrecisePow(r,0.45)-(recAlpha-1);
+  RGB[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
+  RGB[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
+
+
+}
+
+void rgb2XYZ_2020(double rgb[3],double outp[3]){
+
+double  n1=(rgb[0] < recBetaLin )?rcpFourFive*rgb[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[0])),rcpTxFourFive);
+double  n2=(rgb[1] < recBetaLin )?rcpFourFive*rgb[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[1])),rcpTxFourFive);
+double  n3=(rgb[1] < recBetaLin )?rcpFourFive*rgb[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[2])),rcpTxFourFive);
+
+outp[0] =0.637010191411101*n1+0.144615027396969*n2+0.168844781191930*n3;
+outp[1]=0.26272171736164*n1+0.677989275502262*n2+0.059289007136098*n3;
+outp[2]=0.028072328847647*n2+1.06075767115235*n3;
+
+}
+
+//Source: https://stackoverflow.com/a/45263428; http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.htm; https://en.wikipedia.org/wiki/Rec._2020#Transfer_characteristics
 
 void xy2XYZ(double xyCoord[2],double outp[3]){
         outp[0]=(1.0/xyCoord[1])*xyCoord[0];
