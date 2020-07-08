@@ -66,8 +66,8 @@ counter=0;
        gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
-    if (lnr!=2){
-        if (rec==1){
+    if ((lnr!=2)&&(lnr!=4)){
+        if ((rec==1)||(lnr==3)){
            bOG=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
            gOG=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
            rOG=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
@@ -138,7 +138,7 @@ while(p<=max_iters){
        gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
-        if (rec==1){
+        if ((rec==1)||(lnr==3)){
            bLin=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
            gLin=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
            rLin=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
@@ -148,11 +148,11 @@ while(p<=max_iters){
                 rLin=(rOG > 0.0404482362771082 )?fastPrecisePow(fabs((rOG+0.055)*rcpOFiveFive),2.4):rOG*rcpTwelveNineTwo;
             }
 
-                  if (lnr==1){
+                  if ((lnr==1)||(lnr==3)){
                         bOG=bLin;
                         gOG=gLin;
                         rOG=rLin;
-         }else if(lnr==2){
+         }else if((lnr==2)||(lnr==4)){
 
                      if (rec==1){
     rOG=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
