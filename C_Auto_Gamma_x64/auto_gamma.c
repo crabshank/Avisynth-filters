@@ -10,8 +10,8 @@ typedef struct Auto_Gamma {
       int tolerance;
       int crush;
       int limitedRange;
+      int mode;
       int linear;
-      int Rec2020;
       int sixtyFour;
 } Auto_Gamma;
 
@@ -22,7 +22,7 @@ AVS_VideoFrame * AVSC_CC Auto_Gamma_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-    int row_size, height, src_pitch,x, y,max_iters,tol,tolr,opt,lmr,crs,lnr,rec,sxf;
+    int row_size, height, src_pitch,x, y,max_iters,tol,tolr,opt,lmr,crs,lnr,mde,sxf;
    BYTE* srcp;
    double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter,rLin,gLin,bLin;
 
@@ -30,13 +30,10 @@ a =   params->bracketA;
 b=params->bracketB;
 tol=params->tolerance;
 crs=params->crush;
-crs=round(crs);
 lmr=params->limitedRange;
+mde=params->mode;
 lnr=params->linear;
-rec=params->Rec2020;
-rec=round(rec);
 sxf=params->sixtyFour;
-sxf=round(sxf);
 
   avs_make_writable(p->env, &src);
 
@@ -67,7 +64,7 @@ counter=0;
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
     if ((lnr!=2)&&(lnr!=4)){
-        if ((rec==1)||(lnr==3)){
+        if ((mde!=0)||(lnr==3)){
            bOG=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
            gOG=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
            rOG=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
@@ -77,15 +74,24 @@ counter=0;
                 rOG=(rOG > 0.0404482362771082 )?fastPrecisePow(fabs((rOG+0.055)*rcpOFiveFive),2.4):rOG*rcpTwelveNineTwo;
             }
     }
-  if (rec==1){
-    runTot_r+=rOG*0.26272171736164;
-runTot_g+=gOG*0.677989275502262;
-runTot_b+=bOG*0.059289007136098;
-  }else{
-runTot_r+=rOG*0.2126729;
-runTot_g+=gOG*0.7151522;
-runTot_b+=bOG*0.072175;
-  }
+
+    if(mde==1){
+        runTot_r+=rOG*0.2124132;
+        runTot_g+=gOG*0.7010437;
+        runTot_b+=bOG*0.0865432;
+    }else if(mde==2){
+        runTot_r+=rOG*0.2220379;
+        runTot_g+=gOG*0.7066384;
+        runTot_b+=bOG*0.0713236;
+    }else if (mde==4){
+        runTot_r+=rOG*0.26272171736164;
+        runTot_g+=gOG*0.677989275502262;
+        runTot_b+=bOG*0.059289007136098;
+    }else{
+        runTot_r+=rOG*0.2126729;
+        runTot_g+=gOG*0.7151522;
+        runTot_b+=bOG*0.072175;
+        }
 counter+=1;
 
         x=x+3;
@@ -138,7 +144,7 @@ while(p<=max_iters){
        gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
-        if ((rec==1)||(lnr==3)){
+        if ((mde!=0)||(lnr==3)){
            bLin=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
            gLin=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
            rLin=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
@@ -154,7 +160,7 @@ while(p<=max_iters){
                         rOG=rLin;
          }else if((lnr==2)||(lnr==4)){
 
-                     if (rec==1){
+                     if (mde!=0){
     rOG=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
     rOG=(gOG< recBeta)?4.5*gOG:recAlpha*fastPrecisePow(gOG,0.45)-(recAlpha-1);
     rOG=(bOG< recBeta)?4.5*bOG:recAlpha*fastPrecisePow(bOG,0.45)-(recAlpha-1);
@@ -164,12 +170,22 @@ while(p<=max_iters){
  gOG=(bOG> 0.00313066844250063)?1.055 * fastPrecisePow(bOG,rcpTwoFour) - 0.055:12.92 *bOG;
 
             }
-
          }
 R=rOG;
 G=gOG;
 B=bOG;
-double Yog=(rec==1)?rLin*0.26272171736164+gLin*0.677989275502262+bLin*0.059289007136098:0.2126729*rLin+0.7151522*gLin+0.072175*bLin;
+
+double Yog;
+
+    if(mde==1){
+       Yog=rOG*0.2124132+gOG*0.7010437+bOG*0.0865432;
+    }else if(mde==2){
+         Yog=rOG*0.2220379+gOG*0.7066384+bOG*0.0713236;
+    }else if (mde==4){
+        Yog=rOG*0.26272171736164+gOG*0.677989275502262+bOG*0.059289007136098;
+    }else{
+        Yog=rOG*0.2126729+gOG*0.7151522+bOG*0.072175;
+        }
 
          if(opt==1){
 
@@ -177,7 +193,18 @@ R=lerp(fastPrecisePow(rOG,gamma_low),fastPrecisePow(rOG,gamma_high),rOG);
 G=lerp(fastPrecisePow(gOG,gamma_low),fastPrecisePow(gOG,gamma_high),gOG);
 B=lerp(fastPrecisePow(bOG,gamma_low),fastPrecisePow(bOG,gamma_high),bOG);
 
-double Ynw=(rec==1)?0.26272171736164*R+0.677989275502262*G+0.059289007136098*B:0.2126729*R+0.7151522*G+0.072175*B;
+double Ynw;
+
+    if(mde==1){
+       Ynw=R*0.2124132+G*0.7010437+B*0.0865432;
+    }else if(mde==2){
+         Ynw=R*0.2220379+G*0.7066384+B*0.0713236;
+    }else if (mde==4){
+        Ynw=R*0.26272171736164+G*0.677989275502262+B*0.059289007136098;
+    }else{
+        Ynw=R*0.2126729+G*0.7151522+B*0.072175;
+        }
+
 if (crs==0){
 if (Ynw<Yog){
 R=rOG;
@@ -234,12 +261,16 @@ if (!params)
       return avs_void;
         params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
         params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):11;
-        params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):3    ;
+        params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):3;
         params->crush = avs_defined(avs_array_elt(args, 4))?avs_as_int(avs_array_elt(args, 4)):0;
         params->limitedRange= avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(args, 5)):false;
-        params->linear= avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
-        params->Rec2020 = avs_defined(avs_array_elt(args, 7))?avs_as_bool(avs_array_elt(args, 7)):false;
+        params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
+        params->linear= avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
 
+
+          if ((params->mode<0)||(params->mode>4)){
+            return avs_new_value_error ("Allowed modes are between 0 and 4!");
+          }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
   } else {
@@ -253,6 +284,7 @@ if (!params)
     fi->get_frame = Auto_Gamma_get_frame;
     v = avs_new_value_clip(new_clip);
   }
+          }
   avs_release_clip(new_clip);
   return v;
 }
@@ -261,6 +293,6 @@ if (!params)
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[tolerance]i[crush]i[limitedRange]b[linear]i[Rec2020]b[sixtyFour]b", create_Auto_Gamma, 0);
+   avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[tolerance]i[crush]i[limitedRange]b[mode]i[linear]i[sixtyFour]b", create_Auto_Gamma, 0);
    return "Auto_Gamma sample C plugin";
 }
