@@ -2,8 +2,11 @@
 clip clip,
 float "x"=0.312727 (0 to 1 by 0.0001),
 float "y"=0.329023 (0 to 1 by 0.0001),
+int "R"=-1,
+int "G"=-1,
+int "B"=-1,
+int "mode"=0 (0 to 4 by 1),
 int "debug"=0 (0 to 3 by 1),
 float "debug_val"=1 (0 to 1 by 0.001),
-bool "Rec2020" = false,
 bool "sixtyFour" = false
 )
