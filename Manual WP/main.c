@@ -7,9 +7,12 @@
 typedef struct Manual_WP {
         double x;
         double y;
+        int R;
+        int G;
+        int B;
+        int mode;
         int debug;
         double debug_val;
-        int Rec2020;
         int sixtyFour;
 } Manual_WP;
 
@@ -21,11 +24,11 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,rec,sxf;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf;
    BYTE* srcp;
    double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y;
 
-double D65XYZ[3]={0.95047,1,1.08883};
+
   avs_make_writable(p->env, &src);
 
       srcp = avs_get_write_ptr(src);
@@ -34,16 +37,13 @@ double D65XYZ[3]={0.95047,1,1.08883};
       height = avs_get_height(src);
 cust_x=params->x;
 cust_y=params->y;
+mde=params->mode;
 dbg=params->debug;
 amp=params->debug_val;
-rec=params->Rec2020;
-rec=round(rec);
 sxf=params->sixtyFour;
-sxf=round(sxf);
 
 D65_x= 0.312727;
    D65_y= 0.329023;
-
 
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -60,15 +60,12 @@ D65_x= 0.312727;
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
 double rgbXYZ[3];
+double rgbXYZGrey[3];
 double WPConvXYZ[3];
 double OG_RGB[3]={rOG,gOG,bOG};
 double WPchgRGB[3]={rOG,gOG,bOG};
 
-if (rec==1){
-rgb2XYZ_2020(OG_RGB,rgbXYZ);
-}else{
-rgb2XYZ(OG_RGB,rgbXYZ);
-}
+rgb2XYZ(OG_RGB,rgbXYZ,rgbXYZGrey,mde,0);
 
 if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[0]=0;
@@ -82,11 +79,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 
     WPconv(rgbXYZ,D65XYZ,cust_XYZ,WPConvXYZ);
 
-        if (rec==1){
-        XYZ2rgb_2020(WPConvXYZ,WPchgRGB);
-        }else{
-        XYZ2rgb(WPConvXYZ,WPchgRGB);
-        }
+        XYZ2rgb(WPConvXYZ,WPchgRGB,mde);
 
 }
 
@@ -147,35 +140,72 @@ AVS_Value AVSC_CC create_Manual_WP (AVS_ScriptEnvironment * env,AVS_Value args, 
   AVS_Clip * new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
   Manual_WP *params = (Manual_WP*)malloc(sizeof(Manual_WP));
 
-if (!params)
+if (!params){
       return avs_void;
+}
 
-                params->x = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0.312727;
-          params->y = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.329023;
-          params->debug = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):0;
-          params->debug_val = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):1;
-          params->Rec2020 = avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(args, 5)):false;
+                   params->x = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0.312727;
+                   params->y = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.329023;
+                   params->R = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):-1;
+                   params->G = avs_defined(avs_array_elt(args, 4))?avs_as_int(avs_array_elt(args, 4)):-1;
+                   params->B = avs_defined(avs_array_elt(args, 5))?avs_as_int(avs_array_elt(args, 5)):-1;
+                params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
+               params->debug = avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
+            params->debug_val=  avs_defined(avs_array_elt(args,8))?avs_as_float(avs_array_elt(args, 8)):1;
 
+
+          if ((params->mode<0)||(params->mode>4)){
+            return avs_new_value_error ("Allowed modes are between 0 and 4!");
+          }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
-  } else {
+  }else {
 
-     if(avs_defined(avs_array_elt(args, 6))){
-        params->sixtyFour =avs_as_bool(avs_array_elt(args, 6));
+     if(avs_defined(avs_array_elt(args, 9))){
+        params->sixtyFour =avs_as_bool(avs_array_elt(args, 9));
      }else{
        params->sixtyFour = (avs_is_rgb64(&fi->vi))?true:false;
      }
 
+ if((params->R>=0)&&(params->G>=0)&&((params->B>=0))){
+      if((params->sixtyFour==true)&&((params->R>65535)||(params->G>65535)||(params->B>65535))){
+        return avs_new_value_error ("RGB arguments must be between 0 and 65535");
+      }else if((params->sixtyFour==false)&&((params->R>255)||(params->G>255)||(params->B>255))){
+        return avs_new_value_error ("RGB arguments must be between 0 and 255");
+      }else{
+        double rgbtst[3];
+        rgbtst[0]=(params->sixtyFour==true)?(double)(params->R)*rcptHiBit:(double)(params->R)*rcptwoFiveFive;
+        rgbtst[1]=(params->sixtyFour==true)?(double)(params->G)*rcptHiBit:(double)(params->G)*rcptwoFiveFive;
+        rgbtst[2]=(params->sixtyFour==true)?(double)(params->B)*rcptHiBit:(double)(params->B)*rcptwoFiveFive;
+        double XYZ1[3];
+        double XYZ2[3];
+        double XYZ3[3];
+        double xyY[3];
+
+        rgb2XYZ(rgbtst,XYZ1,XYZ2,params->mode,1);
+        WPconv2Grey(XYZ1,XYZ2,XYZ3);
+        XYZ2xyY(XYZ3,xyY);
+
+        params->x=xyY[0];
+        params->y=xyY[1];
+
+      }
+
+  }
+
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
     v = avs_new_value_clip(new_clip);
-  }
+   }
+   }
   avs_release_clip(new_clip);
   return v;
+
 }
+
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[debug]i[debug_val]f[Rec2020]b[sixtyFour]b", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b", create_Manual_WP, 0);
    return "Manual_WP sample C plugin";
 }
