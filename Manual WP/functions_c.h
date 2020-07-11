@@ -12,6 +12,8 @@
 #define rcpFourFive 1.0/4.5
 #define rcpTxFourFive 10.0/4.5
 
+double D65XYZ[3]={0.95047,1,1.08883};
+
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
   int e = (int) b;
@@ -75,6 +77,8 @@ int i,j,k;
 }
 
 
+
+
 void WPconv(double XYZ[3],double from[3], double to[3],double outp[3]){
 
  //double *ptp = &outp[0];
@@ -120,58 +124,200 @@ mul(3,3,1,convBrad,XYZ,outp);
 
 }
 
-void XYZ2rgb(double XYZ[3],double RGB[3]){
+void rgb2XYZ (double rgb[3], double XYZog[3],double XYZnew[3], int mode, int grey){
 
-double r=3.2404542*XYZ[0]-1.5371385*XYZ[1]-0.4985314*XYZ[2];
-double g=-0.969266*XYZ[0]+1.8760108*XYZ[1]+0.041556*XYZ[2];
-double b=0.0556434*XYZ[0]-0.2040259*XYZ[1]+1.0572252*XYZ[2];
+	  double rgbLin[3];
+
+if (mode==0){ //sRGB transfer
+      rgbLin[0]=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)*rcpOFiveFive),2.4):rgb[0]*rcpTwelveNineTwo;
+      rgbLin[1]=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)*rcpOFiveFive),2.4):rgb[1]*rcpTwelveNineTwo;
+      rgbLin[2]=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)*rcpOFiveFive),2.4):rgb[2]*rcpTwelveNineTwo;
+}else{ //Rec transfer
+      rgbLin[0]=(rgb[0] < recBetaLin )?rcpFourFive*rgb[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[0])),rcpTxFourFive);
+      rgbLin[1]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[1])),rcpTxFourFive);
+      rgbLin[2]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[2])),rcpTxFourFive);
+}
+
+double v1[3];
+double v2[3];
+double v3[3];
+
+if (mode==1){ //Rec 601 NTSC
+    v1[0]=0.3935891;
+    v1[1]=0.3652497;
+    v1[2]=0.1916313;
+    v2[0]=0.2124132;
+    v2[1]=0.7010437;
+    v2[2]=0.0865432;
+    v3[0]=0.0187423;
+    v3[1]=0.1119313;
+    v3[2]=0.9581563;
+}else if (mode==2){ //Rec 601 PAL
+    v1[0]=0.430619;
+    v1[1]=0.3415419;
+    v1[2]=0.1783091;
+    v2[0]=0.2220379;
+    v2[1]=0.7066384;
+    v2[2]=0.0713236;
+    v3[0]=0.0201853;
+    v3[1]=0.1295504;
+    v3[2]=0.9390944;
+}else if (mode==4){ //Rec 2020
+    v1[0]=0.637010191411101;
+    v1[1]=0.144615027396969;
+    v1[2]=0.16884478119193;
+    v2[0]=0.26272171736164;
+    v2[1]=0.677989275502262;
+    v2[2]=0.059289007136098;
+    v3[0]=0;
+    v3[1]=0.028072328847647;
+    v3[2]=1.06075767115235;
+}else{ //sRGB - Rec 709
+    v1[0]=0.4124564;
+    v1[1]=0.3575761;
+    v1[2]=0.1804375;
+    v2[0]=0.2126729;
+    v2[1]=0.7151522;
+    v2[2]=0.072175;
+    v3[0]=0.0193339;
+    v3[1]=0.119192;
+    v3[2]=0.9503041;
+}
 
 
-   RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
-   RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
-   RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
+
+XYZog[0]=v1[0]*rgbLin[0]+v1[1]*rgbLin[1]+v1[2]*rgbLin[2];
+XYZog[1]=v2[0]*rgbLin[0]+v2[1]*rgbLin[1]+v2[2]*rgbLin[2];
+XYZog[2]=v3[0]*rgbLin[0]+v3[1]*rgbLin[1]+v3[2]*rgbLin[2];
+
+    if (grey==1){
+    double rgbNewTot=rgbLin[0]+rgbLin[1]+rgbLin[2];
+    double rgbNewAvg=rgbNewTot/3;
+    double rgbNew[3]={rgbNewAvg,rgbNewAvg,rgbNewAvg};
+
+    XYZnew[0]=v1[0]*rgbNew[0]+v1[1]*rgbNew[1]+v1[2]*rgbNew[2];
+    XYZnew[1]=v2[0]*rgbNew[0]+v2[1]*rgbNew[1]+v2[2]*rgbNew[2];
+    XYZnew[2]=v3[0]*rgbNew[0]+v3[1]*rgbNew[1]+v3[2]*rgbNew[2];
+    }
 
 }
 
-void rgb2XYZ(double rgb[3],double outp[3]){
 
 
-      double  n1=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)*rcpOFiveFive),2.4):rgb[0]*rcpTwelveNineTwo;
-     double   n2=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)*rcpOFiveFive),2.4):rgb[1]*rcpTwelveNineTwo;
-      double  n3=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)*rcpOFiveFive),2.4):rgb[2]*rcpTwelveNineTwo;
+void WPconv2Grey(double from[3], double to[3],double outp[3]){
+
+ double Bradford[3][3]={
+{0.8951,0.2664,-0.1614},
+{-0.7502,1.7135,0.0367},
+{0.0389,-0.0685,1.0296}};
+
+ double BradfordInv[3][3]={
+{0.9869929,-0.1470543,0.1599627},
+{0.4323053,0.5183603,0.0492912},
+{-0.0085287,0.0400428,0.9684867}};
+
+double BradFrom[3];
+
+mul(3,3,1,Bradford,from,BradFrom);
+
+double BradTo[3];
+
+mul(3,3,1,Bradford,to,BradTo);
 
 
-outp[0] =0.4124564*n1+0.3575761*n2+0.1804375*n3;
-outp[1]=0.2126729*n1+0.7151522*n2+0.072175*n3;
-outp[2]=0.0193339*n1+0.119192*n2+0.9503041*n3;
+double CR[3][3]={{0,0,0},{0,0,0},{0,0,0}};
+
+CR[0][0]=BradTo[0]/BradFrom[0];
+CR[1][1]=BradTo[1]/BradFrom[1];
+CR[2][2]=BradTo[2]/BradFrom[2];
+
+double convBrad2[3][3]={{0,0,0},{0,0,0},{0,0,0}};
+double convBrad[3][3]={{0,0,0},{0,0,0},{0,0,0}};
+
+mul(3,3,3,BradfordInv,CR,convBrad2);
+mul(3,3,3,convBrad2,Bradford,convBrad);
+
+mul(3,3,1,convBrad,D65XYZ,outp);
 
 }
 
-void XYZ2rgb_2020(double XYZ[3],double RGB[3]){
+void XYZ2xyY(double XYZ[3],double outp[3]){
+	double XYZtot=XYZ[0]+XYZ[1]+XYZ[2];
+
+	double x=XYZ[0]/XYZtot;
+	double y=XYZ[1]/XYZtot;
+
+    outp[0]=x;
+	outp[1]=y;
+	outp[2]=XYZ[1];
+}
 
 
-double r=1.71651066976197*XYZ[0]-0.355641669986716*XYZ[1]-0.253345541821907*XYZ[2];
-double g=-0.666693001182624*XYZ[0]+1.61650220834691*XYZ[1]+0.015768750389995*XYZ[2];
-double b=0.017643638767459*XYZ[0]-0.042779781669045*XYZ[1]+0.942305072720018*XYZ[2];
+void XYZ2rgb(double XYZ[3],double RGB[3], int mode){
 
-  RGB[0]=(r< recBeta)?4.5*r:recAlpha*fastPrecisePow(r,0.45)-(recAlpha-1);
-  RGB[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
-  RGB[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
+double v1[3];
+double v2[3];
+double v3[3];
+
+if (mode==1){ //Rec 601 NTSC
+    v1[0]=3.505396;
+    v1[1]=-1.7394894;
+    v1[2]=-0.543964;
+    v2[0]=-1.0690722;
+    v2[1]=1.9778245;
+    v2[2]=0.0351722;
+    v3[0]=0.05632;
+    v3[1]=-0.1970226;
+    v3[2]=1.0502026;
+}else if (mode==2){ //Rec 601 PAL
+    v1[0]=3.0628971;
+    v1[1]=-1.3931791;
+    v1[2]=-0.4757517;
+    v2[0]=-0.969266;
+    v2[1]=1.8760108;
+    v2[2]=0.041556;
+    v3[0]=0.0678775;
+    v3[1]=-0.2288548;
+    v3[2]=1.069349;
+}else if (mode==4){ //Rec 2020
+    v1[0]=1.71651066976197;
+    v1[1]=-0.355641669986716;
+    v1[2]=-0.253345541821907;
+    v2[0]=-0.666693001182624;
+    v2[1]=1.61650220834691;
+    v2[2]=0.015768750389995;
+    v3[0]=0.017643638767459;
+    v3[1]=-0.042779781669045;
+    v3[2]=0.942305072720018;
+}else{ //sRGB - Rec 709
+    v1[0]=3.2404542;
+    v1[1]=-1.5371385;
+    v1[2]=-0.4985314;
+    v2[0]=-0.969266;
+    v2[1]=1.8760108;
+    v2[2]=0.041556;
+    v3[0]=0.0556434;
+    v3[1]=-0.2040259;
+    v3[2]=1.0572252;
+}
+
+double r=v1[0]*XYZ[0]+v1[1]*XYZ[1]+v1[2]*XYZ[2];
+double g=v2[0]*XYZ[0]+v2[1]*XYZ[1]+v2[2]*XYZ[2];
+double b=v3[0]*XYZ[0]+v3[1]*XYZ[1]+v3[2]*XYZ[2];
+
+if (mode==0){ //sRGB transfer
+    RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
+    RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
+    RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
+}else{ //Rec transfer
+    RGB[0]=(r< recBeta)?4.5*r:recAlpha*fastPrecisePow(r,0.45)-(recAlpha-1);
+    RGB[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
+    RGB[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
+}
 
 
 }
 
-void rgb2XYZ_2020(double rgb[3],double outp[3]){
-
-double  n1=(rgb[0] < recBetaLin )?rcpFourFive*rgb[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[0])),rcpTxFourFive);
-double  n2=(rgb[1] < recBetaLin )?rcpFourFive*rgb[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[1])),rcpTxFourFive);
-double  n3=(rgb[1] < recBetaLin )?rcpFourFive*rgb[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[2])),rcpTxFourFive);
-
-outp[0] =0.637010191411101*n1+0.144615027396969*n2+0.168844781191930*n3;
-outp[1]=0.26272171736164*n1+0.677989275502262*n2+0.059289007136098*n3;
-outp[2]=0.028072328847647*n2+1.06075767115235*n3;
-
-}
 
 //Source: https://stackoverflow.com/a/45263428; http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.htm; https://en.wikipedia.org/wiki/Rec._2020#Transfer_characteristics
 
