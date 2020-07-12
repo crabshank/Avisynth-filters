@@ -11,6 +11,8 @@
 #define recBetaLin 0.004011993002402
 #define rcpFourFive 1.0/4.5
 #define rcpTxFourFive 10.0/4.5
+#define invTwoTwo 5.0/11.0
+#define invTwoSix 5.0/13.0
 
 double D65XYZ[3]={0.95047,1,1.08883};
 
@@ -128,10 +130,18 @@ void rgb2XYZ (double rgb[3], double XYZog[3],double XYZnew[3], int mode, int gre
 
 	  double rgbLin[3];
 
-if (mode==0){ //sRGB transfer
+if ((mode==0)||(mode==6)){ //sRGB transfer
       rgbLin[0]=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)*rcpOFiveFive),2.4):rgb[0]*rcpTwelveNineTwo;
       rgbLin[1]=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)*rcpOFiveFive),2.4):rgb[1]*rcpTwelveNineTwo;
       rgbLin[2]=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)*rcpOFiveFive),2.4):rgb[2]*rcpTwelveNineTwo;
+}else if (mode==5){ //DCI-P3
+      rgbLin[0]=fastPrecisePow(rgb[0],2.6);
+      rgbLin[1]=fastPrecisePow(rgb[1],2.6);
+      rgbLin[2]=fastPrecisePow(rgb[2],2.6);
+}else if (mode==7){ //Original NTSC - Source: 47 CFR, Section 73.682 - TV transmission standards
+      rgbLin[0]=fastPrecisePow(rgb[0],2.2);
+      rgbLin[1]=fastPrecisePow(rgb[1],2.2);
+      rgbLin[2]=fastPrecisePow(rgb[2],2.2);
 }else{ //Rec transfer
       rgbLin[0]=(rgb[0] < recBetaLin )?rcpFourFive*rgb[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[0])),rcpTxFourFive);
       rgbLin[1]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[1])),rcpTxFourFive);
@@ -162,6 +172,16 @@ if (mode==1){ //Rec 601 NTSC
     v3[0]=0.0201853;
     v3[1]=0.1295504;
     v3[2]=0.9390944;
+}else if((mode==5)||(mode==6)){ //DCI-P3
+    v1[0]=0.48663265;
+    v1[1]=0.2656631625;
+    v1[2]=0.1981741875;
+    v2[0]=0.2290036;
+    v2[1]=0.691726725;
+    v2[2]=0.079269675;
+    v3[0]=0;
+    v3[1]=0.0451126125;
+    v3[2]=1.0437173875;
 }else if (mode==4){ //Rec 2020
     v1[0]=0.637010191411101;
     v1[1]=0.144615027396969;
@@ -172,6 +192,16 @@ if (mode==1){ //Rec 601 NTSC
     v3[0]=0;
     v3[1]=0.028072328847647;
     v3[2]=1.06075767115235;
+}else if (mode==7){ //Original NTSC
+    v1[0]=0.5881556;
+    v1[1]=0.1791316;
+    v1[2]=0.1831827;
+    v2[0]=0.2896886;
+    v2[1]=0.6056356;
+    v2[2]=0.1046758;
+    v3[0]=0;
+    v3[1]=0.0682406;
+    v3[2]=1.0205894;
 }else{ //sRGB - Rec 709
     v1[0]=0.4124564;
     v1[1]=0.3575761;
@@ -279,6 +309,16 @@ if (mode==1){ //Rec 601 NTSC
     v3[0]=0.0678775;
     v3[1]=-0.2288548;
     v3[2]=1.069349;
+}else if((mode==5)||(mode==6)){ //DCI-P3
+    v1[0]=2.49318075532897;
+    v1[1]=-0.93126552549714;
+    v1[2]=-0.402659723758882;
+    v2[0]=-0.829503115821079;
+    v2[1]=1.76269412111979;
+    v2[2]=0.02362508874174;
+    v3[0]=0.035853625780072;
+    v3[1]=-0.076188954782652;
+    v3[2]=0.957092621518022;
 }else if (mode==4){ //Rec 2020
     v1[0]=1.71651066976197;
     v1[1]=-0.355641669986716;
@@ -289,6 +329,16 @@ if (mode==1){ //Rec 601 NTSC
     v3[0]=0.017643638767459;
     v3[1]=-0.042779781669045;
     v3[2]=0.942305072720018;
+}else if (mode==7){ //Original NTSC
+    v1[0]=1.9708377;
+    v1[1]=-0.5494151;
+    v1[2]=-0.2973898;
+    v2[0]=-0.953716;
+    v2[1]=1.9363324;
+    v2[2]=-0.0274184;
+    v3[0]=0.0637692;
+    v3[1]=-0.1294708;
+    v3[2]=0.9816593;
 }else{ //sRGB - Rec 709
     v1[0]=3.2404542;
     v1[1]=-1.5371385;
@@ -305,16 +355,23 @@ double r=v1[0]*XYZ[0]+v1[1]*XYZ[1]+v1[2]*XYZ[2];
 double g=v2[0]*XYZ[0]+v2[1]*XYZ[1]+v2[2]*XYZ[2];
 double b=v3[0]*XYZ[0]+v3[1]*XYZ[1]+v3[2]*XYZ[2];
 
-if (mode==0){ //sRGB transfer
+if ((mode==0)||(mode==6)){ //sRGB transfer
     RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
     RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
     RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
+}else if (mode==5){ //DCI-P3
+    RGB[0]=fastPrecisePow(r,invTwoSix);
+    RGB[1]=fastPrecisePow(g,invTwoSix);
+    RGB[2]=fastPrecisePow(b,invTwoSix);
+}else if (mode==7){ //Original NTSC
+    RGB[0]=fastPrecisePow(r,invTwoTwo);
+    RGB[1]=fastPrecisePow(g,invTwoTwo);
+    RGB[2]=fastPrecisePow(b,invTwoTwo);
 }else{ //Rec transfer
     RGB[0]=(r< recBeta)?4.5*r:recAlpha*fastPrecisePow(r,0.45)-(recAlpha-1);
     RGB[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
     RGB[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
 }
-
 
 }
 
