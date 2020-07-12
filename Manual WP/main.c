@@ -154,8 +154,8 @@ if (!params){
             params->debug_val=  avs_defined(avs_array_elt(args,8))?avs_as_float(avs_array_elt(args, 8)):1;
 
 
-          if ((params->mode<0)||(params->mode>4)){
-            return avs_new_value_error ("Allowed modes are between 0 and 4!");
+          if ((params->mode<0)||(params->mode>7)){
+            return avs_new_value_error ("Allowed modes are between 0 and 7!");
           }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
