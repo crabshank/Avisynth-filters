@@ -13,8 +13,8 @@
 #define recBeta 0.018053968510807
 #define recBetaLin 0.004011993002402
 #define rcpTxFourFive 10.0/4.5
-
-
+#define invTwoTwo 5.0/11.0
+#define invTwoSix 5.0/13.0
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
