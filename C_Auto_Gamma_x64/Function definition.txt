@@ -5,7 +5,7 @@
      int "tolerance"=3 (1 to 7 by 1),
      int "crush"=0 (0 to 2 by 1),
      bool "limitedRange"=False,
-     int "mode"=0 (0 to 4 by 1),
-     int "linear"=0 (0 to 4 by 1),
+     int "mode"=0 (0 to 7 by 1),
+     int "linear"=0 (0 to 8 by 1),
      bool "sixtyFour"=false
 )
