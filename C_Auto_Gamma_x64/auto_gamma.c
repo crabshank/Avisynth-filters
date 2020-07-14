@@ -68,7 +68,7 @@ counter=0;
            bOG=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
            gOG=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
            rOG=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
-        }else if ((mde==5)||(lnr==7)){
+        }else if (((mde==5)||(mde==10))||(lnr==7)){
           bOG=fastPrecisePow(bOG,2.6);
           gOG=fastPrecisePow(gOG,2.6);
           rOG=fastPrecisePow(rOG,2.6);
@@ -111,6 +111,14 @@ counter=0;
         runTot_r+=0.1767506;
         runTot_g+=0.7072321;
         runTot_b+=0.1160173;
+    }else if (mde==9){ //Rec 709 D93
+        runTot_r+=0.1799632;
+        runTot_g+=0.7231169;
+        runTot_b+=0.0969199;
+    }else if (mde==10){ //DCI-P3 D60/ACES
+        runTot_r+=0.23762331020788;
+        runTot_g+=0.689170669198985;
+        runTot_b+=0.073206020593136;
     }else{
         runTot_r+=rOG*0.2126729;
         runTot_g+=gOG*0.7151522;
@@ -173,7 +181,7 @@ while(p<=max_iters){
            bLin=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
            gLin=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
            rLin=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
-        }else if ((mde==5)||(lnr==7)){
+        }else if (((mde==5)||(mde==10))||(lnr==7)){
           bLin=fastPrecisePow(bLin,2.6);
           gLin=fastPrecisePow(gLin,2.6);
           rLin=fastPrecisePow(rLin,2.6);
@@ -197,7 +205,7 @@ while(p<=max_iters){
     rOG=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
     rOG=(gOG< recBeta)?4.5*gOG:recAlpha*fastPrecisePow(gOG,0.45)-(recAlpha-1);
     rOG=(bOG< recBeta)?4.5*bOG:recAlpha*fastPrecisePow(bOG,0.45)-(recAlpha-1);
-        }else if (mde==5){
+        }else if ((mde==5)||(mde==10)){
           bOG=fastPrecisePow(bOG,invTwoSix);
           gOG=fastPrecisePow(gOG,invTwoSix);
           rOG=fastPrecisePow(rOG,invTwoSix);
@@ -232,6 +240,10 @@ double Yog;
         Yog=rOG*0.2896886+gOG*0.6056356+bOG*0.1046758;
     }else if (mde==8){
         Yog=rOG*0.1767506+gOG*0.7072321+bOG*0.1160173;
+    }else if (mde==9){
+        Yog=rOG*0.1799632+gOG*0.7231169+bOG*0.0969199;
+    }else if (mde==10){
+        Yog=rOG*0.23762331020788+gOG*0.689170669198985+bOG*0.073206020593136;
     }else{
         Yog=rOG*0.2126729+gOG*0.7151522+bOG*0.072175;
         }
@@ -259,6 +271,10 @@ double Ynw;
         Ynw=R*0.2896886+G*0.6056356+B*0.1046758;
     }else if (mde==8){
         Ynw=R*0.1767506+G*0.7072321+B*0.1160173;
+    }else if (mde==9){
+        Ynw=R*0.1799632+G*0.7231169+B*0.0969199;
+    }else if (mde==10){
+        Ynw=R*0.23762331020788+G*0.689170669198985+B*0.073206020593136;
     }else{
         Ynw=R*0.2126729+G*0.7151522+B*0.072175;
         }
@@ -324,8 +340,8 @@ if (!params)
         params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
         params->linear= avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
 
-          if ((params->mode<0)||(params->mode>8)){
-            return avs_new_value_error ("Allowed modes are between 0 and 8!");
+          if ((params->mode<0)||(params->mode>10)){
+            return avs_new_value_error ("Allowed modes are between 0 and 10!");
           } else if ((params->linear<0)||(params->linear>8)){
             return avs_new_value_error ("Allowed linear values are between 0 and 8!");
           }else{
