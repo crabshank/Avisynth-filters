@@ -134,7 +134,7 @@ if ((mode==0)||(mode==6)){ //sRGB transfer
       rgbLin[0]=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)*rcpOFiveFive),2.4):rgb[0]*rcpTwelveNineTwo;
       rgbLin[1]=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)*rcpOFiveFive),2.4):rgb[1]*rcpTwelveNineTwo;
       rgbLin[2]=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)*rcpOFiveFive),2.4):rgb[2]*rcpTwelveNineTwo;
-}else if (mode==5){ //DCI-P3
+}else if ((mode==5)||(mode==10)){ //DCI-P3
       rgbLin[0]=fastPrecisePow(rgb[0],2.6);
       rgbLin[1]=fastPrecisePow(rgb[1],2.6);
       rgbLin[2]=fastPrecisePow(rgb[2],2.6);
@@ -222,6 +222,26 @@ if (mode==1){ //Rec 601 NTSC
     v3[0]=0.0155956;
     v3[1]=0.1129194;
     v3[2]=1.2844772;
+}else if (mode==9){ //Rec 709 D93
+    v1[0]=0.3490195;
+    v1[1]=0.3615584;
+    v1[2]=0.2422998;
+    v2[0]=0.1799632;
+    v2[1]=0.7231169;
+    v2[2]=0.0969199;
+    v3[0]=0.0163603;
+    v3[1]=0.1205195;
+    v3[2]=1.2761125;
+}else if (mode==10){ //DCI-P3 D60/ACES
+    v1[0]=0.504949534191744;
+    v1[1]=0.264681488895262;
+    v1[2]=0.18301505148284;
+    v2[0]=0.23762331020788;
+    v2[1]=0.689170669198985;
+    v2[2]=0.073206020593136;
+    v3[0]=0;
+    v3[1]=0.04494591320863;
+    v3[2]=0.963879271142956;
 }else{ //sRGB - Rec 709
     v1[0]=0.4124564;
     v1[1]=0.3575761;
@@ -301,7 +321,6 @@ void XYZ2xyY(double XYZ[3],double outp[3]){
 	outp[2]=XYZ[1];
 }
 
-
 void XYZ2rgb(double XYZ[3],double RGB[3], int mode){
 
 double v1[3];
@@ -378,6 +397,26 @@ if (mode==1){ //Rec 601 NTSC
     v3[0]=0.0420119;
     v3[1]=-0.1469691;
     v3[2]=0.7833991;
+}else if (mode==9){ //Rec 709 D93
+    v1[0]=3.8294307;
+    v1[1]=-1.8165248;
+    v1[2]=-0.5891432;
+    v2[0]=-0.9585901;
+    v2[1]=1.8553477;
+    v2[2]=0.0410983;
+    v3[0]=0.0414369;
+    v3[1]=-0.1519354;
+    v3[2]=0.7873016;
+}else if (mode==10){ //DCI-P3 D60/ACES
+    v1[0]=2.40274141422225;
+    v1[1]=-0.897484163940685;
+    v1[2]=-0.388053369996071;
+    v2[0]=-0.832579648740884;
+    v2[1]=1.76923175357438;
+    v2[2]=0.023712711514772;
+    v3[0]=0.038823381466857;
+    v3[1]=-0.082499685617071;
+    v3[2]=1.03636859971248;
 }else{ //sRGB - Rec 709
     v1[0]=3.2404542;
     v1[1]=-1.5371385;
@@ -398,7 +437,7 @@ if ((mode==0)||(mode==6)){ //sRGB transfer
     RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
     RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
     RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
-}else if (mode==5){ //DCI-P3
+}else if ((mode==5)||(mode==10)){ //DCI-P3
     RGB[0]=fastPrecisePow(r,invTwoSix);
     RGB[1]=fastPrecisePow(g,invTwoSix);
     RGB[2]=fastPrecisePow(b,invTwoSix);
