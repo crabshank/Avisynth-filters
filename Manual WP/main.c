@@ -14,6 +14,8 @@ typedef struct Manual_WP {
         int debug;
         double debug_val;
         int sixtyFour;
+        double dst_x;
+        double dst_y;
 } Manual_WP;
 
 
@@ -26,7 +28,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
    int row_size, height, src_pitch,x, y,dbg,mde,sxf;
    BYTE* srcp;
-   double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y;
+   double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y;
 
 
   avs_make_writable(p->env, &src);
@@ -41,6 +43,8 @@ mde=params->mode;
 dbg=params->debug;
 amp=params->debug_val;
 sxf=params->sixtyFour;
+to_x=params->dst_x;
+to_y=params->dst_y;
 
 D65_x= 0.312727;
    D65_y= 0.329023;
@@ -76,12 +80,30 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
     double cust_xy[2]={cust_x,cust_y};
     double cust_XYZ[3];
     xy2XYZ(cust_xy,cust_XYZ);
-
     WPconv(rgbXYZ,D65XYZ,cust_XYZ,WPConvXYZ);
 
+    if (to_x!=D65_x || (to_y!=D65_y)){
+        double dst_xy[2]={to_x,to_y};
+        double dst_XYZ[3];
+        xy2XYZ(dst_xy,dst_XYZ);
+        double WPConvXYZ2[3]={WPConvXYZ[0],WPConvXYZ[1],WPConvXYZ[2]};
+        WPconv(WPConvXYZ2,cust_XYZ,dst_XYZ,WPConvXYZ);
+    }
         XYZ2rgb(WPConvXYZ,WPchgRGB,mde);
 
+}else{
+
+    if (to_x!=D65_x || (to_y!=D65_y)){
+        double dst_xy[2]={to_x,to_y};
+        double dst_XYZ[3];
+        xy2XYZ(dst_xy,dst_XYZ);
+        WPconv(rgbXYZ,D65XYZ,dst_XYZ,WPConvXYZ);
+        XYZ2rgb(WPConvXYZ,WPchgRGB,mde);
+    }
+
+
 }
+
 
 }
 
@@ -152,10 +174,12 @@ if (!params){
                 params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
                params->debug = avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
             params->debug_val=  avs_defined(avs_array_elt(args,8))?avs_as_float(avs_array_elt(args, 8)):1;
+            params->dst_x=  avs_defined(avs_array_elt(args,10))?avs_as_float(avs_array_elt(args, 10)):0.312727;
+            params->dst_y=  avs_defined(avs_array_elt(args,11))?avs_as_float(avs_array_elt(args, 11)):0.329023;
 
 
-          if ((params->mode<0)||(params->mode>8)){
-            return avs_new_value_error ("Allowed modes are between 0 and 8!");
+          if ((params->mode<0)||(params->mode>10)){
+            return avs_new_value_error ("Allowed modes are between 0 and 10!");
           }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
@@ -206,6 +230,6 @@ if (!params){
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f", create_Manual_WP, 0);
    return "Manual_WP sample C plugin";
 }
