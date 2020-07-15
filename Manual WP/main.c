@@ -20,6 +20,7 @@ typedef struct Manual_WP {
         int auto_WP;
         char* file;
         char* log_id;
+        int overwrite;
 } Manual_WP;
 
 
@@ -268,6 +269,7 @@ if (!params){
                 params->dst_x=  avs_defined(avs_array_elt(args,10))?avs_as_float(avs_array_elt(args, 10)):0.312727;
                 params->dst_y=  avs_defined(avs_array_elt(args,11))?avs_as_float(avs_array_elt(args, 11)):0.329023;
                 params->auto_WP=  avs_defined(avs_array_elt(args,12))?avs_as_bool(avs_array_elt(args, 12)):false;
+                params->overwrite=  avs_defined(avs_array_elt(args,15))?avs_as_bool(avs_array_elt(args, 15)):true;
 
 char* file_name ="";
 file_name = ((avs_as_string(avs_array_elt(args, 13)))&&(avs_as_string(avs_array_elt(args, 13))!="NULL"))?avs_as_string(avs_array_elt(args, 13)):file_name;
@@ -286,14 +288,20 @@ params->log_id = log_idt;
 
     if((params->auto_WP==true)&&((file_name!="")&&(file_name!="NULL"))){
         FILE *fptr;
+
+        if(params->overwrite==true){
         fptr = fopen(file_name,"w");
+        }else{
+        fptr = fopen(file_name,"a");
+        }
+
         if(fptr == NULL)
         {
           printf("Error!");
           exit(1);
         }
 
-        fprintf(fptr,"%s\n",file_name);
+        //fprintf(fptr,"%s\n",file_name);
         fclose(fptr);
    }
 
@@ -340,6 +348,6 @@ params->log_id = log_idt;
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
