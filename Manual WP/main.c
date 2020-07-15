@@ -128,7 +128,12 @@ if ((nm!="")&&(nm!="NULL")){
       exit(1);
    }
 
-   fprintf(fptr,"%s: %i, %i, %i - %i \n", lid,rfi, gfi, bfi,n );
+if ((lid!="")&&(lid!="NULL")){
+    fprintf(fptr,"%s: %i, %i, %i - %i\n", lid,rfi, gfi, bfi,n );
+}else{
+    fprintf(fptr,"%i, %i, %i - %i\n", rfi, gfi, bfi,n );
+}
+
    fclose(fptr);
 
 }
