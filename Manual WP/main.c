@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stdio.h>
 #include "../avisynth_c.h"
 #include "functions_c.h"
 
@@ -16,6 +17,9 @@ typedef struct Manual_WP {
         int sixtyFour;
         double dst_x;
         double dst_y;
+        int auto_WP;
+        char* file;
+        char* log_id;
 } Manual_WP;
 
 
@@ -26,8 +30,10 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato;
    BYTE* srcp;
+     char* nm;
+     char* lid;
    double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y;
 
 
@@ -45,9 +51,89 @@ amp=params->debug_val;
 sxf=params->sixtyFour;
 to_x=params->dst_x;
 to_y=params->dst_y;
+ato=params->auto_WP;
+nm=params->file;
+lid=params->log_id;
 
 D65_x= 0.312727;
    D65_y= 0.329023;
+
+if(ato==1){
+    double sc_max=0;
+    double rf=1;
+    double gf=1;
+    double bf=1;
+    int rfi=255;
+    int gfi=255;
+    int bfi=255;
+//POLL FRAME/////////////////////////////////////////////////////////
+      for (y=0; y<height; y++) {
+      for (x=0; x<row_size; x++) {
+
+                 double currBlue=(sxf==1)?(double)srcp[x]+srcp[x+1]*256:(double)srcp[x];
+                 double currGreen=(sxf==1)?(double)srcp[x+2]+srcp[x+3]*256:(double)srcp[x+1];
+                 double currRed=(sxf==1)?(double)srcp[x+4]+srcp[x+5]*256:(double)srcp[x+2];
+
+
+    bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
+       gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
+         rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
+
+
+
+ double mn=MIN(rOG,MIN(gOG,bOG));
+ double mx=MAX(rOG,MAX(gOG,bOG));
+  double sat=(mx==0)?0:(mx-mn)/mx;
+
+  double mn_diff=MIN(fabs(currRed-currGreen),MIN(fabs(currRed-currBlue),fabs(currGreen-currBlue)));
+   double sc=mn*(1-mn_diff);
+ if(sc>sc_max){
+ sc_max=sc;
+
+ rf=rOG;
+ gf=gOG;
+ bf=bOG;
+
+ rfi=currBlue;
+ gfi=currGreen;
+ bfi=currRed;
+ }
+
+
+
+x=(sxf==1)?x+7:x+3;
+
+
+      }
+
+      }
+
+      double rgb_ato[3]={rf,gf,bf};
+      double xyY_ato[3];
+       get_xy(rgb_ato, xyY_ato , params->mode);
+
+        params->x=xyY_ato[0];
+        params->y=xyY_ato[1];
+        cust_x=xyY_ato[0];
+        cust_y=xyY_ato[1];
+
+if ((nm!="")&&(nm!="NULL")){
+   //int num;
+   FILE *fptr;
+   // use appropriate location if you are using MacOS or Linux
+   fptr = fopen(nm,"a");
+   if(fptr == NULL)
+   {
+      printf("Error!");
+      exit(1);
+   }
+
+   fprintf(fptr,"%s: %i, %i, %i - %i \n", lid,rfi, gfi, bfi,n );
+   fclose(fptr);
+
+}
+}
+
 
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -174,9 +260,17 @@ if (!params){
                 params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
                params->debug = avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
             params->debug_val=  avs_defined(avs_array_elt(args,8))?avs_as_float(avs_array_elt(args, 8)):1;
-            params->dst_x=  avs_defined(avs_array_elt(args,10))?avs_as_float(avs_array_elt(args, 10)):0.312727;
-            params->dst_y=  avs_defined(avs_array_elt(args,11))?avs_as_float(avs_array_elt(args, 11)):0.329023;
+                params->dst_x=  avs_defined(avs_array_elt(args,10))?avs_as_float(avs_array_elt(args, 10)):0.312727;
+                params->dst_y=  avs_defined(avs_array_elt(args,11))?avs_as_float(avs_array_elt(args, 11)):0.329023;
+                params->auto_WP=  avs_defined(avs_array_elt(args,12))?avs_as_bool(avs_array_elt(args, 12)):false;
 
+char* file_name ="";
+file_name = ((avs_as_string(avs_array_elt(args, 13)))&&(avs_as_string(avs_array_elt(args, 13))!="NULL"))?avs_as_string(avs_array_elt(args, 13)):file_name;
+params->file = file_name;
+
+char* log_idt ="";
+log_idt = ((avs_as_string(avs_array_elt(args, 14)))&&(avs_as_string(avs_array_elt(args, 14))!="NULL"))?avs_as_string(avs_array_elt(args, 14)):log_idt;
+params->log_id = log_idt;
 
           if ((params->mode<0)||(params->mode>10)){
             return avs_new_value_error ("Allowed modes are between 0 and 10!");
@@ -184,6 +278,19 @@ if (!params){
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
   }else {
+
+    if((params->auto_WP==true)&&((file_name!="")&&(file_name!="NULL"))){
+        FILE *fptr;
+        fptr = fopen(file_name,"w");
+        if(fptr == NULL)
+        {
+          printf("Error!");
+          exit(1);
+        }
+
+        fprintf(fptr,"%s\n",file_name);
+        fclose(fptr);
+   }
 
      if(avs_defined(avs_array_elt(args, 9))){
         params->sixtyFour =avs_as_bool(avs_array_elt(args, 9));
@@ -196,22 +303,20 @@ if (!params){
         return avs_new_value_error ("RGB arguments must be between 0 and 65535");
       }else if((params->sixtyFour==false)&&((params->R>255)||(params->G>255)||(params->B>255))){
         return avs_new_value_error ("RGB arguments must be between 0 and 255");
-      }else{
-        double rgbtst[3];
-        rgbtst[0]=(params->sixtyFour==true)?(double)(params->R)*rcptHiBit:(double)(params->R)*rcptwoFiveFive;
-        rgbtst[1]=(params->sixtyFour==true)?(double)(params->G)*rcptHiBit:(double)(params->G)*rcptwoFiveFive;
-        rgbtst[2]=(params->sixtyFour==true)?(double)(params->B)*rcptHiBit:(double)(params->B)*rcptwoFiveFive;
-        double XYZ1[3];
-        double XYZ2[3];
-        double XYZ3[3];
-        double xyY[3];
+      }else if (params->auto_WP==false){
 
-        rgb2XYZ(rgbtst,XYZ1,XYZ2,params->mode,1);
-        WPconv2Grey(XYZ1,XYZ2,XYZ3);
-        XYZ2xyY(XYZ3,xyY);
+        double xyY_rgb[3];
 
-        params->x=xyY[0];
-        params->y=xyY[1];
+        double rgb[3];
+
+        rgb[0]=(params->sixtyFour==true)?(double)(params->R)*rcptHiBit:(double)(params->R)*rcptwoFiveFive;
+        rgb[1]=(params->sixtyFour==true)?(double)(params->G)*rcptHiBit:(double)(params->G)*rcptwoFiveFive;
+        rgb[2]=(params->sixtyFour==true)?(double)(params->B)*rcptHiBit:(double)(params->B)*rcptwoFiveFive;
+
+        get_xy(rgb, xyY_rgb , params->mode);
+
+        params->x=xyY_rgb[0];
+        params->y=xyY_rgb[1];
 
       }
 
@@ -230,6 +335,6 @@ if (!params){
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s", create_Manual_WP, 0);
    return "Manual_WP sample C plugin";
 }
