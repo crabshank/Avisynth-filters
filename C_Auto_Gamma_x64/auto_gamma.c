@@ -64,7 +64,7 @@ counter=0;
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
     if ((lnr!=2)&&(lnr!=4)&&(lnr!=6)&&(lnr!=8)){
-        if ((((mde>=1)&&(mde<=4))||(mde==8))||(lnr==3)){
+        if ((((mde>=1)&&(mde<=4))||(mde==8)||(mde==9))||(lnr==3)){
            bOG=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
            gOG=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
            rOG=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
@@ -177,7 +177,7 @@ while(p<=max_iters){
        gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
-        if ((((mde>=1)&&(mde<=4))||(mde==8))||(lnr==3)){
+        if ((((mde>=1)&&(mde<=4))||(mde==8)||(mde==9))||(lnr==3)){
            bLin=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
            gLin=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
            rLin=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
@@ -201,7 +201,7 @@ while(p<=max_iters){
                         rOG=rLin;
          }else if((lnr==2)||(lnr==4)||(lnr==6)||(lnr==8)){
 
-        if (((mde>=1)&&(mde<=4))||(mde==8)){
+        if (((mde>=1)&&(mde<=4))||(mde==8)||(mde==9)){
     rOG=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
     rOG=(gOG< recBeta)?4.5*gOG:recAlpha*fastPrecisePow(gOG,0.45)-(recAlpha-1);
     rOG=(bOG< recBeta)?4.5*bOG:recAlpha*fastPrecisePow(bOG,0.45)-(recAlpha-1);
@@ -368,5 +368,5 @@ if (!params)
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
    avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[tolerance]i[crush]i[limitedRange]b[mode]i[linear]i[sixtyFour]b", create_Auto_Gamma, 0);
-   return "Auto_Gamma sample C plugin";
+   return "Auto_Gamma C plugin";
 }
