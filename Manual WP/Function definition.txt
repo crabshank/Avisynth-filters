@@ -11,5 +11,6 @@ float "debug_val"=1 (0 to 1 by 0.001),
 bool "sixtyFour" = false,
 bool "auto_WP" = false,
 string "file"="",
-string "log_id"=""
+string "log_id"="",
+bool "overwrite" = false
 )
