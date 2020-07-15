@@ -292,7 +292,7 @@ params->log_id = log_idt;
         if(params->overwrite==true){
         fptr = fopen(file_name,"w");
         }else{
-        fptr = fopen(file_name,"a");
+        fptr = fopen(file_name,"a+");
         }
 
         if(fptr == NULL)
