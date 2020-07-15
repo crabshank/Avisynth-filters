@@ -336,5 +336,5 @@ params->log_id = log_idt;
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
    avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s", create_Manual_WP, 0);
-   return "Manual_WP sample C plugin";
+   return "Manual_WP C plugin";
 }
