@@ -461,3 +461,15 @@ void xy2XYZ(double xyCoord[2],double outp[3]){
         outp[1]=1;
         outp[2]=(1.0/xyCoord[1])*(1-xyCoord[0]-xyCoord[1]);
 }
+
+
+void get_xy( double rgb[3],double xyY[3] , int mode){
+
+        double XYZ1[3];
+        double XYZ2[3];
+        double XYZ3[3];
+
+        rgb2XYZ(rgb,XYZ1,XYZ2,mode,1);
+        WPconv2Grey(XYZ1,XYZ2,XYZ3);
+        XYZ2xyY(XYZ3,xyY);
+}
