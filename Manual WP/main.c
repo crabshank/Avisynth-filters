@@ -84,7 +84,7 @@ if(ato==1){
 
  double mn=MIN(rOG,MIN(gOG,bOG));
  double mx=MAX(rOG,MAX(gOG,bOG));
-  double sat=(mx==0)?0:(mx-mn)/mx;
+//  double sat=(mx==0)?0:(mx-mn)/mx;
 
   double mn_diff=MIN(fabs(currRed-currGreen),MIN(fabs(currRed-currBlue),fabs(currGreen-currBlue)));
    double sc=mn*(1-mn_diff);
