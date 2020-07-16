@@ -86,8 +86,11 @@ if(ato==1){
  double mx=MAX(rOG,MAX(gOG,bOG));
 //  double sat=(mx==0)?0:(mx-mn)/mx;
 
-  double mn_diff=MIN(fabs(currRed-currGreen),MIN(fabs(currRed-currBlue),fabs(currGreen-currBlue)));
-   double sc=mn*(1-mn_diff);
+  double mn_diff=MIN(fabs(rOG-gOG),MIN(fabs(rOG-bOG),fabs(gOG-bOG)));
+   double sat=(mx==0)?0:(mx-mn)/mx;
+
+ double sc=mn_diff*0.5*(mn+(1-sat));
+
  if(sc>sc_max){
  sc_max=sc;
 
