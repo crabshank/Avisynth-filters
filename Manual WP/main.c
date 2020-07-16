@@ -87,9 +87,9 @@ if(ato==1){
 //  double sat=(mx==0)?0:(mx-mn)/mx;
 
   double mn_diff=MIN(fabs(rOG-gOG),MIN(fabs(rOG-bOG),fabs(gOG-bOG)));
+  double mx_diff=MAX(fabs(rOG-gOG),MAX(fabs(rOG-bOG),fabs(gOG-bOG)));
    double sat=(mx==0)?0:(mx-mn)/mx;
-
- double sc=mn_diff*0.5*(mn+(1-sat));
+ double sc=(1-mn_diff)*mx_diff*(1-sat);
 
  if(sc>sc_max){
  sc_max=sc;
