@@ -1,0 +1,41 @@
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define rcptwoFiveFive 1.0/255.0
+#define rcpTwoFour 1.0/2.4
+#define rcptHiBit 1.0/65535.0
+#define third 1.0/3.0
+#define rcpOFiveFive 1.0/1.055
+#define rcpTwelveNineTwo 1.0/12.92
+#define rcpFourFive 1.0/4.5
+#define recAlpha 1.09929682680944
+#define rcpRecAlpha 1.0/1.09929682680944
+#define recBeta 0.018053968510807
+#define recBetaLin 0.004011993002402
+#define rcpTxFourFive 10.0/4.5
+#define invTwoTwo 5.0/11.0
+#define invTwoSix 5.0/13.0
+
+inline double fastPrecisePow(double a, double b) {
+  // calculate approximation with fraction of the exponent
+  int e = (int) b;
+  union {
+    double d;
+    int x[2];
+  } u = { a };
+  u.x[1] = (int)((b - e) * (u.x[1] - 1072632447) + 1072632447);
+  u.x[0] = 0;
+
+  // exponentiation by squaring with the exponent's integer part
+  // double r = u.d makes everything much slower, not sure why
+  double r = 1.0;
+  while (e) {
+    if (e & 1) {
+      r *= a;
+    }
+    a *= a;
+    e >>= 1;
+  }
+
+  return r * u.d;
+}
+//Source: https://martin.ankerl.com/2012/01/25/optimized-approximative-fastPrecisePow-in-c-and-cpp/
