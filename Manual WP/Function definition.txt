@@ -12,5 +12,6 @@ bool "sixtyFour" = false,
 bool "auto_WP" = false,
 string "file"="",
 string "log_id"="",
-bool "overwrite" = false
+bool "overwrite" = false,
+bool "linear" = false
 )
