@@ -1,5 +1,6 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
 #define rcptwoFiveFive 1.0/255.0
 #define rcpTwoFour 1.0/2.4
 #define rcptHiBit 1.0/65535.0
@@ -14,6 +15,13 @@
 #define rcpTxFourFive 10.0/4.5
 #define invTwoTwo 5.0/11.0
 #define invTwoSix 5.0/13.0
+#define root_three 1.732050807568877
+#define rcpTwelve 1.0/12.0
+#define HLG_a 0.17883277
+#define rcp_HLG_a 1.0/0.17883277
+#define HLG_b 0.28466892
+#define HLG_c 0.55991073
+#define euler_e 2.718281828459045
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
