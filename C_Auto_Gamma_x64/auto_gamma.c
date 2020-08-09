@@ -24,6 +24,7 @@ AVS_VideoFrame * AVSC_CC Auto_Gamma_get_frame (AVS_FilterInfo * p, int n)
 
     int row_size, height, src_pitch,x, y,max_iters,tol,tolr,opt,lmr,crs,lnr,mde,sxf;
    BYTE* srcp;
+   BYTE* rrcp;
    double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter,rLin,gLin,bLin;
 
 a =   params->bracketA;
@@ -38,6 +39,7 @@ sxf=params->sixtyFour;
   avs_make_writable(p->env, &src);
 
       srcp = avs_get_write_ptr(src);
+      rrcp = avs_get_read_ptr(src);
       src_pitch = avs_get_pitch(src);
       row_size = avs_get_row_size(src);
       height = avs_get_height(src);
@@ -54,9 +56,9 @@ counter=0;
 
 
 //double x_shift=(double)x/(double)row_size;
-                 double currBlue=(sxf==1)?(double)srcp[x]+srcp[x+1]*256:(double)srcp[x];
-                 double currGreen=(sxf==1)?(double)srcp[x+2]+srcp[x+3]*256:(double)srcp[x+1];
-                 double currRed=(sxf==1)?(double)srcp[x+4]+srcp[x+5]*256:(double)srcp[x+2];
+                 double currBlue=(sxf==1)?(double)rrcp[x]+rrcp[x+1]*256:(double)rrcp[x];
+                 double currGreen=(sxf==1)?(double)rrcp[x+2]+rrcp[x+3]*256:(double)rrcp[x+1];
+                 double currRed=(sxf==1)?(double)rrcp[x+4]+rrcp[x+5]*256:(double)rrcp[x+2];
 
 
     bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
@@ -133,6 +135,7 @@ counter+=1;
 
         x=x+3;
       }
+      rrcp+=src_pitch;
       }
 
 
