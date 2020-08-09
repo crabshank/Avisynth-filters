@@ -79,6 +79,14 @@ if (lnr==2){
     R=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
     G=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
     B=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
+}else if (lnr==9){
+    R=(rOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rOG-HLG_c)*rcp_HLG_a)+HLG_b):rOG*rOG*third;
+    G=(gOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(gOG-HLG_c)*rcp_HLG_a)+HLG_b):gOG*gOG*third;
+    B=(bOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(bOG-HLG_c)*rcp_HLG_a)+HLG_b):bOG*bOG*third;
+}else if (lnr==10){
+    R=(rOG > rcpTwelve)?HLG_a*log(12.0*rOG-HLG_b)+HLG_c:root_three*fastPrecisePow(rOG,0.5);
+    G=(gOG > rcpTwelve)?HLG_a*log(12.0*gOG-HLG_b)+HLG_c:root_three*fastPrecisePow(gOG,0.5);
+    B=(bOG > rcpTwelve)?HLG_a*log(12.0*bOG-HLG_b)+HLG_c:root_three*fastPrecisePow(bOG,0.5);
 }
 
 
@@ -115,8 +123,8 @@ if (!params)
 
         params->linear= avs_defined(avs_array_elt(args, 1))?avs_as_int(avs_array_elt(args, 1)):1;
 
- if ((params->linear<1)||(params->linear>8)){
-            return avs_new_value_error ("Allowed linear values are between 1 and 8!");
+ if ((params->linear<1)||(params->linear>10)){
+            return avs_new_value_error ("Allowed linear values are between 1 and 10!");
           }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
