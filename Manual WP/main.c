@@ -21,6 +21,7 @@ typedef struct Manual_WP {
         char* file;
         char* log_id;
         int overwrite;
+        int linear;
 } Manual_WP;
 
 
@@ -31,7 +32,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr;
    BYTE* srcp;
      char* nm;
      char* lid;
@@ -55,6 +56,7 @@ to_y=params->dst_y;
 ato=params->auto_WP;
 nm=params->file;
 lid=params->log_id;
+lnr=params->linear;
 
 D65_x= 0.312727;
    D65_y= 0.329023;
@@ -114,7 +116,7 @@ x=(sxf==1)?x+7:x+3;
 
       double rgb_ato[3]={rf,gf,bf};
       double xyY_ato[3];
-       get_xy(rgb_ato, xyY_ato , params->mode);
+       get_xy(rgb_ato, xyY_ato , params->mode,lnr);
 
         params->x=xyY_ato[0];
         params->y=xyY_ato[1];
@@ -164,7 +166,7 @@ double WPConvXYZ[3];
 double OG_RGB[3]={rOG,gOG,bOG};
 double WPchgRGB[3]={rOG,gOG,bOG};
 
-rgb2XYZ(OG_RGB,rgbXYZ,rgbXYZGrey,mde,0);
+rgb2XYZ(OG_RGB,rgbXYZ,rgbXYZGrey,mde,0,lnr);
 
 if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[0]=0;
@@ -184,7 +186,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
         double WPConvXYZ2[3]={WPConvXYZ[0],WPConvXYZ[1],WPConvXYZ[2]};
         WPconv(WPConvXYZ2,cust_XYZ,dst_XYZ,WPConvXYZ);
     }
-        XYZ2rgb(WPConvXYZ,WPchgRGB,mde);
+        XYZ2rgb(WPConvXYZ,WPchgRGB,mde,lnr);
 
 }else{
 
@@ -193,7 +195,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
         double dst_XYZ[3];
         xy2XYZ(dst_xy,dst_XYZ);
         WPconv(rgbXYZ,D65XYZ,dst_XYZ,WPConvXYZ);
-        XYZ2rgb(WPConvXYZ,WPchgRGB,mde);
+        XYZ2rgb(WPConvXYZ,WPchgRGB,mde,lnr);
     }
 
 
@@ -273,6 +275,7 @@ if (!params){
                 params->dst_y=  avs_defined(avs_array_elt(args,11))?avs_as_float(avs_array_elt(args, 11)):0.329023;
                 params->auto_WP=  avs_defined(avs_array_elt(args,12))?avs_as_bool(avs_array_elt(args, 12)):false;
                 params->overwrite=  avs_defined(avs_array_elt(args,15))?avs_as_bool(avs_array_elt(args, 15)):true;
+                params->linear=  avs_defined(avs_array_elt(args,16))?avs_as_bool(avs_array_elt(args, 16)):false;
 
 char* file_name ="";
 file_name = ((avs_as_string(avs_array_elt(args, 13)))&&(avs_as_string(avs_array_elt(args, 13))!="NULL"))?avs_as_string(avs_array_elt(args, 13)):file_name;
@@ -282,8 +285,8 @@ char* log_idt ="";
 log_idt = ((avs_as_string(avs_array_elt(args, 14)))&&(avs_as_string(avs_array_elt(args, 14))!="NULL"))?avs_as_string(avs_array_elt(args, 14)):log_idt;
 params->log_id = log_idt;
 
-          if ((params->mode<0)||(params->mode>10)){
-            return avs_new_value_error ("Allowed modes are between 0 and 10!");
+          if ((params->mode<0)||(params->mode>11)){
+            return avs_new_value_error ("Allowed modes are between 0 and 11!");
           }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
@@ -329,7 +332,9 @@ params->log_id = log_idt;
         rgb[1]=(params->sixtyFour==true)?(double)(params->G)*rcptHiBit:(double)(params->G)*rcptwoFiveFive;
         rgb[2]=(params->sixtyFour==true)?(double)(params->B)*rcptHiBit:(double)(params->B)*rcptwoFiveFive;
 
-        get_xy(rgb, xyY_rgb , params->mode);
+        int linar=(params->linear==true)?1:0;
+
+        get_xy(rgb, xyY_rgb , params->mode,linar);
 
         params->x=xyY_rgb[0];
         params->y=xyY_rgb[1];
@@ -351,6 +356,6 @@ params->log_id = log_idt;
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
