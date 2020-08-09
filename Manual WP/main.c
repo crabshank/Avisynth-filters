@@ -34,6 +34,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
    int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr;
    BYTE* srcp;
+   BYTE* rrcp;
      char* nm;
      char* lid;
    double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y;
@@ -42,6 +43,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
   avs_make_writable(p->env, &src);
 
       srcp = avs_get_write_ptr(src);
+      rrcp = avs_get_read_ptr(src);
       src_pitch = avs_get_pitch(src);
       row_size = avs_get_row_size(src);
       height = avs_get_height(src);
@@ -73,9 +75,9 @@ if(ato==1){
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
-                 double currBlue=(sxf==1)?(double)srcp[x]+srcp[x+1]*256:(double)srcp[x];
-                 double currGreen=(sxf==1)?(double)srcp[x+2]+srcp[x+3]*256:(double)srcp[x+1];
-                 double currRed=(sxf==1)?(double)srcp[x+4]+srcp[x+5]*256:(double)srcp[x+2];
+                 double currBlue=(sxf==1)?(double)rrcp[x]+rrcp[x+1]*256:(double)rrcp[x];
+                 double currGreen=(sxf==1)?(double)rrcp[x+2]+rrcp[x+3]*256:(double)rrcp[x+1];
+                 double currRed=(sxf==1)?(double)rrcp[x+4]+rrcp[x+5]*256:(double)rrcp[x+2];
 
 
     bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
@@ -111,7 +113,7 @@ x=(sxf==1)?x+7:x+3;
 
 
       }
-
+      rrcp+=src_pitch;
       }
 
       double rgb_ato[3]={rf,gf,bf};
