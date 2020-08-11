@@ -24,7 +24,7 @@ AVS_VideoFrame * AVSC_CC Auto_Gamma_get_frame (AVS_FilterInfo * p, int n)
 
     int row_size, height, src_pitch,x, y,max_iters,tol,tolr,opt,lmr,crs,lnr,mde,sxf;
    BYTE* srcp;
-   BYTE* rrcp;
+   const BYTE* rrcp;
    double a,b,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter,rLin,gLin,bLin;
 
 a =   params->bracketA;
