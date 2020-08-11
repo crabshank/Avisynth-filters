@@ -34,7 +34,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
    int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr;
    BYTE* srcp;
-   BYTE* rrcp;
+   const BYTE* rrcp;
      char* nm;
      char* lid;
    double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y;
