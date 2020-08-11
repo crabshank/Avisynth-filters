@@ -206,11 +206,11 @@ while(p<=max_iters){
           rLin=(rOG > 0.0404482362771082 )?fastPrecisePow(fabs((rOG+0.055)*rcpOFiveFive),2.4):rOG*rcpTwelveNineTwo;
         }
 
-                  if ((lnr==1)||(lnr==3)||(lnr==5)||(lnr==7)||(lnr==9)){
+                  if ((lnr==2)||(lnr==4)||(lnr==6)||(lnr==8)||(lnr==10)){
                         bOG=bLin;
                         gOG=gLin;
                         rOG=rLin;
-         }else if((lnr==2)||(lnr==4)||(lnr==6)||(lnr==8)||(lnr==10)){
+         }else if((lnr==1)||(lnr==3)||(lnr==5)||(lnr==7)||(lnr==9)){
 
         if (((mde>=1)&&(mde<=4))||(mde==8)||(mde==9)){
     rOG=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
