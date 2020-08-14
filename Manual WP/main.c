@@ -63,14 +63,17 @@ lnr=params->linear;
 D65_x= 0.312727;
    D65_y= 0.329023;
 
+double hueCount[360];
+double hueCount_prp[360];
+
+
+for (int i=359; i>=0; i--){
+    hueCount[i]=0;
+    hueCount_prp[i]=0;
+}
+
 if(ato==1){
-    double sc_max=0;
-    double rf=1;
-    double gf=1;
-    double bf=1;
-    int rfi=255;
-    int gfi=255;
-    int bfi=255;
+
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -84,39 +87,114 @@ if(ato==1){
        gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
+        double curr_rgb_dst_hsv[3];
+        double curr_rgb_dst[3]={rOG,gOG,bOG};
+rgb2hsv_360(curr_rgb_dst,curr_rgb_dst_hsv);
+
+int hueEl=round(curr_rgb_dst_hsv[0]);
+hueEl=(hueEl==360)?0:hueEl;
 
 
- double mn=MIN(rOG,MIN(gOG,bOG));
- double mx=MAX(rOG,MAX(gOG,bOG));
-//  double sat=(mx==0)?0:(mx-mn)/mx;
-
-  double mn_diff=MIN(fabs(rOG-gOG),MIN(fabs(rOG-bOG),fabs(gOG-bOG)));
-  double mx_diff=MAX(fabs(rOG-gOG),MAX(fabs(rOG-bOG),fabs(gOG-bOG)));
-   double sat=(mx==0)?0:(mx-mn)/mx;
- double sc=(1-mn_diff)*mx_diff*(1-sat);
-
- if(sc>sc_max){
- sc_max=sc;
-
- rf=rOG;
- gf=gOG;
- bf=bOG;
-
- rfi=currBlue;
- gfi=currGreen;
- bfi=currRed;
- }
-
-
+hueCount[hueEl]++;
 
 x=(sxf==1)?x+7:x+3;
 
 
       }
       rrcp+=src_pitch;
+    }
+
+	rrcp=avs_get_read_ptr(src);
+
+	double hueSum=0;
+
+for (int i=0; i<360; i++){
+    hueSum+=hueCount[i];
+}
+for (int i=0; i<360; i++){
+    hueCount_prp[i]=hueCount[i]/hueSum;
+}
+/*double mx_diff=0;
+for (int i=0; i<360; i++){
+    double dff=fabs(hueCount_prp[i]-rcp_threeSixty);
+    mx_diff=(dff>mx_diff)?dff:mx_diff;
+}*/
+double cnt=0;
+double rf=0;
+double gf=0;
+double bf=0;
+int rfi=0;
+int gfi=0;
+int bfi=0;
+      for (y=0; y<height; y++) {
+      for (x=0; x<row_size; x++) {
+
+                 double currBlue=(sxf==1)?(double)rrcp[x]+rrcp[x+1]*256:(double)rrcp[x];
+                 double currGreen=(sxf==1)?(double)rrcp[x+2]+rrcp[x+3]*256:(double)rrcp[x+1];
+                 double currRed=(sxf==1)?(double)rrcp[x+4]+rrcp[x+5]*256:(double)rrcp[x+2];
+
+
+    bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
+       gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
+         rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
+
+         if (!((currBlue==currGreen)&&(currRed==currGreen))){
+
+
+                double curr_rgb_dst_fnl[3]={rOG,gOG,bOG};
+double curr_rgb_dst_fnl_Lin[3]={rOG,gOG,bOG};
+
+if(lnr==0){
+Linearise(curr_rgb_dst_fnl,curr_rgb_dst_fnl_Lin,mde);
+}
+
+double invK=fastPrecisePow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
+
+double curr_rgb_dst_fnl_hsv[3];
+rgb2hsv_360(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_hsv);
+
+double init_Sat=curr_rgb_dst_fnl_hsv[1];
+
+double mid_dist=2*fabs(0.5-init_Sat);
+
+double initSat2=2*init_Sat;
+
+double mid_cnt=(initSat2<1)?0.5*(1-fabs(1-initSat2)):0.5*(fabs(initSat2-1)+1);
+double hl_cnt=(initSat2<1)?0.5*initSat2:0.5*(2-fabs(2-initSat2));
+double lrp1=lerp(mid_cnt,hl_cnt,mid_dist);
+curr_rgb_dst_fnl_hsv[1]=lerp(0,lrp1,init_Sat)  ;
+
+
+double WPchgRGB_Lin[3];
+
+hsv2rgb_360(curr_rgb_dst_fnl_hsv,WPchgRGB_Lin);
+
+double redu=(init_Sat==0)?1:MIN((init_Sat-curr_rgb_dst_fnl_hsv[1])/init_Sat*(1-curr_rgb_dst_fnl_hsv[1]),1);
+redu*=0.5*((1-invK)+(init_Sat)*curr_rgb_dst_fnl_hsv[1]);
+
+       rf+=WPchgRGB_Lin[0]*redu;
+       gf+=WPchgRGB_Lin[1]*redu;
+       bf+=WPchgRGB_Lin[2]*redu;
+         cnt+=1;
+         }
+
+      x=(sxf==1)?x+7:x+3;
+       }
+      rrcp+=src_pitch;
+
       }
 
-      double rgb_ato[3]={rf,gf,bf};
+      double rgb_ato[3]={rf/cnt,gf/cnt,bf/cnt};
+      double rgbLin[3];
+
+       rgbLin[0]=rgb_ato[0];
+       rgbLin[1]=rgb_ato[1];
+       rgbLin[2]=rgb_ato[2];
+
+      if(lnr==0){
+        Apply_gamma(rgbLin,rgb_ato, mde);
+      }
+
       double xyY_ato[3];
        get_xy(rgb_ato, xyY_ato , params->mode,lnr);
 
@@ -124,6 +202,11 @@ x=(sxf==1)?x+7:x+3;
         params->y=xyY_ato[1];
         cust_x=xyY_ato[0];
         cust_y=xyY_ato[1];
+
+rfi=(sxf==1)?round(rgb_ato[0]*rcptHiBit):round(rgb_ato[0]*rcptwoFiveFive);
+gfi=(sxf==1)?round(rgb_ato[1]*rcptHiBit):round(rgb_ato[1]*rcptwoFiveFive);
+bfi=(sxf==1)?round(rgb_ato[2]*rcptHiBit):round(rgb_ato[2]*rcptwoFiveFive);
+
 
 if ((nm!="")&&(nm!="NULL")){
    //int num;
@@ -146,6 +229,7 @@ if ((lid!="")&&(lid!="NULL")){
 
 }
 }
+
 
 
       for (y=0; y<height; y++) {
