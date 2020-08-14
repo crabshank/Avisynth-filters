@@ -1,5 +1,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
+#define lerp_clamp(a,b,t) fmax((fmin((b),((1 - (t)) * (a) + (t) * (b) ))),(a))
 #define rcptwoFiveFive 1.0/255.0
 #define rcptHiBit 1.0/65535.0
 #define rcpTwoFour 1.0/2.4
@@ -23,6 +25,63 @@
 #define third 1.0/3.0
 
 double D65XYZ[3]={0.95047,1,1.08883};
+
+void rgb2hsv_360 (double rgb[3],double hsv[3])
+{
+
+double r=rgb[0];
+double g=rgb[1];
+double b=rgb[2];
+
+
+ double mn=MIN(r,MIN(g,b));
+ double mx=MAX(r,MAX(g,b));
+ double diff=mx-mn;
+ double sat=(mx==0)?0:diff/mx;
+ double hue_d=0;
+ int grey=((r==g)&&(g==b))?1:0;
+if (grey==0){
+
+if ((r>g)&&(r>b)){
+    hue_d =(g - b) / diff;
+}else if ((g>r)&&(g>b)){
+    hue_d = 2.0 + (b - r) / diff;
+}else{
+    hue_d = 4.0 + (r - g) / diff;
+}
+    hue_d*=60;
+    hue_d =(hue_d < 0)?hue_d + 360:hue_d;
+}
+
+hsv[0]=hue_d;
+hsv[1]=sat;
+hsv[2]=mx;
+
+}
+
+void hsv2rgb_360(double hsv[3], double rgb[3])
+{
+double h=hsv[0]/360;
+double s=hsv[1];
+double v=hsv[2];
+
+
+   int i = floor(h * 6);
+   double f = h * 6 - i;
+   double p = v * (1 - s);
+    double q = v * (1 - f * s);
+   double t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: rgb[0] = v, rgb[1] = t, rgb[2] = p; break;
+        case 1: rgb[0] = q, rgb[1] = v, rgb[2] = p; break;
+        case 2: rgb[0] = p, rgb[1] = v, rgb[2] = t; break;
+        case 3: rgb[0] = p, rgb[1] = q, rgb[2] = v; break;
+        case 4: rgb[0] = t, rgb[1] = p, rgb[2] = v; break;
+        case 5: rgb[0] = v, rgb[1] = p, rgb[2] = q; break;
+    }
+
+
+}
 
 inline double fastPrecisePow(double a, double b) {
   // calculate approximation with fraction of the exponent
@@ -128,6 +187,33 @@ mul(3,3,1,convBrad,XYZ,outp);
 //mul(1,3,3,XYZ,Bradford,outp); //WORKS (double3 X 3x3 )!!!!
 
 //mul(3,3,1,Bradford,XYZ,outp); //WORKS (3x3 X double3)!!!
+
+}
+
+void Linearise (double rgb[3], double rgbLin[3],int mode){
+
+
+    if ((mode==0)||(mode==6)){ //sRGB transfer
+          rgbLin[0]=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)*rcpOFiveFive),2.4):rgb[0]*rcpTwelveNineTwo;
+          rgbLin[1]=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)*rcpOFiveFive),2.4):rgb[1]*rcpTwelveNineTwo;
+          rgbLin[2]=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)*rcpOFiveFive),2.4):rgb[2]*rcpTwelveNineTwo;
+    }else if ((mode==5)||(mode==10)){ //DCI-P3
+          rgbLin[0]=fastPrecisePow(rgb[0],2.6);
+          rgbLin[1]=fastPrecisePow(rgb[1],2.6);
+          rgbLin[2]=fastPrecisePow(rgb[2],2.6);
+    }else if (mode==7){ //Original NTSC - Source: 47 CFR, Section 73.682 - TV transmission standards
+          rgbLin[0]=fastPrecisePow(rgb[0],2.2);
+          rgbLin[1]=fastPrecisePow(rgb[1],2.2);
+          rgbLin[2]=fastPrecisePow(rgb[2],2.2);
+    }else if(mode==11){ //Rec. 2100 HLG
+          rgbLin[0]=(rgbLin[0]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[0]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[0]*rgbLin[0]*third;
+          rgbLin[1]=(rgbLin[1]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[1]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[1]*rgbLin[1]*third;
+          rgbLin[2]=(rgbLin[2]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[2]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[2]*rgbLin[2]*third;
+    }else{ //Rec transfer
+          rgbLin[0]=(rgb[0] < recBetaLin )?rcpFourFive*rgb[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[0])),rcpTxFourFive);
+          rgbLin[1]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[1])),rcpTxFourFive);
+          rgbLin[2]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[2])),rcpTxFourFive);
+    }
 
 }
 
@@ -331,6 +417,37 @@ void XYZ2xyY(double XYZ[3],double outp[3]){
     outp[0]=x;
 	outp[1]=y;
 	outp[2]=XYZ[1];
+}
+
+void Apply_gamma(double rgbLin[3],double RGB[3], int mode){
+
+   double r=rgbLin[0];
+   double g=rgbLin[1];
+   double b=rgbLin[2];
+
+    if ((mode==0)||(mode==6)){ //sRGB transfer
+        RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
+        RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
+        RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
+    }else if ((mode==5)||(mode==10)){ //DCI-P3
+        RGB[0]=fastPrecisePow(r,invTwoSix);
+        RGB[1]=fastPrecisePow(g,invTwoSix);
+        RGB[2]=fastPrecisePow(b,invTwoSix);
+    }else if (mode==7){ //Original NTSC
+        RGB[0]=fastPrecisePow(r,invTwoTwo);
+        RGB[1]=fastPrecisePow(g,invTwoTwo);
+        RGB[2]=fastPrecisePow(b,invTwoTwo);
+    }else if (mode==11){ //Rec. 2100 HLG
+        RGB[0]=(RGB[0] > rcpTwelve)?HLG_a*log(12.0*RGB[0]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[0],0.5);
+        RGB[1]=(RGB[1] > rcpTwelve)?HLG_a*log(12.0*RGB[1]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[1],0.5);
+        RGB[2]=(RGB[2] > rcpTwelve)?HLG_a*log(12.0*RGB[2]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[2],0.5);
+    }else{ //Rec transfer
+        RGB[0]=(r< recBeta)?4.5*r:recAlpha*fastPrecisePow(r,0.45)-(recAlpha-1);
+        RGB[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
+        RGB[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
+    }
+
+
 }
 
 void XYZ2rgb(double XYZ[3],double RGB[3], int mode, int linr){
