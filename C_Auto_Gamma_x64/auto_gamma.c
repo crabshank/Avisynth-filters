@@ -110,21 +110,21 @@ counter=0;
         runTot_g+=gOG*0.677989275502262;
         runTot_b+=bOG*0.059289007136098;
     }else if (mde==7){ //Original NTSC
-        runTot_r+=0.2896886;
-        runTot_g+=0.6056356;
-        runTot_b+=0.1046758;
+        runTot_r+=rOG*0.2896886;
+        runTot_g+=gOG*0.6056356;
+        runTot_b+=bOG*0.1046758;
     }else if (mde==8){ //Rec 601 D93
-        runTot_r+=0.1767506;
-        runTot_g+=0.7072321;
-        runTot_b+=0.1160173;
+        runTot_r+=rOG*0.1767506;
+        runTot_g+=gOG*0.7072321;
+        runTot_b+=bOG*0.1160173;
     }else if (mde==9){ //Rec 709 D93
-        runTot_r+=0.1799632;
-        runTot_g+=0.7231169;
-        runTot_b+=0.0969199;
+        runTot_r+=rOG*0.1799632;
+        runTot_g+=gOG*0.7231169;
+        runTot_b+=bOG*0.0969199;
     }else if (mde==10){ //DCI-P3 D60/ACES
-        runTot_r+=0.23762331020788;
-        runTot_g+=0.689170669198985;
-        runTot_b+=0.073206020593136;
+        runTot_r+=rOG*0.23762331020788;
+        runTot_g+=gOG*0.689170669198985;
+        runTot_b+=bOG*0.073206020593136;
     }else{
         runTot_r+=rOG*0.2126729;
         runTot_g+=gOG*0.7151522;
@@ -214,8 +214,8 @@ while(p<=max_iters){
 
         if (((mde>=1)&&(mde<=4))||(mde==8)||(mde==9)){
     rOG=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
-    rOG=(gOG< recBeta)?4.5*gOG:recAlpha*fastPrecisePow(gOG,0.45)-(recAlpha-1);
-    rOG=(bOG< recBeta)?4.5*bOG:recAlpha*fastPrecisePow(bOG,0.45)-(recAlpha-1);
+    gOG=(gOG< recBeta)?4.5*gOG:recAlpha*fastPrecisePow(gOG,0.45)-(recAlpha-1);
+    bOG=(bOG< recBeta)?4.5*bOG:recAlpha*fastPrecisePow(bOG,0.45)-(recAlpha-1);
         }else if ((mde==5)||(mde==10)){
           bOG=fastPrecisePow(bOG,invTwoSix);
           gOG=fastPrecisePow(gOG,invTwoSix);
@@ -231,8 +231,8 @@ while(p<=max_iters){
           rOG=fastPrecisePow(rOG,invTwoTwo);
         }else{
  rOG=(rOG> 0.00313066844250063)?1.055 * fastPrecisePow(rOG,rcpTwoFour) - 0.055:12.92 *rOG;
- bOG=(gOG> 0.00313066844250063)?1.055 * fastPrecisePow(gOG,rcpTwoFour) - 0.055:12.92 *gOG;
- gOG=(bOG> 0.00313066844250063)?1.055 * fastPrecisePow(bOG,rcpTwoFour) - 0.055:12.92 *bOG;
+ gOG=(gOG> 0.00313066844250063)?1.055 * fastPrecisePow(gOG,rcpTwoFour) - 0.055:12.92 *gOG;
+ bOG=(bOG> 0.00313066844250063)?1.055 * fastPrecisePow(bOG,rcpTwoFour) - 0.055:12.92 *bOG;
 
             }
          }
