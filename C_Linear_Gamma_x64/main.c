@@ -47,48 +47,47 @@ sxf=params->sixtyFour;
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
 
-if (lnr==2){
+if (lnr==1){
     R=(rOG> 0.00313066844250063)?1.055 * fastPrecisePow(rOG,rcpTwoFour) - 0.055:12.92 *rOG;
     G=(gOG> 0.00313066844250063)?1.055 * fastPrecisePow(gOG,rcpTwoFour) - 0.055:12.92 *gOG;
     B=(bOG> 0.00313066844250063)?1.055 * fastPrecisePow(bOG,rcpTwoFour) - 0.055:12.92 *bOG;
-}else if(lnr==8){
+}else if(lnr==7){
     R=fastPrecisePow(rOG,invTwoSix);
     G=fastPrecisePow(gOG,invTwoSix);
     B=fastPrecisePow(bOG,invTwoSix);
-}else if (lnr==6){
+}else if (lnr==5){
 	R=fastPrecisePow(rOG,invTwoTwo);
     G=fastPrecisePow(gOG,invTwoTwo);
     B=fastPrecisePow(bOG,invTwoTwo);
-}else if(lnr==4){
+}else if(lnr==3){
     R=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
     G=(gOG< recBeta)?4.5*gOG:recAlpha*fastPrecisePow(gOG,0.45)-(recAlpha-1);
     B=(bOG< recBeta)?4.5*bOG:recAlpha*fastPrecisePow(bOG,0.45)-(recAlpha-1);
-}else if(lnr==1){
+}else if(lnr==2){
     R=(rOG > 0.0404482362771082 )?fastPrecisePow(fabs((rOG+0.055)*rcpOFiveFive),2.4):rOG*rcpTwelveNineTwo;
     G=(gOG > 0.0404482362771082 )?fastPrecisePow(fabs((gOG+0.055)*rcpOFiveFive),2.4):gOG*rcpTwelveNineTwo;
     B=(bOG > 0.0404482362771082 )?fastPrecisePow(fabs((bOG+0.055)*rcpOFiveFive),2.4):bOG*rcpTwelveNineTwo;
-}else if(lnr==7){
+}else if(lnr==8){
     R=fastPrecisePow(rOG,2.6);
     G=fastPrecisePow(gOG,2.6);
     B=fastPrecisePow(bOG,2.6);
-}else if(lnr==5){
+}else if(lnr==6){
     R=fastPrecisePow(rOG,2.2);
     G=fastPrecisePow(gOG,2.2);
     B=fastPrecisePow(bOG,2.2);
-}else if(lnr==3){
+}else if(lnr==4){
     R=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
     G=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
     B=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
-}else if (lnr==9){
+}else if (lnr==10){
     R=(rOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rOG-HLG_c)*rcp_HLG_a)+HLG_b):rOG*rOG*third;
     G=(gOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(gOG-HLG_c)*rcp_HLG_a)+HLG_b):gOG*gOG*third;
     B=(bOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(bOG-HLG_c)*rcp_HLG_a)+HLG_b):bOG*bOG*third;
-}else if (lnr==10){
+}else if (lnr==9){
     R=(rOG > rcpTwelve)?HLG_a*log(12.0*rOG-HLG_b)+HLG_c:root_three*fastPrecisePow(rOG,0.5);
     G=(gOG > rcpTwelve)?HLG_a*log(12.0*gOG-HLG_b)+HLG_c:root_three*fastPrecisePow(gOG,0.5);
     B=(bOG > rcpTwelve)?HLG_a*log(12.0*bOG-HLG_b)+HLG_c:root_three*fastPrecisePow(bOG,0.5);
 }
-
 
 int wp_b=MAX(MIN(round(B*255),255),0);
 int wp_g=MAX(MIN(round(G*255),255),0);
