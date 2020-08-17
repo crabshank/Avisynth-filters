@@ -294,6 +294,8 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
         }
     }
     }
+
+if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
             double xyY_rgb[3];
 
         double rgb[3];
@@ -309,7 +311,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
         params->y=xyY_rgb[1];
         cust_x=xyY_rgb[0];
         cust_y=xyY_rgb[1];
-
+}
       }
 
     if (cust_x!=D65_x || (cust_y!=D65_y)){
@@ -537,25 +539,25 @@ int intg=atoi(token);
 switch(cnt){
         case 0:
         if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
-        intg=65535;
+        intg=0;
         }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
-        intg=255;
+        intg=0;
         }
         params->ed_Red[tkn]=intg;
         break;
     case 1:
     if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
-    intg=65535;
+    intg=0;
     }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
-    intg=255;
+    intg=0;
     }
     params->ed_Green[tkn]=intg;
     break;
         case 2:
         if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
-        intg=65535;
+        intg=0;
         }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
-        intg=255;
+        intg=0;
         }
         params->ed_Blue[tkn]=intg;
         break;
