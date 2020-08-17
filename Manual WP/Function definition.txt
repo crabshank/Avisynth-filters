@@ -13,5 +13,6 @@ bool "auto_WP" = false,
 string "file"="",
 string "log_id"="",
 bool "overwrite" = false,
-bool "linear" = false
+bool "linear" = false,
+string "edits"="",
 )
