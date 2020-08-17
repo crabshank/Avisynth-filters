@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
+#include <Windows.h>
 #include "../avisynth_c.h"
 #include "functions_c.h"
 
@@ -22,6 +24,15 @@ typedef struct Manual_WP {
         char* log_id;
         int overwrite;
         int linear;
+        char* edits;
+        int ed_Red[MAX_PATH];
+        int ed_Green[MAX_PATH];
+        int ed_Blue[MAX_PATH];
+        int ed_start_fr[MAX_PATH];
+        int ed_end_fr[MAX_PATH];
+        int ed_lim;
+      //  int ed_hfw;
+        int ed_hfwf;
 } Manual_WP;
 
 
@@ -32,11 +43,12 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,hlfwf;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
      char* lid;
+     char* eds;
    double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y;
 
 
@@ -59,6 +71,11 @@ ato=params->auto_WP;
 nm=params->file;
 lid=params->log_id;
 lnr=params->linear;
+eds=params->edits;
+edlm=params->ed_lim;
+//hlfw=params->ed_hfw;
+hlfwf=params->ed_hfwf;
+
 
 D65_x= 0.312727;
    D65_y= 0.329023;
@@ -72,7 +89,7 @@ for (int i=359; i>=0; i--){
     hueCount_prp[i]=0;
 }
 
-if(ato==1){
+if((ato==1)&&((eds=="")||(eds=="NULL"))){
 
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
@@ -259,6 +276,42 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
 }else{
+      if((eds!="")&&(eds!="NULL")){
+
+    int curr_clip=0;
+    if(n>=hlfwf){
+           for (int i=edlm-1; i>=0; i--){
+        if ((n>=params->ed_start_fr[i])&&((n<=params->ed_end_fr[i])||(params->ed_end_fr[i]==0))){
+                curr_clip=i;
+            i=1; //EARLY TERMINATE
+        }
+    }
+    }else{
+    for (int i=0; i<edlm; i++){
+        if ((n>=params->ed_start_fr[i])&&((n<=params->ed_end_fr[i])||(params->ed_end_fr[i]==0))){
+                curr_clip=i;
+            i=edlm-1; //EARLY TERMINATE
+        }
+    }
+    }
+            double xyY_rgb[3];
+
+        double rgb[3];
+
+        rgb[0]=(sxf==1)?(double)(params->ed_Red[curr_clip])*rcptHiBit:(double)(params->ed_Red[curr_clip])*rcptwoFiveFive;
+        rgb[1]=(sxf==1)?(double)(params->ed_Green[curr_clip])*rcptHiBit:(double)(params->ed_Green[curr_clip])*rcptwoFiveFive;
+        rgb[2]=(sxf==1)?(double)(params->ed_Blue[curr_clip])*rcptHiBit:(double)(params->ed_Blue[curr_clip])*rcptwoFiveFive;
+
+
+        get_xy(rgb, xyY_rgb , mde,lnr);
+
+        params->x=xyY_rgb[0];
+        params->y=xyY_rgb[1];
+        cust_x=xyY_rgb[0];
+        cust_y=xyY_rgb[1];
+
+      }
+
     if (cust_x!=D65_x || (cust_y!=D65_y)){
     double cust_xy[2]={cust_x,cust_y};
     double cust_XYZ[3];
@@ -317,9 +370,12 @@ satOG=(amp>=0)?satOG*(1-amp):satOG;
     WPchgRGB[2]=(sat>=satOG)?WPchgRGB[2]:0;
 }
 
+
 int wp_b=MAX(MIN(round(WPchgRGB[2]*255),255),0);
 int wp_g=MAX(MIN(round(WPchgRGB[1]*255),255),0);
 int wp_r=MAX(MIN(round(WPchgRGB[0]*255),255),0);
+
+
 
 srcp[x] =wp_b; //blue : blue
 srcp[x+1] =(sxf==1)?wp_b:wp_g; // blue : green
@@ -343,6 +399,7 @@ AVS_Value AVSC_CC create_Manual_WP (AVS_ScriptEnvironment * env,AVS_Value args, 
   AVS_Value v;
   AVS_FilterInfo * fi;
   AVS_Clip * new_clip = avs_new_c_filter(env, &fi, avs_array_elt(args, 0), 1);
+    const AVS_VideoInfo * vi=avs_get_video_info(new_clip);
   Manual_WP *params = (Manual_WP*)malloc(sizeof(Manual_WP));
 
 if (!params){
@@ -370,6 +427,10 @@ params->file = file_name;
 char* log_idt ="";
 log_idt = ((avs_as_string(avs_array_elt(args, 14)))&&(avs_as_string(avs_array_elt(args, 14))!="NULL"))?avs_as_string(avs_array_elt(args, 14)):log_idt;
 params->log_id = log_idt;
+
+char* edts ="";
+edts = ((avs_as_string(avs_array_elt(args, 17)))&&(avs_as_string(avs_array_elt(args, 17))!="NULL"))?avs_as_string(avs_array_elt(args, 17)):edts;
+params->edits = edts;
 
           if ((params->mode<0)||(params->mode>11)){
             return avs_new_value_error ("Allowed modes are between 0 and 11!");
@@ -408,7 +469,7 @@ params->log_id = log_idt;
         return avs_new_value_error ("RGB arguments must be between 0 and 65535");
       }else if((params->sixtyFour==false)&&((params->R>255)||(params->G>255)||(params->B>255))){
         return avs_new_value_error ("RGB arguments must be between 0 and 255");
-      }else if (params->auto_WP==false){
+      }else if ((params->auto_WP==false)&&((params->edits=="")||(params->edits=="NULL"))){
 
         double xyY_rgb[3];
 
@@ -429,6 +490,98 @@ params->log_id = log_idt;
 
   }
 
+  if((edts!="")&&(edts!="NULL")){
+int halfpoint=floor(vi->num_frames*0.5);
+params->ed_hfwf=halfpoint;
+
+    char *split[MAX_PATH];
+    char *dup = strdup(edts);
+    char* token;
+    char* rest = dup;
+
+
+int is,js;
+    for (is = 0, js = 0; is<strlen(dup); is++,js++)
+    {
+        if ((dup[is]!=' ')&&(dup[is]!='\n'))
+            rest[js]=dup[is];
+        else
+            js--;
+    }
+    rest[js]=0;
+
+
+
+  int tkn=0;
+    while ((token = strtok_r(rest, "{", &rest))){
+        split[tkn]=token;
+        tkn++;
+    }
+    params->ed_lim=tkn;
+    int no_clips=tkn;
+
+
+        tkn-=1;
+
+    while (tkn>=0){
+     split[tkn]=strtok (strdup(split[tkn]),"}");
+        tkn--;
+    }
+    tkn=0;
+    int cnt=0;
+
+    while (tkn<no_clips){
+    while ((token = strtok_r(split[tkn], ",", &split[tkn]))){
+int intg=atoi(token);
+
+switch(cnt){
+        case 0:
+        if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
+        intg=65535;
+        }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
+        intg=255;
+        }
+        params->ed_Red[tkn]=intg;
+        break;
+    case 1:
+    if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
+    intg=65535;
+    }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
+    intg=255;
+    }
+    params->ed_Green[tkn]=intg;
+    break;
+        case 2:
+        if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
+        intg=65535;
+        }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
+        intg=255;
+        }
+        params->ed_Blue[tkn]=intg;
+        break;
+case 3:
+if(intg<0){
+intg=0;
+}
+/*if (intg>=halfpoint){
+    params->ed_hfw=tkn;
+}*/
+params->ed_start_fr[tkn]=intg;
+break;
+        case 4:
+         params->ed_end_fr[tkn]=intg;
+        break;
+default:
+;
+}
+ cnt=(cnt==4)?0:cnt+1;
+    }
+
+      tkn++;
+    }
+
+  }
+
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
     v = avs_new_value_clip(new_clip);
@@ -439,9 +592,8 @@ params->log_id = log_idt;
 
 }
 
-
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
