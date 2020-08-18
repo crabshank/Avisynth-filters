@@ -494,7 +494,7 @@ params->edits = edts;
     char *dup = strdup(edts);
     char* token;
     char* rest = dup;
-
+    char* eb;
 
 int is,js;
     for (is = 0, js = 0; is<strlen(dup); is++,js++)
@@ -519,7 +519,8 @@ int is,js;
         tkn-=1;
 
     while (tkn>=0){
-     split[tkn]=strtok (strdup(split[tkn]),"}");
+    eb=strdup(split[tkn]);
+     split[tkn]=strtok(eb,"}");
         tkn--;
     }
     tkn=0;
@@ -572,7 +573,7 @@ default:
 
       tkn++;
     }
-
+    free(eb);
   }
 
          fi->user_data = (void*) params;
