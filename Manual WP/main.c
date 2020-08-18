@@ -504,7 +504,6 @@ int is,js;
         else
             js--;
     }
-    rest[js]=0;
 
  free(dup);
 
@@ -528,7 +527,7 @@ int is,js;
 
     while (tkn<no_clips){
     while ((token = strtok_r(split[tkn], ",", &split[tkn]))){
-int intg= (token);
+int intg=atoi(token);
 
 switch(cnt){
         case 0:
