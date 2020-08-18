@@ -15,4 +15,5 @@ string "log_id"="",
 bool "overwrite" = false,
 bool "linear" = false,
 string "edits"="",
+int "ed_off"=0
 )
