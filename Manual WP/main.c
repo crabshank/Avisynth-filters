@@ -25,6 +25,7 @@ typedef struct Manual_WP {
         int overwrite;
         int linear;
         char* edits;
+        int ed_off;
         int ed_Red[MAX_PATH];
         int ed_Green[MAX_PATH];
         int ed_Blue[MAX_PATH];
@@ -41,7 +42,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,ed_offst;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
@@ -71,7 +72,7 @@ lid=params->log_id;
 lnr=params->linear;
 eds=params->edits;
 edlm=params->ed_lim;
-
+ed_offst=params->ed_off;
 
 
 D65_x= 0.312727;
@@ -290,6 +291,14 @@ int ctb=edlm-1;
         ctf++;
     }
 
+    if(curr_clip+ed_offst>edlm-1){
+        curr_clip=edlm-1;
+    }else if(curr_clip-ed_offst<0){
+        curr_clip=0;
+    }else{
+    curr_clip+=ed_offst;
+    }
+
 if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
             double xyY_rgb[3];
 
@@ -416,6 +425,7 @@ if (!params){
                 params->auto_WP=  avs_defined(avs_array_elt(args,12))?avs_as_bool(avs_array_elt(args, 12)):false;
                 params->overwrite=  avs_defined(avs_array_elt(args,15))?avs_as_bool(avs_array_elt(args, 15)):true;
                 params->linear=  avs_defined(avs_array_elt(args,16))?avs_as_bool(avs_array_elt(args, 16)):false;
+                params->ed_off=  avs_defined(avs_array_elt(args,18))?avs_as_int(avs_array_elt(args, 18)):false;
 
 char* file_name ="";
 file_name = ((avs_as_string(avs_array_elt(args, 13)))&&(avs_as_string(avs_array_elt(args, 13))!="NULL"))?avs_as_string(avs_array_elt(args, 13)):file_name;
@@ -585,6 +595,6 @@ default:
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
