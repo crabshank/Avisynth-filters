@@ -31,8 +31,6 @@ typedef struct Manual_WP {
         int ed_start_fr[MAX_PATH];
         int ed_end_fr[MAX_PATH];
         int ed_lim;
-      //  int ed_hfw;
-        int ed_hfwf;
 } Manual_WP;
 
 
@@ -43,7 +41,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,hlfwf;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
@@ -73,8 +71,7 @@ lid=params->log_id;
 lnr=params->linear;
 eds=params->edits;
 edlm=params->ed_lim;
-//hlfw=params->ed_hfw;
-hlfwf=params->ed_hfwf;
+
 
 
 D65_x= 0.312727;
@@ -279,20 +276,18 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
       if((eds!="")&&(eds!="NULL")){
 
     int curr_clip=0;
-    if(n>=hlfwf){
-           for (int i=edlm-1; i>=0; i--){
-        if ((n>=params->ed_start_fr[i])&&((n<=params->ed_end_fr[i])||(params->ed_end_fr[i]==0))){
-                curr_clip=i;
-            i=1; //EARLY TERMINATE
+int ctf=0;
+int ctb=edlm-1;
+    while (ctb>=ctf){
+        if ((n>=params->ed_start_fr[ctf])&&((n<=params->ed_end_fr[ctf])||(params->ed_end_fr[ctf]==0))){
+                curr_clip=ctf;
+            break;
+        }else if ((n>=params->ed_start_fr[ctb])&&((n<=params->ed_end_fr[ctb])||(params->ed_end_fr[ctb]==0))){
+                curr_clip=ctb;
+            break;
         }
-    }
-    }else{
-    for (int i=0; i<edlm; i++){
-        if ((n>=params->ed_start_fr[i])&&((n<=params->ed_end_fr[i])||(params->ed_end_fr[i]==0))){
-                curr_clip=i;
-            i=edlm-1; //EARLY TERMINATE
-        }
-    }
+        ctb--;
+        ctf++;
     }
 
 if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
@@ -493,8 +488,7 @@ params->edits = edts;
   }
 
   if((edts!="")&&(edts!="NULL")){
-int halfpoint=floor(vi->num_frames*0.5);
-params->ed_hfwf=halfpoint;
+
 
     char *split[MAX_PATH];
     char *dup = strdup(edts);
@@ -565,9 +559,7 @@ case 3:
 if(intg<0){
 intg=0;
 }
-/*if (intg>=halfpoint){
-    params->ed_hfw=tkn;
-}*/
+
 params->ed_start_fr[tkn]=intg;
 break;
         case 4:
