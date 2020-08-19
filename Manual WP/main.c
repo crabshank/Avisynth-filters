@@ -293,7 +293,7 @@ int ctb=edlm-1;
 
     if(curr_clip+ed_offst>edlm-1){
         curr_clip=edlm-1;
-    }else if(curr_clip-ed_offst<0){
+    }else if(curr_clip+ed_offst<0){
         curr_clip=0;
     }else{
     curr_clip+=ed_offst;
