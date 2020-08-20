@@ -29,8 +29,11 @@ typedef struct Manual_WP {
         int ed_Red[MAX_PATH];
         int ed_Green[MAX_PATH];
         int ed_Blue[MAX_PATH];
+        double ed_x[MAX_PATH];
+        double ed_y[MAX_PATH];
         int ed_start_fr[MAX_PATH];
         int ed_end_fr[MAX_PATH];
+        int ed_switch[MAX_PATH];
         int ed_lim;
 } Manual_WP;
 
@@ -299,23 +302,36 @@ int ctb=edlm-1;
     curr_clip+=ed_offst;
     }
 
-if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
-            double xyY_rgb[3];
 
-        double rgb[3];
+    if (params->ed_switch[curr_clip]==1){
 
-        rgb[0]=(sxf==1)?(double)(params->ed_Red[curr_clip])*rcptHiBit:(double)(params->ed_Red[curr_clip])*rcptwoFiveFive;
-        rgb[1]=(sxf==1)?(double)(params->ed_Green[curr_clip])*rcptHiBit:(double)(params->ed_Green[curr_clip])*rcptwoFiveFive;
-        rgb[2]=(sxf==1)?(double)(params->ed_Blue[curr_clip])*rcptHiBit:(double)(params->ed_Blue[curr_clip])*rcptwoFiveFive;
+        params->x=params->ed_x[curr_clip];
+        params->y=params->ed_y[curr_clip];
+        cust_x=params->ed_x[curr_clip];
+        cust_y=params->ed_y[curr_clip];
+
+    }else{
+
+        if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
+                    double xyY_rgb[3];
+
+                double rgb[3];
+
+                rgb[0]=(sxf==1)?(double)(params->ed_Red[curr_clip])*rcptHiBit:(double)(params->ed_Red[curr_clip])*rcptwoFiveFive;
+                rgb[1]=(sxf==1)?(double)(params->ed_Green[curr_clip])*rcptHiBit:(double)(params->ed_Green[curr_clip])*rcptwoFiveFive;
+                rgb[2]=(sxf==1)?(double)(params->ed_Blue[curr_clip])*rcptHiBit:(double)(params->ed_Blue[curr_clip])*rcptwoFiveFive;
 
 
-        get_xy(rgb, xyY_rgb , mde,lnr);
+                get_xy(rgb, xyY_rgb , mde,lnr);
 
-        params->x=xyY_rgb[0];
-        params->y=xyY_rgb[1];
-        cust_x=xyY_rgb[0];
-        cust_y=xyY_rgb[1];
-}
+                params->x=xyY_rgb[0];
+                params->y=xyY_rgb[1];
+                cust_x=xyY_rgb[0];
+                cust_y=xyY_rgb[1];
+        }
+
+      }
+
       }
 
     if (cust_x!=D65_x || (cust_y!=D65_y)){
@@ -535,47 +551,70 @@ int is,js;
 
     while (tkn<no_clips){
     while ((token = strtok_r(split[tkn], ",", &split[tkn]))){
-int intg=atoi(token);
-
+int intg;
 switch(cnt){
         case 0:
-        if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
-        intg=0;
-        }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
-        intg=0;
-        }
+        intg=atoi(token);
         params->ed_Red[tkn]=intg;
         break;
+
     case 1:
-    if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
-    intg=0;
-    }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
-    intg=0;
-    }
+    intg=atoi(token);
     params->ed_Green[tkn]=intg;
     break;
+
         case 2:
-        if((params->sixtyFour==true)&&((intg<0)||(intg>65535))){
-        intg=0;
-        }else if((params->sixtyFour==false)&&((intg<0)||(intg>255))){
-        intg=0;
-        }
+        intg=atoi(token);
         params->ed_Blue[tkn]=intg;
         break;
-case 3:
-if(intg<0){
-intg=0;
-}
 
-params->ed_start_fr[tkn]=intg;
-break;
+    case 3:
+    intg=atoi(token);
+    intg=(intg<0)?0:intg;
+    params->ed_start_fr[tkn]=intg;
+    break;
+
         case 4:
-         params->ed_end_fr[tkn]=intg;
+        intg=atoi(token);
+        intg=(intg>(vi->num_frames)-1)?0:intg;
+        params->ed_end_fr[tkn]=intg;
         break;
-default:
-;
+
+    case 5:
+    params->ed_x[tkn]=atof(token);
+    break;
+
+        case 6:
+        params->ed_y[tkn]=atof(token);
+        break;
+
+    default:
+    ;
+
+
 }
- cnt=(cnt==4)?0:cnt+1;
+ cnt=(cnt==6)?0:cnt+1;
+    }
+
+
+    if((params->ed_Red[tkn]<0)||(params->ed_Green[tkn]<0)||(params->ed_Blue[tkn]<0)){
+            params->ed_switch[tkn]=1;
+    }else{
+
+        if(params->sixtyFour==false){
+            if((params->ed_Red[tkn]>255)||(params->ed_Green[tkn]>255)||(params->ed_Blue[tkn]>255)){
+                params->ed_switch[tkn]=1;
+            }else{
+                params->ed_switch[tkn]=0;
+            }
+        }else{
+            if((params->ed_Red[tkn]>65535)||(params->ed_Green[tkn]>65535)||(params->ed_Blue[tkn]>65535)){
+            params->ed_switch[tkn]=1;
+            }else{
+            params->ed_switch[tkn]=0;
+            }
+        }
+
     }
 
       tkn++;
