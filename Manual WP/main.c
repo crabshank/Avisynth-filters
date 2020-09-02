@@ -519,16 +519,20 @@ params->edits = edts;
     char *split[MAX_PATH];
     char *dup = strdup(edts);
     char* token;
-    char* rest = dup;
+    char* rest=dup;
 
-int is,js;
-    for (is = 0, js = 0; is<strlen(dup); is++,js++)
-    {
-        if ((dup[is]!=' ')&&(dup[is]!='\n'))
-            rest[js]=dup[is];
-        else
-            js--;
+int is = 0;
+int js = 0;
+
+while (dup[is]!='\0'){
+        if ((isdigit(dup[is]))||(dup[is]=='.')||(dup[is]=='{')||(dup[is]=='}')||(dup[is]==',')){
+        rest[js]=dup[is];
+        js++;
+        }
+        is++;
     }
+
+rest[strlen(rest)-(is-js)]='\0';
 
   int tkn=0;
     while ((token = strtok_r(rest, "{", &rest))){
