@@ -532,7 +532,7 @@ while (dup[is]!='\0'){
         is++;
     }
 
-rest[strlen(rest)-(is-js)]='\0';
+rest[js]='\0';
 
   int tkn=0;
     while ((token = strtok_r(rest, "{", &rest))){
