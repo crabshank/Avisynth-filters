@@ -141,7 +141,7 @@ counter+=1;
 
 //Bisection method solver/////////////////////////////////////////
 p=1;
-tolr=1.0/fastPrecisePow(10,(double)tol);
+tolr=1.0/fastPrecisePow(10,(double)(tol));
 max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 opt=0;
 double mxMean[3]={runTot_r/counter,runTot_g/counter,runTot_b/counter};
@@ -410,8 +410,8 @@ AVS_Value AVSC_CC create_Auto_Gamma (AVS_ScriptEnvironment * env,AVS_Value args,
 if (!params)
       return avs_void;
         params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
-        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):11;
-        params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):3;
+        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):4.3;
+        params->tolerance = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):4;
         params->crush = avs_defined(avs_array_elt(args, 4))?avs_as_int(avs_array_elt(args, 4)):0;
         params->limitedRange= avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(args, 5)):false;
         params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
