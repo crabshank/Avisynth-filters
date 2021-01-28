@@ -190,29 +190,32 @@ mul(3,3,1,convBrad,XYZ,outp);
 
 }
 
-void Linearise (double rgb[3], double rgbLin[3],int mode){
+void Apply_gamma(double rgbGam[3],double rgbLin[3], int mode){
 
+   double r=rgbGam[0];
+   double g=rgbGam[1];
+   double b=rgbGam[2];
 
     if ((mode==0)||(mode==6)){ //sRGB transfer
-          rgbLin[0]=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)*rcpOFiveFive),2.4):rgb[0]*rcpTwelveNineTwo;
-          rgbLin[1]=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)*rcpOFiveFive),2.4):rgb[1]*rcpTwelveNineTwo;
-          rgbLin[2]=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)*rcpOFiveFive),2.4):rgb[2]*rcpTwelveNineTwo;
+        rgbLin[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
+        rgbLin[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
+        rgbLin[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
     }else if ((mode==5)||(mode==10)){ //DCI-P3
-          rgbLin[0]=fastPrecisePow(rgb[0],2.6);
-          rgbLin[1]=fastPrecisePow(rgb[1],2.6);
-          rgbLin[2]=fastPrecisePow(rgb[2],2.6);
-    }else if (mode==7){ //Original NTSC - Source: 47 CFR, Section 73.682 - TV transmission standards
-          rgbLin[0]=fastPrecisePow(rgb[0],2.2);
-          rgbLin[1]=fastPrecisePow(rgb[1],2.2);
-          rgbLin[2]=fastPrecisePow(rgb[2],2.2);
-    }else if(mode==11){ //Rec. 2100 HLG
-          rgbLin[0]=(rgbLin[0]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[0]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[0]*rgbLin[0]*third;
-          rgbLin[1]=(rgbLin[1]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[1]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[1]*rgbLin[1]*third;
-          rgbLin[2]=(rgbLin[2]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[2]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[2]*rgbLin[2]*third;
+        rgbLin[0]=fastPrecisePow(r,invTwoSix);
+        rgbLin[1]=fastPrecisePow(g,invTwoSix);
+        rgbLin[2]=fastPrecisePow(b,invTwoSix);
+    }else if (mode==7){ //Original NTSC
+        rgbLin[0]=fastPrecisePow(r,invTwoTwo);
+        rgbLin[1]=fastPrecisePow(g,invTwoTwo);
+        rgbLin[2]=fastPrecisePow(b,invTwoTwo);
+    }else if (mode==11){ //Rec. 2100 HLG
+        rgbLin[0]=(rgbLin[0] > rcpTwelve)?HLG_a*log(12.0*rgbLin[0]-HLG_b)+HLG_c:root_three*fastPrecisePow(rgbLin[0],0.5);
+        rgbLin[1]=(rgbLin[1] > rcpTwelve)?HLG_a*log(12.0*rgbLin[1]-HLG_b)+HLG_c:root_three*fastPrecisePow(rgbLin[1],0.5);
+        rgbLin[2]=(rgbLin[2] > rcpTwelve)?HLG_a*log(12.0*rgbLin[2]-HLG_b)+HLG_c:root_three*fastPrecisePow(rgbLin[2],0.5);
     }else{ //Rec transfer
-          rgbLin[0]=(rgb[0] < recBetaLin )?rcpFourFive*rgb[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[0])),rcpTxFourFive);
-          rgbLin[1]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[1])),rcpTxFourFive);
-          rgbLin[2]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[2])),rcpTxFourFive);
+        rgbLin[0]=(r< recBeta)?4.5*r:recAlpha*fastPrecisePow(r,0.45)-(recAlpha-1);
+        rgbLin[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
+        rgbLin[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
     }
 
 }
@@ -225,27 +228,7 @@ if(linr==1){
       rgbLin[1]=rgb[1];
       rgbLin[2]=rgb[2];
 }else{
-    if ((mode==0)||(mode==6)){ //sRGB transfer
-          rgbLin[0]=(rgb[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[0]+0.055)*rcpOFiveFive),2.4):rgb[0]*rcpTwelveNineTwo;
-          rgbLin[1]=(rgb[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[1]+0.055)*rcpOFiveFive),2.4):rgb[1]*rcpTwelveNineTwo;
-          rgbLin[2]=(rgb[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgb[2]+0.055)*rcpOFiveFive),2.4):rgb[2]*rcpTwelveNineTwo;
-    }else if ((mode==5)||(mode==10)){ //DCI-P3
-          rgbLin[0]=fastPrecisePow(rgb[0],2.6);
-          rgbLin[1]=fastPrecisePow(rgb[1],2.6);
-          rgbLin[2]=fastPrecisePow(rgb[2],2.6);
-    }else if (mode==7){ //Original NTSC - Source: 47 CFR, Section 73.682 - TV transmission standards
-          rgbLin[0]=fastPrecisePow(rgb[0],2.2);
-          rgbLin[1]=fastPrecisePow(rgb[1],2.2);
-          rgbLin[2]=fastPrecisePow(rgb[2],2.2);
-    }else if(mode==11){ //Rec. 2100 HLG
-          rgbLin[0]=(rgbLin[0]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[0]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[0]*rgbLin[0]*third;
-          rgbLin[1]=(rgbLin[1]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[1]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[1]*rgbLin[1]*third;
-          rgbLin[2]=(rgbLin[2]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[2]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[2]*rgbLin[2]*third;
-    }else{ //Rec transfer
-          rgbLin[0]=(rgb[0] < recBetaLin )?rcpFourFive*rgb[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[0])),rcpTxFourFive);
-          rgbLin[1]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[1])),rcpTxFourFive);
-          rgbLin[2]=(rgb[1] < recBetaLin )?rcpFourFive*rgb[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgb[2])),rcpTxFourFive);
-    }
+       Linearise(rgb,rgbLin,mode);
 }
 
 double v1[3];
@@ -419,34 +402,29 @@ void XYZ2xyY(double XYZ[3],double outp[3]){
 	outp[2]=XYZ[1];
 }
 
-void Apply_gamma(double rgbLin[3],double RGB[3], int mode){
-
-   double r=rgbLin[0];
-   double g=rgbLin[1];
-   double b=rgbLin[2];
+void Linearise(double rgbLin[3], double rgbGam[3],int mode){
 
     if ((mode==0)||(mode==6)){ //sRGB transfer
-        RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
-        RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
-        RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
+          rgbGam[0]=(rgbLin[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbLin[0]+0.055)*rcpOFiveFive),2.4):rgbLin[0]*rcpTwelveNineTwo;
+          rgbGam[1]=(rgbLin[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbLin[1]+0.055)*rcpOFiveFive),2.4):rgbLin[1]*rcpTwelveNineTwo;
+          rgbGam[2]=(rgbLin[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbLin[2]+0.055)*rcpOFiveFive),2.4):rgbLin[2]*rcpTwelveNineTwo;
     }else if ((mode==5)||(mode==10)){ //DCI-P3
-        RGB[0]=fastPrecisePow(r,invTwoSix);
-        RGB[1]=fastPrecisePow(g,invTwoSix);
-        RGB[2]=fastPrecisePow(b,invTwoSix);
-    }else if (mode==7){ //Original NTSC
-        RGB[0]=fastPrecisePow(r,invTwoTwo);
-        RGB[1]=fastPrecisePow(g,invTwoTwo);
-        RGB[2]=fastPrecisePow(b,invTwoTwo);
-    }else if (mode==11){ //Rec. 2100 HLG
-        RGB[0]=(RGB[0] > rcpTwelve)?HLG_a*log(12.0*RGB[0]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[0],0.5);
-        RGB[1]=(RGB[1] > rcpTwelve)?HLG_a*log(12.0*RGB[1]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[1],0.5);
-        RGB[2]=(RGB[2] > rcpTwelve)?HLG_a*log(12.0*RGB[2]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[2],0.5);
+          rgbGam[0]=fastPrecisePow(rgbLin[0],2.6);
+          rgbGam[1]=fastPrecisePow(rgbLin[1],2.6);
+          rgbGam[2]=fastPrecisePow(rgbLin[2],2.6);
+    }else if (mode==7){ //Original NTSC - Source: 47 CFR, Section 73.682 - TV transmission standards
+          rgbGam[0]=fastPrecisePow(rgbLin[0],2.2);
+          rgbGam[1]=fastPrecisePow(rgbLin[1],2.2);
+          rgbGam[2]=fastPrecisePow(rgbLin[2],2.2);
+    }else if(mode==11){ //Rec. 2100 HLG
+          rgbGam[0]=(rgbGam[0]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbGam[0]-HLG_c)*rcp_HLG_a)+HLG_b):rgbGam[0]*rgbGam[0]*third;
+          rgbGam[1]=(rgbGam[1]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbGam[1]-HLG_c)*rcp_HLG_a)+HLG_b):rgbGam[1]*rgbGam[1]*third;
+          rgbGam[2]=(rgbGam[2]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbGam[2]-HLG_c)*rcp_HLG_a)+HLG_b):rgbGam[2]*rgbGam[2]*third;
     }else{ //Rec transfer
-        RGB[0]=(r< recBeta)?4.5*r:recAlpha*fastPrecisePow(r,0.45)-(recAlpha-1);
-        RGB[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
-        RGB[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
+          rgbGam[0]=(rgbLin[0] < recBetaLin )?rcpFourFive*rgbLin[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbLin[0])),rcpTxFourFive);
+          rgbGam[1]=(rgbLin[1] < recBetaLin )?rcpFourFive*rgbLin[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbLin[1])),rcpTxFourFive);
+          rgbGam[2]=(rgbLin[1] < recBetaLin )?rcpFourFive*rgbLin[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbLin[2])),rcpTxFourFive);
     }
-
 
 }
 
@@ -558,36 +536,17 @@ if (mode==1){ //Rec 601 NTSC
     v3[2]=1.0572252;
 }
 
-double r=v1[0]*XYZ[0]+v1[1]*XYZ[1]+v1[2]*XYZ[2];
-double g=v2[0]*XYZ[0]+v2[1]*XYZ[1]+v2[2]*XYZ[2];
-double b=v3[0]*XYZ[0]+v3[1]*XYZ[1]+v3[2]*XYZ[2];
+    double rgbLin[3];
+    rgbLin[0]=v1[0]*XYZ[0]+v1[1]*XYZ[1]+v1[2]*XYZ[2];
+    rgbLin[1]=v2[0]*XYZ[0]+v2[1]*XYZ[1]+v2[2]*XYZ[2];
+    rgbLin[2]=v3[0]*XYZ[0]+v3[1]*XYZ[1]+v3[2]*XYZ[2];
 
 if(linr==1){
-        RGB[0]=r;
-        RGB[1]=g;
-        RGB[2]=b;
+        RGB[0]=rgbLin[0];
+        RGB[1]=rgbLin[1];
+        RGB[2]=rgbLin[2];
 }else{
-    if ((mode==0)||(mode==6)){ //sRGB transfer
-        RGB[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
-        RGB[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
-        RGB[2]=(b> 0.00313066844250063)?1.055 * fastPrecisePow(b,rcpTwoFour) - 0.055:12.92 *b;
-    }else if ((mode==5)||(mode==10)){ //DCI-P3
-        RGB[0]=fastPrecisePow(r,invTwoSix);
-        RGB[1]=fastPrecisePow(g,invTwoSix);
-        RGB[2]=fastPrecisePow(b,invTwoSix);
-    }else if (mode==7){ //Original NTSC
-        RGB[0]=fastPrecisePow(r,invTwoTwo);
-        RGB[1]=fastPrecisePow(g,invTwoTwo);
-        RGB[2]=fastPrecisePow(b,invTwoTwo);
-    }else if (mode==11){ //Rec. 2100 HLG
-        RGB[0]=(RGB[0] > rcpTwelve)?HLG_a*log(12.0*RGB[0]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[0],0.5);
-        RGB[1]=(RGB[1] > rcpTwelve)?HLG_a*log(12.0*RGB[1]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[1],0.5);
-        RGB[2]=(RGB[2] > rcpTwelve)?HLG_a*log(12.0*RGB[2]-HLG_b)+HLG_c:root_three*fastPrecisePow(RGB[2],0.5);
-    }else{ //Rec transfer
-        RGB[0]=(r< recBeta)?4.5*r:recAlpha*fastPrecisePow(r,0.45)-(recAlpha-1);
-        RGB[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
-        RGB[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
-    }
+    Apply_gamma(rgbLin,RGB,mode);
 }
 
 }
