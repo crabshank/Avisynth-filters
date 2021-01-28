@@ -1,0 +1,96 @@
+<html>
+
+<head>
+<style>
+input[type="file" i]::-webkit-file-upload-button  {
+    background: buttonface;
+}
+div#script_one {
+    max-width: max-content;
+}
+</style>
+</head>
+
+<body>
+    <div class="file1">
+	 <input type="file" accept=".txt" id="openFile1">
+  <label for="file-input">Parsed d2v</label>
+ <textarea id="txt1"></textarea>
+</div>     
+
+<br>
+<div id="script_one"></div>
+
+
+ <script>
+ 
+ function selectText(element) {
+   if (document.body.createTextRange) {
+        let range = document.body.createTextRange();
+        range.moveToElementText(element);
+        range.select();
+    } else if (window.getSelection) {
+        let selection = window.getSelection();        
+        let range = document.createRange();
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+}
+ 
+ function parse(){
+ let Iframes=[];
+var parts=nos1.value.split('\n');
+
+for (let i=0; i<parts.length; i++){
+if(parts[i].includes('[I]')){
+let str=parts[i].split(':')[1].split(' ').join('').split('.')[0].split(',');
+	for (let k=0; k<str.length; k++){
+		Iframes.push(parseInt(str[k]));
+	}
+}
+}
+
+let Iframes_fnl=[...new Set(Iframes)];
+Iframes_fnl.sort(function(a, b){return a - b});
+console.log(Iframes_fnl);
+var scr1=document.getElementById('script_one');
+
+scr1.innerText=Iframes_fnl.join('\n');
+
+
+document.body.ondblclick=function(e){
+	if(e.target!==scr1){
+    selectText(scr1);
+	}
+}
+
+
+
+
+}
+
+var nos1=document.getElementById("txt1");
+ document.getElementById("openFile1").addEventListener('change',  function () {
+ var fr = new FileReader();
+ fr.onload = function () {
+	nos1.value = this.result;
+parse();
+}
+
+fr.readAsText(this.files[0]);
+
+
+
+})
+
+
+
+
+
+
+
+</script>
+</body>
+
+</html>
