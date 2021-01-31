@@ -426,6 +426,7 @@ void Linearise(double rgbGam[3], double rgbLin[3],int mode){
           rgbLin[1]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[1])),rcpTxFourFive);
           rgbLin[2]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[2])),rcpTxFourFive);
     }
+}
 
 void XYZ2rgb(double XYZ[3],double RGB[3], int mode, int linr){
 
