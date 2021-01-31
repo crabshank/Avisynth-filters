@@ -190,6 +190,30 @@ mul(3,3,1,convBrad,XYZ,outp);
 
 }
 
+void Linearise(double rgbGam[3], double rgbLin[3],int mode){
+
+    if ((mode==0)||(mode==6)){ //sRGB transfer
+          rgbLin[0]=(rgbGam[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbGam[0]+0.055)*rcpOFiveFive),2.4):rgbGam[0]*rcpTwelveNineTwo;
+          rgbLin[1]=(rgbGam[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbGam[1]+0.055)*rcpOFiveFive),2.4):rgbGam[1]*rcpTwelveNineTwo;
+          rgbLin[2]=(rgbGam[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbGam[2]+0.055)*rcpOFiveFive),2.4):rgbGam[2]*rcpTwelveNineTwo;
+    }else if ((mode==5)||(mode==10)){ //DCI-P3
+          rgbLin[0]=fastPrecisePow(rgbGam[0],2.6);
+          rgbLin[1]=fastPrecisePow(rgbGam[1],2.6);
+          rgbLin[2]=fastPrecisePow(rgbGam[2],2.6);
+    }else if (mode==7){ //Original NTSC - Source: 47 CFR, Section 73.682 - TV transmission standards
+          rgbLin[0]=fastPrecisePow(rgbGam[0],2.2);
+          rgbLin[1]=fastPrecisePow(rgbGam[1],2.2);
+          rgbLin[2]=fastPrecisePow(rgbGam[2],2.2);
+    }else if(mode==11){ //Rec. 2100 HLG
+          rgbLin[0]=(rgbLin[0]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[0]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[0]*rgbLin[0]*third;
+          rgbLin[1]=(rgbLin[1]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[1]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[1]*rgbLin[1]*third;
+          rgbLin[2]=(rgbLin[2]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[2]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[2]*rgbLin[2]*third;
+    }else{ //Rec transfer
+          rgbLin[0]=(rgbGam[0] < recBetaLin )?rcpFourFive*rgbGam[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[0])),rcpTxFourFive);
+          rgbLin[1]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[1])),rcpTxFourFive);
+          rgbLin[2]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[2])),rcpTxFourFive);
+    }
+}
 
 void Apply_gamma(double rgbLin[3], double rgbGam[3], int mode){
 
@@ -401,31 +425,6 @@ void XYZ2xyY(double XYZ[3],double outp[3]){
     outp[0]=x;
 	outp[1]=y;
 	outp[2]=XYZ[1];
-}
-
-void Linearise(double rgbGam[3], double rgbLin[3],int mode){
-
-    if ((mode==0)||(mode==6)){ //sRGB transfer
-          rgbLin[0]=(rgbGam[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbGam[0]+0.055)*rcpOFiveFive),2.4):rgbGam[0]*rcpTwelveNineTwo;
-          rgbLin[1]=(rgbGam[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbGam[1]+0.055)*rcpOFiveFive),2.4):rgbGam[1]*rcpTwelveNineTwo;
-          rgbLin[2]=(rgbGam[2] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbGam[2]+0.055)*rcpOFiveFive),2.4):rgbGam[2]*rcpTwelveNineTwo;
-    }else if ((mode==5)||(mode==10)){ //DCI-P3
-          rgbLin[0]=fastPrecisePow(rgbGam[0],2.6);
-          rgbLin[1]=fastPrecisePow(rgbGam[1],2.6);
-          rgbLin[2]=fastPrecisePow(rgbGam[2],2.6);
-    }else if (mode==7){ //Original NTSC - Source: 47 CFR, Section 73.682 - TV transmission standards
-          rgbLin[0]=fastPrecisePow(rgbGam[0],2.2);
-          rgbLin[1]=fastPrecisePow(rgbGam[1],2.2);
-          rgbLin[2]=fastPrecisePow(rgbGam[2],2.2);
-    }else if(mode==11){ //Rec. 2100 HLG
-          rgbLin[0]=(rgbLin[0]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[0]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[0]*rgbLin[0]*third;
-          rgbLin[1]=(rgbLin[1]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[1]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[1]*rgbLin[1]*third;
-          rgbLin[2]=(rgbLin[2]>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rgbLin[2]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[2]*rgbLin[2]*third;
-    }else{ //Rec transfer
-          rgbLin[0]=(rgbGam[0] < recBetaLin )?rcpFourFive*rgbGam[0]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[0])),rcpTxFourFive);
-          rgbLin[1]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[1])),rcpTxFourFive);
-          rgbLin[2]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[2])),rcpTxFourFive);
-    }
 }
 
 void XYZ2rgb(double XYZ[3],double RGB[3], int mode, int linr){
