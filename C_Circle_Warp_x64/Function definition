@@ -1,0 +1,5 @@
+(
+clip clip,
+float "expn"=0.312727 (0 to 3 by 0.0001),
+bool "sixtyFour" = false,
+)
