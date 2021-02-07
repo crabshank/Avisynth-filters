@@ -45,7 +45,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,ed_offst;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,ed_offst,fv_swt;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
@@ -253,7 +253,6 @@ if ((lid!="")&&(lid!="NULL")){
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
-//double x_shift=(double)x/(double)row_size;
 
                  double currBlue=(sxf==1)?(double)srcp[x]+srcp[x+1]*256:(double)srcp[x];
                  double currGreen=(sxf==1)?(double)srcp[x+2]+srcp[x+3]*256:(double)srcp[x+1];
@@ -310,6 +309,13 @@ int ctb=edlm-1;
         cust_x=params->ed_x[curr_clip];
         cust_y=params->ed_y[curr_clip];
 
+                    if(dbg==5){
+                    rOG=cust_x;
+                    gOG=0;
+                    bOG=cust_y;
+                    fv_swt=1;
+                    }
+
     }else{
 
         if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
@@ -321,6 +327,12 @@ int ctb=edlm-1;
                 rgb[1]=(sxf==1)?(double)(params->ed_Green[curr_clip])*rcptHiBit:(double)(params->ed_Green[curr_clip])*rcptwoFiveFive;
                 rgb[2]=(sxf==1)?(double)(params->ed_Blue[curr_clip])*rcptHiBit:(double)(params->ed_Blue[curr_clip])*rcptwoFiveFive;
 
+                    if(dbg==5){
+                    rOG=rgb[0];
+                    gOG=rgb[1];
+                    bOG=rgb[2];
+                    fv_swt=2;
+                    }
 
                 get_xy(rgb, xyY_rgb , mde,lnr);
 
@@ -405,13 +417,25 @@ satOG=(amp>=0)?satOG*(1-amp):satOG;
     double hsv_dbg[3]={hue_dbg,1,1-amp};
     hsv2rgb_360(hsv_dbg,WPchgRGB);
 
+}else if (dbg==5){
+double x_shift=(double)(x)/(double)(row_size);
+
+if(fv_swt==1){
+    WPchgRGB[0]=(x_shift<0.5)?rOG:bOG;
+    WPchgRGB[1]=(x_shift<0.5)?rOG:bOG;
+    WPchgRGB[2]=(x_shift<0.5)?rOG:bOG;
+}else if(fv_swt==2){
+    WPchgRGB[0]=rOG;
+    WPchgRGB[1]=gOG;
+    WPchgRGB[2]=bOG;
+
+}
+
 }
 
 int wp_b=MAX(MIN(round(WPchgRGB[2]*255),255),0);
 int wp_g=MAX(MIN(round(WPchgRGB[1]*255),255),0);
 int wp_r=MAX(MIN(round(WPchgRGB[0]*255),255),0);
-
-
 
 srcp[x] =wp_b; //blue : blue
 srcp[x+1] =(sxf==1)?wp_b:wp_g; // blue : green
@@ -470,8 +494,8 @@ edts = ((avs_as_string(avs_array_elt(args, 17)))&&(avs_as_string(avs_array_elt(a
 params->edits = edts;
 
 
-         if ((params->debug<0)||(params->debug>4)){
-            return avs_new_value_error ("Allowed debug settings are between 0 and 4!");
+         if ((params->debug<0)||(params->debug>5)){
+            return avs_new_value_error ("Allowed debug settings are between 0 and 5!");
           }else{
           if ((params->mode<0)||(params->mode>11)){
             return avs_new_value_error ("Allowed modes are between 0 and 11!");
