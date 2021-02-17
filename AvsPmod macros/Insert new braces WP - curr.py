@@ -62,8 +62,7 @@ for x in range(len(txl)):
 			else:
 				p3=txt.replace(y[0], p1+'\n'+p2)
 
-			pos = script.GetSelectionEnd()
 			avsp.SetText(p3)
-			script.GotoPos(pos)
+			script.GotoLine(len(txl)-x)
 			avsp.ShowVideoFrame(forceRefresh=True)
 			break
