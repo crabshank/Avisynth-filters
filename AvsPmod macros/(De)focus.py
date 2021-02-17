@@ -7,7 +7,7 @@ curr=avsp.GetFrameNumber()
 
 txt=avsp.GetText(index=None, clean=False)
 txl=txt.splitlines()
-txl.reverse()
+
 swt=0;
 for x in range(len(txl)):
 	y=re.findall('.*\s+focusser\s*=\s*\d{1}',txl[x])
@@ -25,8 +25,7 @@ for x in range(len(txl)):
 		
 txt=avsp.GetText(index=None, clean=False)
 txl=txt.splitlines()
-txl.reverse()
-		
+
 for x in range(len(txl)):
 	y=re.findall('.*\s+focus_frame\s*=\s*\d{1,}',txl[x])
 	if len(y)>0: #if find match
