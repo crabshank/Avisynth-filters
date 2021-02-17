@@ -48,7 +48,7 @@ txt=avsp.GetText(index=None, clean=False)
 txl=txt.splitlines()
 txl.reverse()
 for x in range(len(txl)):
-	y=re.findall('{\s*\-{0,1}\d{0,5}\s*,\s*\-{0,1}\d{0,5}\s*,\s*\-{0,1}\d{0,5}\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\.*\d*\s*,\s*\d+\.*\d*\s*}',txl[x])
+	y=re.findall('{\s*\-{0,1}\d{1,5}\s*,\s*\-{0,1}\d{1,5}\s*,\s*\-{0,1}\d{1,5}\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\.*\d*\s*,\s*\d+\.*\d*\s*}',txl[x])
 	if len(y)>0: #if find match
 		ys=y[0].split(',')
 		x2=x+1 if x<len(txl)-1 else x
