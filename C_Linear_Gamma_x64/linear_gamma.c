@@ -59,6 +59,14 @@ if (lnr==1){
     R=fastPrecisePow(rOG,2.2);
     G=fastPrecisePow(gOG,2.2);
     B=fastPrecisePow(bOG,2.2);
+}else if (lnr==12){
+    R=fastPrecisePow(rOG,rcpTwoFour);
+    G=fastPrecisePow(gOG,rcpTwoFour);
+    B=fastPrecisePow(bOG,rcpTwoFour);
+}else if (lnr==11){
+    R=fastPrecisePow(rOG,2.4);
+    G=fastPrecisePow(gOG,2.4);
+    B=fastPrecisePow(bOG,2.4);
 }else if(lnr==3){
     R=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
     G=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
@@ -122,8 +130,8 @@ if (!params)
 
         params->linear= avs_defined(avs_array_elt(args, 1))?avs_as_int(avs_array_elt(args, 1)):1;
 
- if ((params->linear<1)||(params->linear>10)){
-            return avs_new_value_error ("Allowed linear values are between 1 and 10!");
+ if ((params->linear<1)||(params->linear>12)){
+            return avs_new_value_error ("Allowed linear values are between 1 and 12!");
           }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
