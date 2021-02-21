@@ -63,6 +63,7 @@ for x in range(len(txl)):
 		ff=int(y[0].split('=')[1].strip())
 		if cg==1:
 			curr=ff
+			frms=0
 		break
 
 for x in range(len(txl)):
