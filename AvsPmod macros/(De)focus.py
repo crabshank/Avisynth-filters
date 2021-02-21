@@ -30,7 +30,7 @@ txl.reverse()
 for x in range(len(txl)):
 	y=re.findall('.*\s+focus_frame\s*=\s*\d{1,}',txl[x])
 	if len(y)>0: #if find match
-		ff=int(y[0].split('=')[1])
+		ff=int(y[0].split('=')[1].strip())
 		if swt==1:
 			avsp.SetText(txt.replace(y[0], 'global focus_frame = '+str(curr)))
 		pos = script.GetSelectionEnd()
