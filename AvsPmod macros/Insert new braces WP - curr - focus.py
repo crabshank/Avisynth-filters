@@ -58,7 +58,7 @@ for x in range(len(txl)):
 			break
 					
 for x in range(len(txl)):
-	y=re.findall('.*\s+focus_frame\s*=\s*\d{1,}',txl[x])
+	y=re.findall('.*\s+last_bk\s*=\s*\d{1,}',txl[x])
 	if len(y)>0: #if find match
 		ff=int(y[0].split('=')[1].strip())
 		if cg==1:
