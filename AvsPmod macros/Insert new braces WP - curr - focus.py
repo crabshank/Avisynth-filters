@@ -83,6 +83,6 @@ for x in range(len(txl)):
 
 			avsp.SetText(p3)
 			script.GotoLine(len(txl)-x)
-			avsp.WriteToScrap(str(curr).strip()+' -> '+str(R)+','+str(G)+','+str(B)+'\n', pos=-1)
+			avsp.WriteToScrap('On basestringrace from '+str(curr).strip()+' -> '+str(R)+','+str(G)+','+str(B)+'\n', pos=-1)
 			avsp.ShowVideoFrame(forceRefresh=True)
 			break
