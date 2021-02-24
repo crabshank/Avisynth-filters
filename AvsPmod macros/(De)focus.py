@@ -56,6 +56,16 @@ for x in range(len(txl)):
 		ff=int(y[0].split('=')[1].strip())
 		if swt==1:
 			avsp.SetText(txt.replace(y[0], 'global last_bk = '+str(bk)))
+		break
+		
+txt=avsp.GetText(index=None, clean=False)
+txl=txt.splitlines()
+txl.reverse()
+
+for x in range(len(txl)):
+	y=re.findall('.*\s+focus_frame\s*=\s*\d{1,}',txl[x])
+	if len(y)>0: #if find match
+		ff=int(y[0].split('=')[1].strip())
 		pos = script.GetSelectionEnd()
 		script.GotoPos(pos)
 		avsp.ShowVideoFrame(framenum=ff , index=None, forceRefresh=True)
