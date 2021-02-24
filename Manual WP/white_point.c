@@ -431,6 +431,13 @@ if(fv_swt==1){
 
 }
 
+}else if(dbg==6){
+    double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
+    double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
+
+    WPchgRGB[0]=(sat<=amp)?rOG:0;
+    WPchgRGB[1]=(sat<=amp)?gOG:0;
+    WPchgRGB[2]=(sat<=amp)?bOG:0;
 }
 
 int wp_b=MAX(MIN(round(WPchgRGB[2]*255),255),0);
@@ -494,8 +501,8 @@ edts = ((avs_as_string(avs_array_elt(args, 17)))&&(avs_as_string(avs_array_elt(a
 params->edits = edts;
 
 
-         if ((params->debug<0)||(params->debug>5)){
-            return avs_new_value_error ("Allowed debug settings are between 0 and 5!");
+         if ((params->debug<0)||(params->debug>6)){
+            return avs_new_value_error ("Allowed debug settings are between 0 and 6!");
           }else{
           if ((params->mode<0)||(params->mode>11)){
             return avs_new_value_error ("Allowed modes are between 0 and 11!");
