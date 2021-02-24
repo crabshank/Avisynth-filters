@@ -7,3 +7,5 @@ Jump to selected frame(_no refresh).py - Select text containing a number and it 
 Insert new braces WP - curr - focus.py - Adds brace and changes previous brace depending on the position of the last bookmark, and sets the latest brace to the RGB valuse that the cursor was over when the macro was triggered. Also checks the script for 'focusser' and 'last_bk' (for use with De(focus).py and focusOnFrame {function}). N.B. this macro needs at least 2 braces already there to work.
 
 Mouse select frames around top.py - Set X/Ystart and X/Yend to specify what part of the of the video preview is covered by the framesAroundTop function, then you can place the cursor over the frame you want to jump to and trgger the macro to jumps to that frame.
+
+Change RGB WP curr frame brace.py - Changes RGB value for the brace that contains the current frame (or focus_frame if focusser = 1) to the RGB value that the cursor is over.
