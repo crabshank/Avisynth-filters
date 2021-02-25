@@ -54,19 +54,24 @@ for x in range(len(txl)):
 	y=re.findall('.*\s+last_bk\s*=\s*\d{1,}',txl[x])
 	if len(y)>0: #if find match
 		ff=int(y[0].split('=')[1].strip())
+		posi=len(txl)-x
 		if swt==1:
 			avsp.SetText(txt.replace(y[0], 'global last_bk = '+str(bk)))
 		break
 		
-txt=avsp.GetText(index=None, clean=False)
-txl=txt.splitlines()
-txl.reverse()
+if swt==0:		
+	txt=avsp.GetText(index=None, clean=False)
+	txl=txt.splitlines()
+	txl.reverse()
 
-for x in range(len(txl)):
-	y=re.findall('.*\s+focus_frame\s*=\s*\d{1,}',txl[x])
-	if len(y)>0: #if find match
-		ff=int(y[0].split('=')[1].strip())
-		pos = script.GetSelectionEnd()
-		script.GotoPos(pos)
-		avsp.ShowVideoFrame(framenum=ff , index=None, forceRefresh=True)
-		break
+	for x in range(len(txl)):
+		y=re.findall('.*\s+focus_frame\s*=\s*\d{1,}',txl[x])
+		if len(y)>0: #if find match
+			ff=int(y[0].split('=')[1].strip())
+			posi=len(txl)-x
+			avsp.ShowVideoFrame(framenum=ff , index=None, forceRefresh=True)
+			script.GotoLine(posi)
+			break
+else:
+	avsp.ShowVideoFrame(framenum=ff , index=None, forceRefresh=True)
+	script.GotoLine(posi)
