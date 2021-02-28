@@ -26,6 +26,7 @@ typedef struct Manual_WP {
         int linear;
         char* edits;
         int ed_off;
+        int ed_base;
         int ed_Red[MAX_PATH];
         int ed_Green[MAX_PATH];
         int ed_Blue[MAX_PATH];
@@ -45,7 +46,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,ed_offst,fv_swt;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,ed_offst,fv_swt,ed_bse;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
@@ -76,6 +77,7 @@ lnr=params->linear;
 eds=params->edits;
 edlm=params->ed_lim;
 ed_offst=params->ed_off;
+ed_bse=params->ed_base;
 
 
 D65_x= 0.312727;
@@ -279,13 +281,14 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
       if((eds!="")&&(eds!="NULL")){
 
     int curr_clip=0;
+    int bse=(ed_bse>=0)?ed_bse:n;
 int ctf=0;
 int ctb=edlm-1;
     while (ctb>=ctf){
-        if ((n>=params->ed_start_fr[ctf])&&((n<=params->ed_end_fr[ctf])||(params->ed_end_fr[ctf]==0))){
+        if ((bse>=params->ed_start_fr[ctf])&&((bse<=params->ed_end_fr[ctf])||(params->ed_end_fr[ctf]==0))){
                 curr_clip=ctf;
             break;
-        }else if ((n>=params->ed_start_fr[ctb])&&((n<=params->ed_end_fr[ctb])||(params->ed_end_fr[ctb]==0))){
+        }else if ((bse>=params->ed_start_fr[ctb])&&((bse<=params->ed_end_fr[ctb])||(params->ed_end_fr[ctb]==0))){
                 curr_clip=ctb;
             break;
         }
@@ -487,6 +490,7 @@ if (!params){
                 params->overwrite=  avs_defined(avs_array_elt(args,15))?avs_as_bool(avs_array_elt(args, 15)):true;
                 params->linear=  avs_defined(avs_array_elt(args,16))?avs_as_bool(avs_array_elt(args, 16)):false;
                 params->ed_off=  avs_defined(avs_array_elt(args,18))?avs_as_int(avs_array_elt(args, 18)):0;
+                params->ed_base=  avs_defined(avs_array_elt(args,19))?avs_as_int(avs_array_elt(args, 19)):-1;
 
 char* file_name ="";
 file_name = ((avs_as_string(avs_array_elt(args, 13)))&&(avs_as_string(avs_array_elt(args, 13))!="NULL"))?avs_as_string(avs_array_elt(args, 13)):file_name;
@@ -501,7 +505,10 @@ edts = ((avs_as_string(avs_array_elt(args, 17)))&&(avs_as_string(avs_array_elt(a
 params->edits = edts;
 
 
-         if ((params->debug<0)||(params->debug>6)){
+    if (params->ed_base<-1) {
+    return avs_new_value_error ("'ed_base' must be >= -1");
+    }else{
+      if ((params->debug<0)||(params->debug>6)){
             return avs_new_value_error ("Allowed debug settings are between 0 and 6!");
           }else{
           if ((params->mode<0)||(params->mode>11)){
@@ -672,11 +679,17 @@ switch(cnt){
       tkn++;
     }
 
+  //Write int to error
+ /* char *str1 = malloc(MAX_PATH);
+sprintf(str1,"%d",params->ed_end_fr[0]);
+  return avs_new_value_error (str1);*/
+
   }
 
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
     v = avs_new_value_clip(new_clip);
+   }
    }
    }
    }
@@ -687,6 +700,6 @@ switch(cnt){
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
