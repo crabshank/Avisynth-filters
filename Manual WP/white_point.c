@@ -435,12 +435,84 @@ if(fv_swt==1){
 }
 
 }else if(dbg==6){
-    double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
+    double mx=MAX(WPchgRGB[0],MAX(  WPchgRGB[1],WPchgRGB[2]));
     double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
 
     WPchgRGB[0]=(sat<=amp)?rOG:0;
     WPchgRGB[1]=(sat<=amp)?gOG:0;
     WPchgRGB[2]=(sat<=amp)?bOG:0;
+}else if(dbg==7){
+
+    int grey=((WPchgRGB[0]==WPchgRGB[1])&&(WPchgRGB[1]==WPchgRGB[2]))?1:0;
+
+
+
+if (grey==0){
+
+double mn=MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2]));
+double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
+double diff=mx-mn;
+
+double dbgHSV[3];
+dbgHSV[1]=1.0;
+dbgHSV[2]=1-amp;
+
+double dbgRGB[3];
+
+    double hue_d;
+
+        if ((WPchgRGB[0]>WPchgRGB[1])&&(WPchgRGB[0]>WPchgRGB[2])){
+            hue_d =(WPchgRGB[1] - WPchgRGB[2]) / diff;
+        }else if ((WPchgRGB[1]>WPchgRGB[0])&&(WPchgRGB[1]>WPchgRGB[2])){
+            hue_d = 2.0 + (WPchgRGB[2] - WPchgRGB[0]) / diff;
+        }else{
+            hue_d = 4.0 + (WPchgRGB[0] - WPchgRGB[1]) / diff;
+        }
+            hue_d*=60;
+            hue_d =(hue_d < 0)?hue_d + 360:hue_d;
+
+            int hue=floor(hue_d*10);
+
+
+if((hue>=3525)||(((hue>=0) && (hue<75)))){
+dbgHSV[0]=0.0;
+}else if((hue>=75) && (hue<375)){
+dbgHSV[0]=30.0;
+}else if((hue>=375) && (hue<675)){
+dbgHSV[0]=60.0;
+}else if((hue>=675) && (hue<975)){
+dbgHSV[0]=90.0;
+}else if((hue>=975) && (hue<1275)){
+dbgHSV[0]=120.0;
+}else if((hue>=1275) && (hue<1575)){
+dbgHSV[0]=150.0;
+}else if((hue>=1575) && (hue<1875)){
+dbgHSV[0]=180.0;
+}else if((hue>=1875) && (hue<2175)){
+dbgHSV[0]=210.0;
+}else if((hue>=2175) && (hue<2475)){
+dbgHSV[0]=240.0;
+}else if((hue>=2475) && (hue<3075)){
+dbgHSV[0]=270.0;
+}else if((hue>=3075) && (hue<3375)){
+dbgHSV[0]=330.0;
+}else if((hue>=3375) && (hue<3525)){
+dbgHSV[0]=345.0;
+}
+
+ hsv2rgb_360(dbgHSV, dbgRGB);
+    WPchgRGB[0]=dbgRGB[0];
+    WPchgRGB[1]=dbgRGB[1];
+    WPchgRGB[2]=dbgRGB[2];
+
+
+}else{
+    WPchgRGB[0]=1.0;
+    WPchgRGB[1]=1.0;
+    WPchgRGB[2]=1.0;
+}
+
+
 }
 
 int wp_b=MAX(MIN(round(WPchgRGB[2]*255),255),0);
@@ -508,8 +580,8 @@ params->edits = edts;
     if (params->ed_base<-1) {
     return avs_new_value_error ("'ed_base' must be >= -1");
     }else{
-      if ((params->debug<0)||(params->debug>6)){
-            return avs_new_value_error ("Allowed debug settings are between 0 and 6!");
+      if ((params->debug<0)||(params->debug>7)){
+            return avs_new_value_error ("Allowed debug settings are between 0 and 7!");
           }else{
           if ((params->mode<0)||(params->mode>11)){
             return avs_new_value_error ("Allowed modes are between 0 and 11!");
