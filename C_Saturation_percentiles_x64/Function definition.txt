@@ -1,5 +1,6 @@
 (
      clip clip,
      float "perc"=1,
+     bool "below"=true,
      bool "sixtyFour"=false
 )
