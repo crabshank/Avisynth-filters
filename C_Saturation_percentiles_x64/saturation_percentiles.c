@@ -6,6 +6,7 @@
 
 typedef struct Saturation_Percentiles {
     double perc;
+    int below;
     int sixtyFour;
 } Saturation_Percentiles;
 
@@ -16,7 +17,7 @@ AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, i
 
   src = avs_get_frame(p->child, n);
 
-    int row_size, height, src_pitch,x, y,sxf,wdt;
+    int row_size, height, src_pitch,x, y,sxf,wdt,blw;
     long pxls;
   const BYTE* rrcp;
    BYTE* srcp;
@@ -24,6 +25,7 @@ AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, i
 
 prc=params->perc;
 sxf=params->sixtyFour;
+blw=params->below;
 
   avs_make_writable(p->env, &src);
 
@@ -75,6 +77,7 @@ k=0;
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
+if(blw==1){
 if(satsOG[k]>refSat){
 srcp[x] =0; //blue : blue
 srcp[x+1] =(sxf==1)?0:0; // blue : green
@@ -82,6 +85,16 @@ srcp[x+2] =(sxf==1)? 0:0; // green: red
 srcp[x+3] =(sxf==1)? 0:srcp[x+3]; //green : self
 srcp[x+4] =(sxf==1)? 0:srcp[x+4]; //red : self
 srcp[x+5] =(sxf==1)? 0:srcp[x+5]; //red : self
+}
+}else{
+if(satsOG[k]<refSat){
+srcp[x] =0; //blue : blue
+srcp[x+1] =(sxf==1)?0:0; // blue : green
+srcp[x+2] =(sxf==1)? 0:0; // green: red
+srcp[x+3] =(sxf==1)? 0:srcp[x+3]; //green : self
+srcp[x+4] =(sxf==1)? 0:srcp[x+4]; //red : self
+srcp[x+5] =(sxf==1)? 0:srcp[x+5]; //red : self
+}
 }
 
 k++;
@@ -108,13 +121,14 @@ if (!params)
       return avs_void;
 
         params->perc= avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):1;
+        params->below= avs_defined(avs_array_elt(args, 2))?avs_as_bool(avs_array_elt(args, 2)):true;
 
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
   } else {
 
-     if(avs_defined(avs_array_elt(args, 2))){
-        params->sixtyFour =avs_as_bool(avs_array_elt(args, 2));
+     if(avs_defined(avs_array_elt(args, 3))){
+        params->sixtyFour =avs_as_bool(avs_array_elt(args, 3));
      }else{
        params->sixtyFour = (avs_is_rgb64(&fi->vi))?true:false;
      }
@@ -128,6 +142,6 @@ if (!params)
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Saturation_Percentiles", "c[perc]f[sixtyFour]b", create_Saturation_Percentiles, 0);
+   avs_add_function(env, "Saturation_Percentiles", "c[perc]f[below]b[sixtyFour]b", create_Saturation_Percentiles, 0);
    return "Saturation_Percentiles C plugin";
 }
