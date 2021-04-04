@@ -7,7 +7,6 @@
 typedef struct Saturation_Percentiles {
     double perc;
     int sixtyFour;
-    int height_OG;
 } Saturation_Percentiles;
 
 AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, int n)
@@ -17,13 +16,12 @@ AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, i
 
   src = avs_get_frame(p->child, n);
 
-    int row_size, height, src_pitch,x, y,sxf,hgt;
+    int row_size, height, src_pitch,x, y,sxf;
     long pxls;
   const BYTE* rrcp;
    BYTE* srcp;
    double bOG,gOG,rOG,prc,d_pxls;
 
-hgt=params->height_OG;
 prc=params->perc;
 sxf=params->sixtyFour;
 
@@ -38,7 +36,7 @@ sxf=params->sixtyFour;
 
 
 long k=0;
-pxls=hgt*row_size;
+pxls=height*row_size;
 d_pxls=(double)(pxls);
 
             double *sats = (double*)malloc( pxls* sizeof(double));
@@ -130,7 +128,6 @@ if (!params)
     fi->get_frame = Saturation_Percentiles_get_frame;
     v = avs_new_value_clip(new_clip);
   }
-      params->height_OG=fi->vi.height;
 
   avs_release_clip(new_clip);
   return v;
