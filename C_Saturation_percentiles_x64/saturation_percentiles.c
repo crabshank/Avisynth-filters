@@ -16,7 +16,7 @@ AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, i
 
   src = avs_get_frame(p->child, n);
 
-    int row_size, height, src_pitch,x, y,sxf;
+    int row_size, height, src_pitch,x, y,sxf,wdt;
     long pxls;
   const BYTE* rrcp;
    BYTE* srcp;
@@ -33,13 +33,14 @@ sxf=params->sixtyFour;
       row_size = avs_get_row_size(src);
       height = avs_get_height(src);
 
-
+wdt=(sxf==1)?round(0.125*row_size):round(0.25*row_size);
 
 long k=0;
-pxls=height*row_size;
+pxls=height*wdt;
 d_pxls=(double)(pxls);
 
             double *sats = (double*)malloc( pxls* sizeof(double));
+            double *satsOG = (double*)malloc( pxls* sizeof(double));
 
                         for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -58,8 +59,10 @@ d_pxls=(double)(pxls);
     double sat=(mx==0)?0:(mx-MIN(rOG,MIN(gOG,bOG)))/mx;
 
          sats[k]=sat;
+         satsOG[k]=sat;
 
         k++;
+        x=(sxf==1)?x+7:x+3;
       }
             rrcp += src_pitch;
       }
@@ -67,23 +70,12 @@ d_pxls=(double)(pxls);
  qsort(sats, pxls, sizeof(double), compare);
 long refEl=ceil(prc*d_pxls)-1;
   double refSat=sats[refEl];
-
+k=0;
 ///////////////ACTUALLY DRAW PIXELS///////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
-                 double currBlue=(sxf==1)?(double)srcp[x]+srcp[x+1]*256:(double)srcp[x];
-                 double currGreen=(sxf==1)?(double)srcp[x+2]+srcp[x+3]*256:(double)srcp[x+1];
-                 double currRed=(sxf==1)?(double)srcp[x+4]+srcp[x+5]*256:(double)srcp[x+2];
 
-          bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
-       gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
-         rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
-
-
-             double mx=MAX(rOG,MAX(gOG,bOG));
-    double sat=(mx==0)?0:(mx-MIN(rOG,MIN(gOG,bOG)))/mx;
-
-if(sat>refSat){
+if(satsOG[k]>refSat){
 srcp[x] =0; //blue : blue
 srcp[x+1] =(sxf==1)?0:0; // blue : green
 srcp[x+2] =(sxf==1)? 0:0; // green: red
@@ -92,6 +84,7 @@ srcp[x+4] =(sxf==1)? 0:srcp[x+4]; //red : self
 srcp[x+5] =(sxf==1)? 0:srcp[x+5]; //red : self
 }
 
+k++;
 x=(sxf==1)?x+7:x+3;
 
       }
@@ -99,6 +92,7 @@ x=(sxf==1)?x+7:x+3;
       }
 
       free(sats);
+      free(satsOG);
 
   return src;
 }
@@ -128,7 +122,6 @@ if (!params)
     fi->get_frame = Saturation_Percentiles_get_frame;
     v = avs_new_value_clip(new_clip);
   }
-
   avs_release_clip(new_clip);
   return v;
 }
