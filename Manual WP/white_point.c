@@ -52,7 +52,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
      char* nm;
      char* lid;
      char* eds;
-   double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y;
+   double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y,sat_dbg_six,r_dbg_six,g_dbg_six,b_dbg_six;
 
 
   avs_make_writable(p->env, &src);
@@ -79,6 +79,10 @@ edlm=params->ed_lim;
 ed_offst=params->ed_off;
 ed_bse=params->ed_base;
 
+sat_dbg_six=0.0;
+r_dbg_six=1.0;
+g_dbg_six=1.0;
+b_dbg_six=1.0;
 
 D65_x= 0.312727;
    D65_y= 0.329023;
@@ -240,9 +244,9 @@ if ((nm!="")&&(nm!="NULL")){
    }
 
 if ((lid!="")&&(lid!="NULL")){
-    fprintf(fptr,"%s: %i, %i, %i - %i\n", lid,rfi, gfi, bfi,n );
+    fprintf(fptr,"%s: %d, %d, %d - %d\n", lid,rfi, gfi, bfi,n );
 }else{
-    fprintf(fptr,"%i, %i, %i - %i\n", rfi, gfi, bfi,n );
+    fprintf(fptr,"%d, %d, %d - %d\n", rfi, gfi, bfi,n );
 }
 
    fclose(fptr);
@@ -437,7 +441,15 @@ if(fv_swt==1){
 }else if(dbg==6){
     double mx=MAX(WPchgRGB[0],MAX(  WPchgRGB[1],WPchgRGB[2]));
     double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
-
+    double OGmx=MAX(rOG,MAX(gOG,bOG));
+    double OGsat=(mx==0)?0:(OGmx-MIN(rOG,MIN(gOG,bOG)))/OGmx;
+    double redu=OGsat-sat;
+    if(redu>sat_dbg_six){
+      sat_dbg_six=redu;
+        r_dbg_six=rOG;
+        g_dbg_six=gOG;
+        b_dbg_six=bOG;
+    }
     WPchgRGB[0]=(sat<=amp)?rOG:0;
     WPchgRGB[1]=(sat<=amp)?gOG:0;
     WPchgRGB[2]=(sat<=amp)?bOG:0;
@@ -533,6 +545,30 @@ x=(sxf==1)?x+7:x+3;
             srcp += src_pitch;
       }
 
+      if ((dbg==6)&&(nm!="")&&(nm!="NULL")){
+   //int num;
+   FILE *fptr;
+   // use appropriate location if you are using MacOS or Linux
+   fptr = fopen(nm,"a");
+   if(fptr == NULL)
+   {
+      printf("Error!");
+      exit(1);
+   }
+
+   int redInt=(sxf==1)?round(r_dbg_six*65535):round(r_dbg_six*255);
+   int greenInt=(sxf==1)?round(g_dbg_six*65535):round(g_dbg_six*255);
+   int blueInt=(sxf==1)?round(b_dbg_six*65535):round(b_dbg_six*255);
+
+if ((lid!="")&&(lid!="NULL")){
+    fprintf(fptr,"%s: %d, %d, %d, %.11f, %d\n", lid,redInt, greenInt, blueInt, sat_dbg_six,n);
+}else{
+    fprintf(fptr,"%d, %d, %d, %.11f, %d\n",redInt, greenInt, blueInt, sat_dbg_six,n);
+}
+   fclose(fptr);
+}
+
+
   return src;
 }
 
@@ -590,7 +626,7 @@ params->edits = edts;
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
   }else {
 
-    if((params->auto_WP==true)&&((file_name!="")&&(file_name!="NULL"))){
+    if(((params->auto_WP==true)||(params->debug==6))&&((file_name!="")&&(file_name!="NULL"))){
         FILE *fptr;
 
         if(params->overwrite==true){
