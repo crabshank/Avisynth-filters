@@ -444,7 +444,7 @@ if(fv_swt==1){
     double OGmx=MAX(rOG,MAX(gOG,bOG));
     double OGsat=(mx==0)?0:(OGmx-MIN(rOG,MIN(gOG,bOG)))/OGmx;
     double redu=OGsat-sat;
-    if(redu>sat_dbg_six){
+    if((redu>sat_dbg_six)&&(sat<=amp)){
       sat_dbg_six=redu;
         r_dbg_six=rOG;
         g_dbg_six=gOG;
