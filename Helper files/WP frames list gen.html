@@ -1,0 +1,80 @@
+<html>
+
+<head>
+<style>
+div#script_one {
+    max-width: max-content;
+}
+</style>
+</head>
+
+<body>
+Enter WP braces here: <textarea id="txt1"></textarea>
+  
+<br>
+<br>
+<div id="script_one"></div>
+
+
+ <script>
+ 
+ function selectText(element) {
+   if (document.body.createTextRange) {
+        let range = document.body.createTextRange();
+        range.moveToElementText(element);
+        range.select();
+    } else if (window.getSelection) {
+        let selection = window.getSelection();        
+        let range = document.createRange();
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+}
+ 
+var nos1=document.getElementById("txt1");
+nos1.addEventListener('input',  ()=> {
+
+let re = /{\s*\-{0,1}\d{1,5}\s*,\s*\-{0,1}\d{1,5}\s*,\s*\-{0,1}\d{1,5}\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\.*\d*\s*,\s*\d+\.*\d*\s*}/g;
+var array = nos1.value.match(re);
+if(array.length>0){
+var array2=[];
+for (let i=0; i<array.length; i++){
+let els=array[i].split('{').join('').split('}').join('').split(',');
+array2.push(els);
+}
+
+for (let i=0; i<array2.length; i++){
+for (let j=0; j<array2[i].length; j++){
+array2[i][j]=array2[i][j].trim();
+}
+}
+
+var frames_fnl=[];
+for (let i=0; i<array2.length; i++){
+frames_fnl.push(parseInt(array2[i][3]));
+}
+var scr1=document.getElementById('script_one');
+
+scr1.innerText=frames_fnl.join('\n');
+
+document.body.ondblclick=function(e){
+	if(e.target!==scr1){
+    selectText(scr1);
+	}
+}
+
+}
+
+});
+
+
+
+
+
+
+
+</script>
+</body>
+
+</html>
