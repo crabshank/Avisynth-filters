@@ -52,7 +52,10 @@ array2[i][j]=array2[i][j].trim();
 
 var frames_fnl=[];
 for (let i=0; i<array2.length; i++){
-frames_fnl.push(parseInt(array2[i][3]));
+let fNo=parseInt(array2[i][3]);
+if(!frames_fnl.includes(fNo)){
+frames_fnl.push(fNo);
+}
 }
 var scr1=document.getElementById('script_one');
 
