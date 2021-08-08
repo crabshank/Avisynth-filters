@@ -27,14 +27,14 @@ typedef struct Manual_WP {
         char* edits;
         int ed_off;
         int ed_base;
-        int ed_Red[MAX_PATH];
-        int ed_Green[MAX_PATH];
-        int ed_Blue[MAX_PATH];
-        double ed_x[MAX_PATH];
-        double ed_y[MAX_PATH];
-        int ed_start_fr[MAX_PATH];
-        int ed_end_fr[MAX_PATH];
-        int ed_switch[MAX_PATH];
+        int* ed_Red;
+        int* ed_Green;
+        int* ed_Blue;
+        double* ed_x;
+        double* ed_y;
+        int* ed_start_fr;
+        int* ed_end_fr;
+        int* ed_switch;
         int ed_lim;
 } Manual_WP;
 
@@ -679,7 +679,7 @@ params->edits = edts;
 
   if((edts!="")&&(edts!="NULL")){
 
-    char *split[MAX_PATH];
+    char** split=(char*)malloc(sizeof(char*)*strlen(edts));
     char *dup = strdup(edts);
     char* token;
     char* rest=dup;
@@ -697,13 +697,27 @@ while (dup[is]!='\0'){
 
 rest[js]='\0';
 
-  int tkn=0;
+
+      int tkn=0;
     while ((token = strtok_r(rest, "{", &rest))){
+
         split[tkn]=token;
         tkn++;
     }
     params->ed_lim=tkn;
     int no_clips=tkn;
+
+
+            params->ed_Red=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_Green=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_Blue=(int*)malloc(sizeof(int)*no_clips);
+
+        params->ed_x=(double*)malloc(sizeof(double)*no_clips);
+        params->ed_y=(double*)malloc(sizeof(double)*no_clips);
+
+        params->ed_start_fr=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_end_fr=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_switch=(int*)malloc(sizeof(int)*no_clips);
 
 
         tkn-=1;
