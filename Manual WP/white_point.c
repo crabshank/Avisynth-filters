@@ -36,6 +36,16 @@ typedef struct Manual_WP {
         int* ed_end_fr;
         int* ed_switch;
         int ed_lim;
+		int* ed_Red2;
+        int* ed_Green2;
+        int* ed_Blue2;
+        double* ed_x2;
+        double* ed_y2;
+        int* ed_start_fr2;
+        int* ed_end_fr2;
+        int* ed_switch2;
+        int ed_lim2;
+		char* edits2;
 } Manual_WP;
 
 
@@ -46,12 +56,13 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,ed_offst,fv_swt,ed_bse;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,edlm2,ed_offst,fv_swt,ed_bse;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
      char* lid;
      char* eds;
+     char* eds2;
    double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y,sat_dbg_six,r_dbg_six,g_dbg_six,b_dbg_six;
 
 
@@ -75,7 +86,9 @@ nm=params->file;
 lid=params->log_id;
 lnr=params->linear;
 eds=params->edits;
+eds2=params->edits2;
 edlm=params->ed_lim;
+edlm2=params->ed_lim2;
 ed_offst=params->ed_off;
 ed_bse=params->ed_base;
 
@@ -96,7 +109,7 @@ for (int i=359; i>=0; i--){
     hueCount_prp[i]=0;
 }
 
-if((ato==1)&&((eds=="")||(eds=="NULL"))){
+if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
 
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
@@ -186,7 +199,7 @@ double initSat2=2*init_Sat;
 double mid_cnt=(initSat2<1)?0.5*(1-fabs(1-initSat2)):0.5*(fabs(initSat2-1)+1);
 double hl_cnt=(initSat2<1)?0.5*initSat2:0.5*(2-fabs(2-initSat2));
 double lrp1=lerp(mid_cnt,hl_cnt,mid_dist);
-curr_rgb_dst_fnl_hsv[1]=lerp(0,lrp1,init_Sat)  ;
+curr_rgb_dst_fnl_hsv[1]=lerp(0,lrp1,init_Sat);
 
 
 double WPchgRGB_Lin[3];
@@ -282,76 +295,156 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
 }else{
-      if((eds!="")&&(eds!="NULL")){
+      if(((eds!="")&&(eds!="NULL")) || ((eds2!="")&&(eds2!="NULL"))){
 
-    int curr_clip=0;
-    int bse=(ed_bse>=0)?ed_bse:n;
-int ctf=0;
-int ctb=edlm-1;
-    while (ctb>=ctf){
-        if ((bse>=params->ed_start_fr[ctf])&&((bse<=params->ed_end_fr[ctf])||(params->ed_end_fr[ctf]==0))){
+    int curr_clip=-1;
+	 int bse=n;
+	 int found2=0;
+
+	 if((eds2!="")&&(eds2!="NULL")){
+		int ctf=0;
+		int ctb=edlm2-1;
+
+		while (ctb>=ctf){
+			        if ((bse>=params->ed_start_fr2[ctf])&&((bse<=params->ed_end_fr2[ctf])||(params->ed_end_fr2[ctf]==0))){
                 curr_clip=ctf;
-            break;
-        }else if ((bse>=params->ed_start_fr[ctb])&&((bse<=params->ed_end_fr[ctb])||(params->ed_end_fr[ctb]==0))){
+                found2=1;
+				break;
+				}else if ((bse>=params->ed_start_fr2[ctb])&&((bse<=params->ed_end_fr2[ctb])||(params->ed_end_fr2[ctb]==0))){
                 curr_clip=ctb;
+                found2=1;
             break;
-        }
+			}
+        ctb--;
+        ctf++;
+		}
+
+	 }
+
+	 if(((eds!="")&&(eds!="NULL"))&&(found2==0)){
+		bse=(ed_bse>=0)?ed_bse:n;
+
+		int ctf=0;
+		int ctb=edlm-1;
+
+		    while (ctb>=ctf){
+				if ((bse>=params->ed_start_fr[ctf])&&((bse<=params->ed_end_fr[ctf])||(params->ed_end_fr[ctf]==0))){
+					curr_clip=ctf;
+					break;
+				}else if ((bse>=params->ed_start_fr[ctb])&&((bse<=params->ed_end_fr[ctb])||(params->ed_end_fr[ctb]==0))){
+					curr_clip=ctb;
+					break;
+				}
         ctb--;
         ctf++;
     }
 
-    if(curr_clip+ed_offst>edlm-1){
-        curr_clip=edlm-1;
-    }else if(curr_clip+ed_offst<0){
-        curr_clip=0;
-    }else{
-    curr_clip+=ed_offst;
-    }
-
-
-    if (params->ed_switch[curr_clip]==1){
-
-        params->x=params->ed_x[curr_clip];
-        params->y=params->ed_y[curr_clip];
-        cust_x=params->ed_x[curr_clip];
-        cust_y=params->ed_y[curr_clip];
-
-                    if(dbg==5){
-                    rOG=cust_x;
-                    gOG=0;
-                    bOG=cust_y;
-                    fv_swt=1;
-                    }
-
-    }else{
-
-        if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
-                    double xyY_rgb[3];
-
-                double rgb[3];
-
-                rgb[0]=(sxf==1)?(double)(params->ed_Red[curr_clip])*rcptHiBit:(double)(params->ed_Red[curr_clip])*rcptwoFiveFive;
-                rgb[1]=(sxf==1)?(double)(params->ed_Green[curr_clip])*rcptHiBit:(double)(params->ed_Green[curr_clip])*rcptwoFiveFive;
-                rgb[2]=(sxf==1)?(double)(params->ed_Blue[curr_clip])*rcptHiBit:(double)(params->ed_Blue[curr_clip])*rcptwoFiveFive;
-
-                    if(dbg==5){
-                    rOG=rgb[0];
-                    gOG=rgb[1];
-                    bOG=rgb[2];
-                    fv_swt=2;
-                    }
-
-                get_xy(rgb, xyY_rgb , mde,lnr);
-
-                params->x=xyY_rgb[0];
-                params->y=xyY_rgb[1];
-                cust_x=xyY_rgb[0];
-                cust_y=xyY_rgb[1];
-        }
+	if(curr_clip !=-1){
+		if(curr_clip+ed_offst>edlm-1){
+			curr_clip=edlm-1;
+		}else if(curr_clip+ed_offst<0){
+			curr_clip=0;
+		}else{
+			curr_clip+=ed_offst;
+		}
+	}
 
       }
 
-      }
+		if(curr_clip==-1){
+			if(dbg==5){
+				rOG=cust_x;
+				gOG=0;
+				bOG=cust_y;
+				fv_swt=1;
+			}
+		}else if(found2==0){
+						if (params->ed_switch[curr_clip]==1){
+
+				params->x=params->ed_x[curr_clip];
+				params->y=params->ed_y[curr_clip];
+				cust_x=params->ed_x[curr_clip];
+				cust_y=params->ed_y[curr_clip];
+
+							if(dbg==5){
+							rOG=cust_x;
+							gOG=0;
+							bOG=cust_y;
+							fv_swt=1;
+							}
+
+			}else{
+
+				if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
+							double xyY_rgb[3];
+
+						double rgb[3];
+
+						rgb[0]=(sxf==1)?(double)(params->ed_Red[curr_clip])*rcptHiBit:(double)(params->ed_Red[curr_clip])*rcptwoFiveFive;
+						rgb[1]=(sxf==1)?(double)(params->ed_Green[curr_clip])*rcptHiBit:(double)(params->ed_Green[curr_clip])*rcptwoFiveFive;
+						rgb[2]=(sxf==1)?(double)(params->ed_Blue[curr_clip])*rcptHiBit:(double)(params->ed_Blue[curr_clip])*rcptwoFiveFive;
+
+							if(dbg==5){
+							rOG=rgb[0];
+							gOG=rgb[1];
+							bOG=rgb[2];
+							fv_swt=2;
+							}
+
+						get_xy(rgb, xyY_rgb , mde,lnr);
+
+						params->x=xyY_rgb[0];
+						params->y=xyY_rgb[1];
+						cust_x=xyY_rgb[0];
+						cust_y=xyY_rgb[1];
+				}
+
+			  }
+		}else{
+									if (params->ed_switch2[curr_clip]==1){
+
+				params->x=params->ed_x2[curr_clip];
+				params->y=params->ed_y2[curr_clip];
+				cust_x=params->ed_x2[curr_clip];
+				cust_y=params->ed_y2[curr_clip];
+
+							if(dbg==5){
+							rOG=cust_x;
+							gOG=0;
+							bOG=cust_y;
+							fv_swt=1;
+							}
+
+			}else{
+
+				if((params->ed_Red2[curr_clip]!=0) || (params->ed_Green2[curr_clip]!=0) || (params->ed_Blue2[curr_clip]!=0)){
+							double xyY_rgb[3];
+
+						double rgb[3];
+
+						rgb[0]=(sxf==1)?(double)(params->ed_Red2[curr_clip])*rcptHiBit:(double)(params->ed_Red2[curr_clip])*rcptwoFiveFive;
+						rgb[1]=(sxf==1)?(double)(params->ed_Green2[curr_clip])*rcptHiBit:(double)(params->ed_Green2[curr_clip])*rcptwoFiveFive;
+						rgb[2]=(sxf==1)?(double)(params->ed_Blue2[curr_clip])*rcptHiBit:(double)(params->ed_Blue2[curr_clip])*rcptwoFiveFive;
+
+							if(dbg==5){
+							rOG=rgb[0];
+							gOG=rgb[1];
+							bOG=rgb[2];
+							fv_swt=2;
+							}
+
+						get_xy(rgb, xyY_rgb , mde,lnr);
+
+						params->x=xyY_rgb[0];
+						params->y=xyY_rgb[1];
+						cust_x=xyY_rgb[0];
+						cust_y=xyY_rgb[1];
+				}
+
+			  }
+		}
+
+	  }
 
     if (cust_x!=D65_x || (cust_y!=D65_y)){
     double cust_xy[2]={cust_x,cust_y};
@@ -612,6 +705,10 @@ char* edts ="";
 edts = ((avs_as_string(avs_array_elt(args, 17)))&&(avs_as_string(avs_array_elt(args, 17))!="NULL"))?avs_as_string(avs_array_elt(args, 17)):edts;
 params->edits = edts;
 
+char* edts2 ="";
+edts2 = ((avs_as_string(avs_array_elt(args, 20)))&&(avs_as_string(avs_array_elt(args, 20))!="NULL"))?avs_as_string(avs_array_elt(args, 20)):edts2;
+params->edits2 = edts2;
+
 
     if (params->ed_base<-1) {
     return avs_new_value_error ("'ed_base' must be >= -1");
@@ -676,6 +773,133 @@ params->edits = edts;
       }
 
   }
+
+ if((edts2!="")&&(edts2!="NULL")){
+
+    char** split=(char*)malloc(sizeof(char*)*strlen(edts2));
+    char *dup = strdup(edts2);
+    char* token;
+    char* rest=dup;
+
+int is = 0;
+int js = 0;
+
+while (dup[is]!='\0'){
+        if ((isdigit(dup[is]))||(dup[is]==',')||(dup[is]=='-')||(dup[is]=='.')||(dup[is]=='}')||(dup[is]=='{')){
+        rest[js]=dup[is];
+        js++;
+        }
+        is++;
+    }
+
+rest[js]='\0';
+
+
+      int tkn=0;
+    while ((token = strtok_r(rest, "{", &rest))){
+
+        split[tkn]=token;
+        tkn++;
+    }
+    params->ed_lim2=tkn;
+    int no_clips=tkn;
+
+
+            params->ed_Red2=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_Green2=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_Blue2=(int*)malloc(sizeof(int)*no_clips);
+
+        params->ed_x2=(double*)malloc(sizeof(double)*no_clips);
+        params->ed_y2=(double*)malloc(sizeof(double)*no_clips);
+
+        params->ed_start_fr2=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_end_fr2=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_switch2=(int*)malloc(sizeof(int)*no_clips);
+
+
+        tkn-=1;
+
+    while (tkn>=0){
+     split[tkn]=strtok(strdup(split[tkn]),"}");
+        tkn--;
+    }
+
+    tkn=0;
+    int cnt=0;
+
+    while (tkn<no_clips){
+    while ((token = strtok_r(split[tkn], ",", &split[tkn]))){
+int intg;
+switch(cnt){
+        case 0:
+        intg=atoi(token);
+        params->ed_Red2[tkn]=intg;
+        break;
+
+    case 1:
+    intg=atoi(token);
+    params->ed_Green2[tkn]=intg;
+    break;
+
+        case 2:
+        intg=atoi(token);
+        params->ed_Blue2[tkn]=intg;
+        break;
+
+    case 3:
+    intg=atoi(token);
+    intg=(intg<0)?0:intg;
+    params->ed_start_fr2[tkn]=intg;
+    break;
+
+        case 4:
+        intg=atoi(token);
+        intg=(intg>(vi->num_frames)-1)?0:intg;
+        params->ed_end_fr2[tkn]=intg;
+        break;
+
+    case 5:
+    params->ed_x2[tkn]=atof(token);
+    break;
+
+        case 6:
+        params->ed_y2[tkn]=atof(token);
+        break;
+
+    default:
+    ;
+
+
+}
+ cnt=(cnt==6)?0:cnt+1;
+    }
+
+
+    if((params->ed_Red2[tkn]<0)||(params->ed_Green2[tkn]<0)||(params->ed_Blue2[tkn]<0)){
+            params->ed_switch2[tkn]=1;
+    }else{
+
+        if(params->sixtyFour==false){
+            if((params->ed_Red2[tkn]>255)||(params->ed_Green2[tkn]>255)||(params->ed_Blue2[tkn]>255)){
+                params->ed_switch2[tkn]=1;
+            }else{
+                params->ed_switch2[tkn]=0;
+            }
+        }else{
+            if((params->ed_Red2[tkn]>65535)||(params->ed_Green2[tkn]>65535)||(params->ed_Blue2[tkn]>65535)){
+            params->ed_switch2[tkn]=1;
+            }else{
+            params->ed_switch2[tkn]=0;
+            }
+        }
+
+    }
+
+      tkn++;
+    }
+
+  }
+
 
   if((edts!="")&&(edts!="NULL")){
 
@@ -822,6 +1046,6 @@ sprintf(str1,"%d",params->ed_end_fr[0]);
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
