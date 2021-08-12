@@ -16,5 +16,6 @@ bool "overwrite" = false,
 bool "linear" = false,
 string "edits"="",
 int "ed_off"=0,
-int "ed_base"=-1
+int "ed_base"=-1,
+string "edits2"=""
 )
