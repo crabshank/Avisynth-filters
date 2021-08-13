@@ -1,0 +1,178 @@
+<html>
+<head>
+<style>
+textarea{
+	border: rgb(128 128 128);
+	border-style: outset;
+	border-width: thin;
+	width: 100%;
+	min-width: 100%;
+	max-width: 100%;
+}
+div#script_one {
+    max-width: max-content;
+}
+</style>
+</head>
+<body>
+<h1 id="ttl">WP brace (change) generator</h1>	
+<label for="bcSyntax">Syntax: </label>
+<select id="bcSyntax" style="background: buttonface;">
+    <option style="color: black;">e.g. 415 (+[3]/-3) 425</option>
+	<option style="color: black;">e.g. 415 425 (+[3]/-3)</option>
+</select><br><br>
+Paste brace changes here:
+<textarea id="txt0" style="min-height: 35%;"></textarea><br><br>
+Paste braces here:
+<br>
+<textarea id="txt" style="min-height: 25%;"></textarea><br><br>
+<div id="script_one"></div>
+<script>
+var scr1=document.getElementById('script_one');
+var txPost=document.getElementById('txt0');
+var tx0=document.getElementById('txt0');
+var tx=document.getElementById('txt');
+var tl=document.getElementById('ttl');
+var slct=document.getElementById('bcSyntax');
+var postReady=false;
+var outp=[];
+var outpTxt=[];
+
+ function selectText(element) {
+   if (document.body.createTextRange) {
+        let range = document.body.createTextRange();
+        range.moveToElementText(element);
+        range.select();
+    } else if (window.getSelection) {
+        let selection = window.getSelection();        
+        let range = document.createRange();
+        range.selectNodeContents(element);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+}
+
+document.body.ondblclick=function(e){
+	if(e.target!==scr1){
+    selectText(scr1);
+	}
+}
+
+function braceChangeStartIndex(startF,bracesArr,delta){
+var i=0;
+var k=bracesArr.length-1;
+	while (i<=k){
+		if(bracesArr[i][3]<=startF && bracesArr[i][4]>=startF){
+			return i+delta;
+		}
+		if(bracesArr[k][3]<=startF && bracesArr[k][4]>=startF){
+			return k+delta;
+		}
+		
+		i++;
+		k--;
+	}
+}
+
+tx0.oninput=function(){
+outp=[];
+outpTxt=[];
+let re =(slct.selectedIndex==0)?/\d+([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)\d+/g:/\d+[^\S\r\n]+\d+[^\S\r\n]*(\+\d*|\-\d+)/g;
+var array = tx0.value.match(re);
+if(array.length>0){
+tx0.value='PROCESSING...';
+
+for(let i=0; i<array.length; i++){
+	let re2; 
+	let re3;
+	let re4;	
+	
+	/*let re2=/_(?=)/g; 
+	let re3=/(?<=)_(?=)/g;
+	let re4 = /(?<=)_/g;*/
+	if(slct.selectedIndex==0){
+		re2=/\d+(?=([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)\d+)/g; 
+		re3=/(?<=\d+)([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)(?=\d+)/g;
+		re4 = /(?<=\d+([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+))\d+/g;
+		
+		let offst=array[i].match(re3)[0].trim();
+
+		outpTxt.push([parseInt(array[i].match(re2)),parseInt(array[i].match(re4)),offst]);
+		outp.push([parseInt(array[i].match(re2)),parseInt(array[i].match(re4)),(offst=='+')?0:parseInt(offst)]);
+	}else{
+		re2=/\d+(?=[^\S\r\n]+\d+[^\S\r\n]*(\+\d*|\-\d+))/g; 
+		re3=/(?<=\d+)[^\S\r\n]+\d+[^\S\r\n]*(?=(\+\d*|\-\d+))/g;
+		re4 = /(?<=\d+[^\S\r\n]+\d+[^\S\r\n]*)(\+\d*|\-\d+)/g;
+		
+		let offst=array[i].match(re4)[0].trim();
+
+		outpTxt.push([parseInt(array[i].match(re2)),parseInt(array[i].match(re3)),offst]);
+		outp.push([parseInt(array[i].match(re2)),parseInt(array[i].match(re3)),(offst=='+')?0:parseInt(offst)]);
+		
+	}
+	
+
+}
+	
+	tx0.value='';
+	for(let i=0; i<outpTxt.length; i++){
+		tx0.value+=JSON.stringify(outpTxt[i]).split('[').join('').split(']').join('').split(',').join(' ').split('"').join('')+((i==outpTxt.length-1)?'':'\n');
+	}
+
+}
+	postReady=true;
+}
+
+
+tx.oninput=function(){
+if(postReady){
+let re = /{\s*\-{0,1}\d{1,5}\s*,\s*\-{0,1}\d{1,5}\s*,\s*\-{0,1}\d{1,5}\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\.*\d*\s*,\s*\d+\.*\d*\s*}/g;
+var array = tx.value.match(re);
+	if(array.length>0){
+		var OG_val=tx.value;
+		tx.value='PROCESSING...';
+		var array2=[];
+		var array3=[];
+		var array4=[];
+		var array5=[];
+		
+		for (let i=0; i<array.length; i++){
+			let els=array[i].split('{').join('').split('}').join('').split(',');
+			array2.push(els);
+		}
+		
+		for (let i=0; i<array2.length; i++){
+		for (let j=0; j<array2[i].length; j++){
+			array2[i][j]=array2[i][j].trim();
+		}
+		}
+		
+		for (let i=0; i<array2.length; i++){
+			array3.push([parseInt(array2[i][0]),+parseInt(array2[i][1]),parseInt(array2[i][2]),parseInt(array2[i][3]),parseInt(array2[i][4]),array2[i][5].trim(),array2[i][6].trim()]);
+		}
+		
+		for (let i=0; i<outp.length; i++){
+			if(outp[i][2]!=0){
+				let ix=braceChangeStartIndex(outp[i][0],array3,outp[i][2]);
+				try{
+					array4.push([array3[ix][0],+array3[ix][1],array3[ix][2],outp[i][0],outp[i][1],array3[ix][5],array3[ix][6]]);
+				}catch(e){;}
+			}else if(outpTxt[i][2]=='+'){
+				array4.push([255,0,0,outp[i][0],outp[i][1],'0.312727','0.329023']);
+			}
+		}
+		scr1.innerText='"""\n'
+		for (let i=0; i<array4.length; i++){
+			scr1.innerText+='{'+array4[i][0]+', '+array4[i][1]+', '+array4[i][2]+', '+array4[i][3]+', '+array4[i][4]+', '+array4[i][5]+', '+array4[i][6]+'}\n'
+		}
+		scr1.innerText+='"""'
+		tx.value=OG_val;
+	}
+
+}
+}
+
+
+</script>
+</body>
+</html>
