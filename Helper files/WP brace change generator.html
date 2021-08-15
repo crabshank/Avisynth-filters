@@ -61,12 +61,25 @@ document.body.ondblclick=function(e){
 function braceChangeStartIndex(startF,bracesArr,delta){
 var i=0;
 var k=bracesArr.length-1;
+var outp;
 	while (i<=k){
 		if(bracesArr[i][3]<=startF && bracesArr[i][4]>=startF){
-			return i+delta;
+			outp=i+delta;
+			if(outp<0){
+				outp=0;
+			}else if(outp>(bracesArr.length-1)){
+				outp=bracesArr.length-1;
+			}
+			return outp;
 		}
 		if(bracesArr[k][3]<=startF && bracesArr[k][4]>=startF){
-			return k+delta;
+			outp=k+delta;
+			if(outp<0){
+				outp=0;
+			}else if(outp>(bracesArr.length-1)){
+				outp=bracesArr.length-1;
+			}
+			return outp;
 		}
 		
 		i++;
