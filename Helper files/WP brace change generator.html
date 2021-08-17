@@ -91,11 +91,11 @@ tx0.oninput=function(){
 outp=[];
 outpTxt=[];
 let re =(slct.selectedIndex==0)?/\d+([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)\d+/g:/\d+[^\S\r\n]+\d+[^\S\r\n]*(\+\d*|\-\d+)/g;
-var array = tx0.value.match(re);
-if(array.length>0){
+var arr = tx0.value.match(re);
+if(!!arr && arr.length>0){
 tx0.value='PROCESSING...';
 
-for(let i=0; i<array.length; i++){
+for(let i=0; i<arr.length; i++){
 	let re2; 
 	let re3;
 	let re4;	
@@ -108,32 +108,75 @@ for(let i=0; i<array.length; i++){
 		re3=/(?<=\d+)([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)(?=\d+)/g;
 		re4 = /(?<=\d+([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+))\d+/g;
 		
-		let offst=array[i].match(re3)[0].trim();
+		let offst=arr[i].match(re3)[0].trim();
 
-		outpTxt.push([parseInt(array[i].match(re2)),parseInt(array[i].match(re4)),offst]);
-		outp.push([parseInt(array[i].match(re2)),parseInt(array[i].match(re4)),(offst=='+')?0:parseInt(offst)]);
+		outpTxt.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re4)),offst]);
+		outp.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re4)),(offst=='+')?0:parseInt(offst)]);
 	}else{
 		re2=/\d+(?=[^\S\r\n]+\d+[^\S\r\n]*(\+\d*|\-\d+))/g; 
 		re3=/(?<=\d+)[^\S\r\n]+\d+[^\S\r\n]*(?=(\+\d*|\-\d+))/g;
 		re4 = /(?<=\d+[^\S\r\n]+\d+[^\S\r\n]*)(\+\d*|\-\d+)/g;
 		
-		let offst=array[i].match(re4)[0].trim();
+		let offst=arr[i].match(re4)[0].trim();
 
-		outpTxt.push([parseInt(array[i].match(re2)),parseInt(array[i].match(re3)),offst]);
-		outp.push([parseInt(array[i].match(re2)),parseInt(array[i].match(re3)),(offst=='+')?0:parseInt(offst)]);
+		outpTxt.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re3)),offst]);
+		outp.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re3)),(offst=='+')?0:parseInt(offst)]);
 		
 	}
 	
 
 }
+	var ovlp=false;
+	var ovlpArr=[];
+	for(let i=0; i<outp.length; i++){
+		for(let k=0; k<outp.length; k++){
+			if(i<k){
+				if(outp[k][1]==0){
+				if( !( (outp[i][0] < outp[k][0]) && (outp[i][1] < outp[k][0]) ) ){
+						ovlp=true;
+						ovlpArr.push({start: i,end: k});
+					}
+				}else if(outp[k][1]==0){
+					if( !( (outp[k][0] < outp[i][0]) && (outp[k][1] < outp[i][0]) ) ){
+						ovlp=true;
+						ovlpArr.push({start: i,end: k});
+					}
+				}else{
+					if(!( ( (outp[k][0]>outp[i][1]) && (outp[k][1]>outp[i][1]) ) || ((outp[k][0]<outp[i][0]) && (outp[k][1]<outp[i][0])) )){
+						ovlp=true;
+						ovlpArr.push({start: i,end: k});		
+					}
+					
+				}
+			}
+
+		}
+	}
+	
+	
+	
 	
 	tx0.value='';
-	for(let i=0; i<outpTxt.length; i++){
-		tx0.value+=JSON.stringify(outpTxt[i]).split('[').join('').split(']').join('').split(',').join(' ').split('"').join('')+((i==outpTxt.length-1)?'':'\n');
-	}
+	if(ovlp){
+	tx0.value='Errors on the following changes: \n\n'
+		for(let i=0; i<ovlpArr.length; i++){
+			tx0.value+=(slct.selectedIndex==1)?outpTxt[ovlpArr[i].start][0]+' '+outpTxt[ovlpArr[i].start][1]+' '+outpTxt[ovlpArr[i].start][2]+'\n':outpTxt[ovlpArr[i].start][0]+' '+outpTxt[ovlpArr[i].start][2]+' '+outpTxt[ovlpArr[i].start][1]+'\n';	
+			tx0.value+=(slct.selectedIndex==1)?outpTxt[ovlpArr[i].end][0]+' '+outpTxt[ovlpArr[i].end][1]+' '+outpTxt[ovlpArr[i].end][2]+((i==ovlpArr.length-1)?'':'\n\n'):outpTxt[ovlpArr[i].end][0]+' '+outpTxt[ovlpArr[i].end][2]+' '+outpTxt[ovlpArr[i].end][1]+((i==outpTxt.length-1)?'':'\n\n');
+		}
 
-}
+}else{
+	if(slct.selectedIndex==1){
+			for(let i=0; i<outpTxt.length; i++){
+				tx0.value+=outpTxt[i][0]+' '+outpTxt[i][1]+' '+outpTxt[i][2]+((i==outpTxt.length-1)?'':'\n');
+			}
+		}else{
+			for(let i=0; i<outpTxt.length; i++){
+					tx0.value+=outpTxt[i][0]+' '+outpTxt[i][2]+' '+outpTxt[i][1]+((i==outpTxt.length-1)?'':'\n');
+				}
+		}
 	postReady=true;
+}
+}
 }
 
 
