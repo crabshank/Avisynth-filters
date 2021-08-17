@@ -88,10 +88,12 @@ var outp;
 }
 
 tx0.oninput=function(){
+lenDiff=false;
 outp=[];
 outpTxt=[];
 let re =(slct.selectedIndex==0)?/\d+([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)\d+/g:/\d+[^\S\r\n]+\d+[^\S\r\n]*(\+\d*|\-\d+)/g;
 var arr = tx0.value.match(re);
+lenDiff=(arr.length==tx0.value.split('\n').filter((ln)=>{return ln.trim()!=='';}).length)?false:true;
 if(!!arr && arr.length>0){
 tx0.value='PROCESSING...';
 
@@ -156,7 +158,7 @@ for(let i=0; i<arr.length; i++){
 	
 	
 	
-	tx0.value='';
+	tx0.value=(lenDiff)?'WARNING: Number of lines in input text not equal to processed changes\n\n':'';
 	if(ovlp){
 	tx0.value='Errors on the following changes: \n\n'
 		for(let i=0; i<ovlpArr.length; i++){
