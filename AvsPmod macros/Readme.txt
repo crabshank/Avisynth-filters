@@ -9,3 +9,5 @@ Insert new braces WP - curr - focus.py - Adds brace and changes previous brace d
 Mouse select frames around top.py - Set X/Ystart and X/Yend to specify what part of the of the video preview is covered by the framesAroundTop function, then you can place the cursor over the frame you want to jump to and trgger the macro to jumps to that frame.
 
 Change RGB WP curr frame brace.py - Changes RGB value for the brace that contains the current frame (or focus_frame if focusser = 1) to the RGB value that the cursor is over.
+
+Change RGB WP curr frame brace_paste.py - Changes RGB value for the brace that contains the current frame (or focus_frame if focusser = 1) to what is in the clipboard (should be an RGB triplet).
