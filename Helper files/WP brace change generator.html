@@ -110,7 +110,7 @@ for(let i=0; i<arr.length; i++){
 		re3=/(?<=\d+)([^\S\r\n]*\+[^\S\r\n]*\d*[^\S\r\n]+|[^\S\r\n]*\-[^\S\r\n]*\d+[^\S\r\n]+)(?=\d+)/g;
 		re4 = /(?<=\d+([^\S\r\n]*\+[^\S\r\n]*\d*[^\S\r\n]+|[^\S\r\n]*\-[^\S\r\n]*\d+[^\S\r\n]+))\d+/g;
 		
-		let offst=arr[i].match(re3)[0].trim();
+		let offst=arr[i].match(re3)[0].split(' ').join('');
 
 		outpTxt.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re4)),offst]);
 		outp.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re4)),(offst=='+')?0:parseInt(offst)]);
@@ -119,7 +119,7 @@ for(let i=0; i<arr.length; i++){
 		re3=/(?<=\d+)[^\S\r\n]+\d+[^\S\r\n]*(?=(\+[^\S\r\n]*\d*|\-[^\S\r\n]*\d+))/g;
 		re4 = /(?<=\d+[^\S\r\n]+\d+[^\S\r\n]*)(\+[^\S\r\n]*\d*|\-[^\S\r\n]*\d+)/g;
 		
-		let offst=arr[i].match(re4)[0].trim();
+		let offst=arr[i].match(re4)[0].split(' ').join('');
 
 		outpTxt.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re3)),offst]);
 		outp.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re3)),(offst=='+')?0:parseInt(offst)]);
