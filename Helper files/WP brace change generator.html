@@ -91,7 +91,7 @@ tx0.oninput=function(){
 lenDiff=false;
 outp=[];
 outpTxt=[];
-let re =(slct.selectedIndex==0)?/\d+([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)\d+/g:/\d+[^\S\r\n]+\d+[^\S\r\n]*(\+\d*|\-\d+)/g;
+let re =(slct.selectedIndex==0)?/\d+([^\S\r\n]*\+[^\S\r\n]*\d*[^\S\r\n]+|[^\S\r\n]*\-[^\S\r\n]*\d+[^\S\r\n]+)\d+/g:/\d+[^\S\r\n]+\d+[^\S\r\n]*(\+[^\S\r\n]*\d*|\-[^\S\r\n]*\d+)/g;
 var arr = tx0.value.match(re);
 lenDiff=(arr.length==tx0.value.split('\n').filter((ln)=>{return ln.trim()!=='';}).length)?false:true;
 if(!!arr && arr.length>0){
@@ -106,18 +106,18 @@ for(let i=0; i<arr.length; i++){
 	let re3=/(?<=)_(?=)/g;
 	let re4 = /(?<=)_/g;*/
 	if(slct.selectedIndex==0){
-		re2=/\d+(?=([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)\d+)/g; 
-		re3=/(?<=\d+)([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+)(?=\d+)/g;
-		re4 = /(?<=\d+([^\S\r\n]*\+\d*[^\S\r\n]+|[^\S\r\n]*\-\d+[^\S\r\n]+))\d+/g;
+		re2=/\d+(?=([^\S\r\n]*\+[^\S\r\n]*\d*[^\S\r\n]+|[^\S\r\n]*\-[^\S\r\n]*\d+[^\S\r\n]+)\d+)/g; 
+		re3=/(?<=\d+)([^\S\r\n]*\+[^\S\r\n]*\d*[^\S\r\n]+|[^\S\r\n]*\-[^\S\r\n]*\d+[^\S\r\n]+)(?=\d+)/g;
+		re4 = /(?<=\d+([^\S\r\n]*\+[^\S\r\n]*\d*[^\S\r\n]+|[^\S\r\n]*\-[^\S\r\n]*\d+[^\S\r\n]+))\d+/g;
 		
 		let offst=arr[i].match(re3)[0].trim();
 
 		outpTxt.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re4)),offst]);
 		outp.push([parseInt(arr[i].match(re2)),parseInt(arr[i].match(re4)),(offst=='+')?0:parseInt(offst)]);
 	}else{
-		re2=/\d+(?=[^\S\r\n]+\d+[^\S\r\n]*(\+\d*|\-\d+))/g; 
-		re3=/(?<=\d+)[^\S\r\n]+\d+[^\S\r\n]*(?=(\+\d*|\-\d+))/g;
-		re4 = /(?<=\d+[^\S\r\n]+\d+[^\S\r\n]*)(\+\d*|\-\d+)/g;
+		re2=/\d+(?=[^\S\r\n]+\d+[^\S\r\n]*(\+[^\S\r\n]*\d*|\-[^\S\r\n]*\d+))/g; 
+		re3=/(?<=\d+)[^\S\r\n]+\d+[^\S\r\n]*(?=(\+[^\S\r\n]*\d*|\-[^\S\r\n]*\d+))/g;
+		re4 = /(?<=\d+[^\S\r\n]+\d+[^\S\r\n]*)(\+[^\S\r\n]*\d*|\-[^\S\r\n]*\d+)/g;
 		
 		let offst=arr[i].match(re4)[0].trim();
 
@@ -179,6 +179,7 @@ for(let i=0; i<arr.length; i++){
 	postReady=true;
 }
 }
+
 }
 
 
