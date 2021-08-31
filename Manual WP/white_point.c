@@ -601,8 +601,10 @@ dbgHSV[0]=240.0;
 dbgHSV[0]=270.0;
 }else if((hue>=3075) && (hue<3375)){
 dbgHSV[0]=330.0;
+dbgHSV[1]=0.8;
 }else if((hue>=3375) && (hue<3525)){
 dbgHSV[0]=345.0;
+dbgHSV[1]=0.95;
 }
 
  hsv2rgb_360(dbgHSV, dbgRGB);
