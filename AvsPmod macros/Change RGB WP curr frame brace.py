@@ -32,18 +32,8 @@ R,G,B = rgb.Get()
 # Source - https://gist.github.com/line0/11328940
 
 curr=avsp.GetFrameNumber()
-bookmarks = avsp.GetBookmarkList()
-
-if bookmarks:
-		bookmarks = list(set(bookmarks))
-		bookmarks.sort(reverse=True) 
-		for k in range(len(bookmarks)): 
-			if bookmarks[k] <= curr:
-				curr=bookmarks[k] #curr := last bookmark if there are any
-				break
 
 frms=avsp.GetVideoFramecount(index=None)
-bookmarks = avsp.GetBookmarkList()
 sw=0
 cg=0
 txt=avsp.GetText(index=None, clean=False)
