@@ -7,8 +7,9 @@ if bookmarks:
 			if bookmarks[k] <= curr:
 				curr=bookmarks[k]
 				break
+		curr_bk = curr
 		curr = 0 if curr==0 else curr-1
-		avsp.InsertText('%i'%curr,pos=None)
+		avsp.InsertText('%i\n%i '%(curr,curr_bk),pos=None)
 else:
 	curr = 0 if curr==0 else curr-1
-	avsp.InsertText('%i'%curr,pos=None)
+	avsp.InsertText('%i\n%i '%(curr,curr_bk),pos=None)
