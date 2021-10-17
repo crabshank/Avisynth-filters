@@ -63,5 +63,5 @@ outcol[i]=1-fabs((fastPrecisePow(-col,gamma+1)+fastPrecisePow(col,gamma_hi+1)+fa
     }
 
 
- dist=(avg-outcol[0])+(avg-outcol[1])+((outcol[2]-avg));
+ dist=(avg-outcol[0])+(avg-outcol[1])+(outcol[2]-avg);
 }
