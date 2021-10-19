@@ -12,4 +12,4 @@ Change RGB WP curr frame brace.py - Changes RGB value for the brace that contain
 
 Change RGB WP curr frame brace_paste.py - Changes RGB value for the brace that contains the current frame (or focus_frame if focusser = 1) to what is in the clipboard (should be an RGB triplet).
 
-Insert last bookmark frame_match start brace.py & Insert last bookmark frame -1 plus newline last bk_match start brace.py - Insert the last bookmarked frame or, last bookmarked frame - 1 + new line + last bookmarked frame, and adds " [WP]" if the last bookmarked frame is a start frame for a brace of Manual_WP.
+Insert last bookmark frame_match start brace.py & Insert last bookmark frame -1 plus newline last bk_match start brace.py - Insert the last bookmarked frame or, last bookmarked frame - 1 + new line + last bookmarked frame, and adds " [WP]" if the last bookmarked frame is a start frame for a brace of Manual_WP or just a space if not.
