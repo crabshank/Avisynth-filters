@@ -510,11 +510,15 @@ satOG=(amp>=0)?satOG*(1-amp):satOG;
 
     double hue_dbg=120;
 
-    hue_dbg=(sat<satOG)?lerp(157.5,240,(satOG-sat)/satOG):hue_dbg; //Sat decreased, cyan to blue
-    hue_dbg=(sat>satOG)?lerp(307.5,367.5,(sat-satOG)/(1-satOG)):hue_dbg; //Sat increased, Magenta to Orange
+    double abs_satDiff=(satOG==0)?fabs(satOG-sat):fabs(satOG-sat)/satOG;
+    double satDiff1=(satOG==0)?satOG-sat:fabs(satOG-sat)/satOG;
+    double satDiff2=(satOG==1)?sat-satOG:(sat-satOG)/(1-satOG);
+
+    hue_dbg=(sat<satOG)?lerp(157.5,240,satDiff1):hue_dbg;  //Sat decreased, cyan to blue
+    hue_dbg=(sat>satOG)?lerp(307.5,367.5,satDiff2):hue_dbg; //Sat increased, Magenta to Orange
     hue_dbg=(hue_dbg==360)?0:hue_dbg;
     hue_dbg=(hue_dbg>360)?hue_dbg-360:hue_dbg;
-    double hsv_dbg[3]={hue_dbg,1,1-amp};
+    double hsv_dbg[3]={hue_dbg,1,lerp(0.3*(1-amp),1-amp,abs_satDiff)};
     hsv2rgb_360(hsv_dbg,WPchgRGB);
 
 }else if (dbg==5){
