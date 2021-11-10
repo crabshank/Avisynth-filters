@@ -512,7 +512,9 @@ satOG=(amp>=0)?satOG*(1-amp):satOG;
 
     double abs_satDiff=(satOG==0)?fabs(satOG-sat):fabs(satOG-sat)/satOG;
     double satDiff1=(satOG==0)?satOG-sat:fabs(satOG-sat)/satOG;
+     satDiff1=satDiff1*satDiff1;
     double satDiff2=(satOG==1)?sat-satOG:(sat-satOG)/(1-satOG);
+     satDiff2=satDiff2*satDiff2;
 
     hue_dbg=(sat<satOG)?lerp(157.5,240,satDiff1):hue_dbg;  //Sat decreased, cyan to blue
     hue_dbg=(sat>satOG)?lerp(307.5,367.5,satDiff2):hue_dbg; //Sat increased, Magenta to Orange
