@@ -24,6 +24,15 @@
 #define euler_e 2.718281828459045
 
 inline double fastPrecisePow(double a, double b) {
+	//added support for negative exponents
+	int neg_b=0;
+
+	if(b==0){
+		return 1.0;
+	}else if(b<0){
+		neg_b=1;
+		b=fabs(b);
+	}
   // calculate approximation with fraction of the exponent
   int e = (int) b;
   union {
@@ -44,7 +53,14 @@ inline double fastPrecisePow(double a, double b) {
     e >>= 1;
   }
 
-  return r * u.d;
+	double res= r * u.d;
+
+  if(neg_b==0){
+	  return res;
+  }else{
+	   return 1.0/res;
+  }
+
 }
 //Source: https://martin.ankerl.com/2012/01/25/optimized-approximative-fastPrecisePow-in-c-and-cpp/
 
