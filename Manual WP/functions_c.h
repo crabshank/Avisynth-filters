@@ -84,6 +84,15 @@ double v=hsv[2];
 }
 
 inline double fastPrecisePow(double a, double b) {
+	//added support for negative exponents
+	int neg_b=0;
+
+	if(b==0){
+		return 1.0;
+	}else if(b<0){
+		neg_b=1;
+		b=fabs(b);
+	}
   // calculate approximation with fraction of the exponent
   int e = (int) b;
   union {
@@ -104,7 +113,14 @@ inline double fastPrecisePow(double a, double b) {
     e >>= 1;
   }
 
-  return r * u.d;
+	double res= r * u.d;
+
+  if(neg_b==0){
+	  return res;
+  }else{
+	   return 1.0/res;
+  }
+
 }
 //Source: https://martin.ankerl.com/2012/01/25/optimized-approximative-fastPrecisePow-in-c-and-cpp/
 
@@ -190,8 +206,8 @@ mul(3,3,1,convBrad,XYZ,outp);
 
 }
 
-void Linearise(double rgbGam[3], double rgbLin[3],int mode){
-
+void Linearise(double rgbGam[3], double rgbLin[3],int mode, int aprxPw){
+if(aprxPw==1){
     if ((mode==0)||(mode==6)){ //sRGB transfer
           rgbLin[0]=(rgbGam[0] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbGam[0]+0.055)*rcpOFiveFive),2.4):rgbGam[0]*rcpTwelveNineTwo;
           rgbLin[1]=(rgbGam[1] > 0.0404482362771082 )?fastPrecisePow(fabs((rgbGam[1]+0.055)*rcpOFiveFive),2.4):rgbGam[1]*rcpTwelveNineTwo;
@@ -213,14 +229,37 @@ void Linearise(double rgbGam[3], double rgbLin[3],int mode){
           rgbLin[1]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[1]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[1])),rcpTxFourFive);
           rgbLin[2]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[2]:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[2])),rcpTxFourFive);
     }
+}else{
+	    if ((mode==0)||(mode==6)){ //sRGB transfer
+          rgbLin[0]=(rgbGam[0] > 0.0404482362771082 )?pow(fabs((rgbGam[0]+0.055)*rcpOFiveFive),2.4):rgbGam[0]*rcpTwelveNineTwo;
+          rgbLin[1]=(rgbGam[1] > 0.0404482362771082 )?pow(fabs((rgbGam[1]+0.055)*rcpOFiveFive),2.4):rgbGam[1]*rcpTwelveNineTwo;
+          rgbLin[2]=(rgbGam[2] > 0.0404482362771082 )?pow(fabs((rgbGam[2]+0.055)*rcpOFiveFive),2.4):rgbGam[2]*rcpTwelveNineTwo;
+    }else if ((mode==5)||(mode==10)){ //DCI-P3
+          rgbLin[0]=pow(rgbGam[0],2.6);
+          rgbLin[1]=pow(rgbGam[1],2.6);
+          rgbLin[2]=pow(rgbGam[2],2.6);
+    }else if (mode==7){ //Original NTSC - Source: 47 CFR, Section 73.682 - TV transmission standards
+          rgbLin[0]=pow(rgbGam[0],2.2);
+          rgbLin[1]=pow(rgbGam[1],2.2);
+          rgbLin[2]=pow(rgbGam[2],2.2);
+    }else if(mode==11){ //Rec. 2100 HLG
+          rgbLin[0]=(rgbLin[0]>0.5)?rcpTwelve*(pow(euler_e,(rgbLin[0]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[0]*rgbLin[0]*third;
+          rgbLin[1]=(rgbLin[1]>0.5)?rcpTwelve*(pow(euler_e,(rgbLin[1]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[1]*rgbLin[1]*third;
+          rgbLin[2]=(rgbLin[2]>0.5)?rcpTwelve*(pow(euler_e,(rgbLin[2]-HLG_c)*rcp_HLG_a)+HLG_b):rgbLin[2]*rgbLin[2]*third;
+    }else{ //Rec transfer
+          rgbLin[0]=(rgbGam[0] < recBetaLin )?rcpFourFive*rgbGam[0]:pow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[0])),rcpTxFourFive);
+          rgbLin[1]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[1]:pow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[1])),rcpTxFourFive);
+          rgbLin[2]=(rgbGam[1] < recBetaLin )?rcpFourFive*rgbGam[2]:pow(-1*(rcpRecAlpha*(1-recAlpha-rgbGam[2])),rcpTxFourFive);
+    }
+}
 }
 
-void Apply_gamma(double rgbLin[3], double rgbGam[3], int mode){
+void Apply_gamma(double rgbLin[3], double rgbGam[3], int mode, int aprxPw){
 
    double r=rgbLin[0];
    double g=rgbLin[1];
    double b=rgbLin[2];
-
+if(aprxPw==1){
     if ((mode==0)||(mode==6)){ //sRGB transfer
         rgbGam[0]=(r> 0.00313066844250063)?1.055 * fastPrecisePow(r,rcpTwoFour) - 0.055:12.92 *r;
         rgbGam[1]=(g> 0.00313066844250063)?1.055 * fastPrecisePow(g,rcpTwoFour) - 0.055:12.92 *g;
@@ -242,10 +281,32 @@ void Apply_gamma(double rgbLin[3], double rgbGam[3], int mode){
         rgbGam[1]=(g< recBeta)?4.5*g:recAlpha*fastPrecisePow(g,0.45)-(recAlpha-1);
         rgbGam[2]=(b< recBeta)?4.5*b:recAlpha*fastPrecisePow(b,0.45)-(recAlpha-1);
     }
-
+}else{
+	    if ((mode==0)||(mode==6)){ //sRGB transfer
+        rgbGam[0]=(r> 0.00313066844250063)?1.055 * pow(r,rcpTwoFour) - 0.055:12.92 *r;
+        rgbGam[1]=(g> 0.00313066844250063)?1.055 * pow(g,rcpTwoFour) - 0.055:12.92 *g;
+        rgbGam[2]=(b> 0.00313066844250063)?1.055 * pow(b,rcpTwoFour) - 0.055:12.92 *b;
+    }else if ((mode==5)||(mode==10)){ //DCI-P3
+        rgbGam[0]=pow(r,invTwoSix);
+        rgbGam[1]=pow(g,invTwoSix);
+        rgbGam[2]=pow(b,invTwoSix);
+    }else if (mode==7){ //Original NTSC
+        rgbGam[0]=pow(r,invTwoTwo);
+        rgbGam[1]=pow(g,invTwoTwo);
+        rgbGam[2]=pow(b,invTwoTwo);
+    }else if (mode==11){ //Rec. 2100 HLG
+        rgbGam[0]=(rgbGam[0] > rcpTwelve)?HLG_a*log(12.0*rgbGam[0]-HLG_b)+HLG_c:root_three*pow(rgbGam[0],0.5);
+        rgbGam[1]=(rgbGam[1] > rcpTwelve)?HLG_a*log(12.0*rgbGam[1]-HLG_b)+HLG_c:root_three*pow(rgbGam[1],0.5);
+        rgbGam[2]=(rgbGam[2] > rcpTwelve)?HLG_a*log(12.0*rgbGam[2]-HLG_b)+HLG_c:root_three*pow(rgbGam[2],0.5);
+    }else{ //Rec transfer
+        rgbGam[0]=(r< recBeta)?4.5*r:recAlpha*pow(r,0.45)-(recAlpha-1);
+        rgbGam[1]=(g< recBeta)?4.5*g:recAlpha*pow(g,0.45)-(recAlpha-1);
+        rgbGam[2]=(b< recBeta)?4.5*b:recAlpha*pow(b,0.45)-(recAlpha-1);
+    }
+}
 }
 
-void rgb2XYZ (double rgb[3], double XYZog[3],double XYZnew[3], int mode, int grey, int linr){
+void rgb2XYZ (double rgb[3], double XYZog[3],double XYZnew[3], int mode, int grey, int linr, int aprxPw){
 
 	  double rgbLin[3];
 if(linr==1){
@@ -253,7 +314,7 @@ if(linr==1){
       rgbLin[1]=rgb[1];
       rgbLin[2]=rgb[2];
 }else{
-       Linearise(rgb,rgbLin,mode);
+       Linearise(rgb,rgbLin,mode,aprxPw);
 }
 
 double v1[3];
@@ -427,7 +488,7 @@ void XYZ2xyY(double XYZ[3],double outp[3]){
 	outp[2]=XYZ[1];
 }
 
-void XYZ2rgb(double XYZ[3],double RGB[3], int mode, int linr){
+void XYZ2rgb(double XYZ[3],double RGB[3], int mode, int linr, int aprxPw){
 
 double v1[3];
 double v2[3];
@@ -545,7 +606,7 @@ if(linr==1){
         RGB[1]=rgbLin[1];
         RGB[2]=rgbLin[2];
 }else{
-    Apply_gamma(rgbLin,RGB,mode);
+    Apply_gamma(rgbLin,RGB,mode,aprxPw);
 }
 
 }
@@ -558,13 +619,13 @@ void xy2XYZ(double xyCoord[2],double outp[3]){
         outp[2]=(1.0/xyCoord[1])*(1-xyCoord[0]-xyCoord[1]);
 }
 
-void get_xy( double rgb[3],double xyY[3] , int mode, int linr){
+void get_xy( double rgb[3],double xyY[3] , int mode, int linr, int aprxPw){
 
         double XYZ1[3];
         double XYZ2[3];
         double XYZ3[3];
 
-        rgb2XYZ(rgb,XYZ1,XYZ2,mode,1,linr);
+        rgb2XYZ(rgb,XYZ1,XYZ2,mode,1,linr, aprxPw);
         WPconv2Grey(XYZ1,XYZ2,XYZ3);
         XYZ2xyY(XYZ3,xyY);
 }
