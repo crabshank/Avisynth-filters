@@ -17,5 +17,5 @@ bool "linear" = false,
 string "edits"="",
 int "ed_off"=0,
 int "ed_base"=-1,
-string "edits2"=""
+bool "approxPow" = true
 )
