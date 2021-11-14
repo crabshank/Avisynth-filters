@@ -46,6 +46,7 @@ typedef struct Manual_WP {
         int* ed_switch2;
         int ed_lim2;
 		char* edits2;
+		int approxPow;
 } Manual_WP;
 
 
@@ -56,7 +57,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,edlm2,ed_offst,fv_swt,ed_bse;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,edlm2,ed_offst,fv_swt,ed_bse,aprxPw;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
@@ -91,6 +92,7 @@ edlm=params->ed_lim;
 edlm2=params->ed_lim2;
 ed_offst=params->ed_off;
 ed_bse=params->ed_base;
+aprxPw=params->approxPow;
 
 sat_dbg_six=0.0;
 r_dbg_six=1.0;
@@ -182,10 +184,16 @@ int bfi=0;
 double curr_rgb_dst_fnl_Lin[3]={rOG,gOG,bOG};
 
 if(lnr==0){
-Linearise(curr_rgb_dst_fnl,curr_rgb_dst_fnl_Lin,mde);
+Linearise(curr_rgb_dst_fnl,curr_rgb_dst_fnl_Lin,mde,aprxPw);
 }
 
-double invK=fastPrecisePow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
+double invK;
+
+if(aprxPw==1){
+invK=fastPrecisePow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
+}else{
+invK=pow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
+}
 
 double curr_rgb_dst_fnl_hsv[3];
 rgb2hsv_360(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_hsv);
@@ -229,11 +237,11 @@ redu*=0.5*((1-invK)+(init_Sat)*curr_rgb_dst_fnl_hsv[1]);
        rgbLin[2]=rgb_ato[2];
 
       if(lnr==0){
-        Apply_gamma(rgbLin,rgb_ato, mde);
+        Apply_gamma(rgbLin,rgb_ato, mde,aprxPw);
       }
 
       double xyY_ato[3];
-       get_xy(rgb_ato, xyY_ato , params->mode,lnr);
+       get_xy(rgb_ato, xyY_ato , params->mode,lnr,aprxPw);
 
         params->x=xyY_ato[0];
         params->y=xyY_ato[1];
@@ -288,7 +296,7 @@ double WPConvXYZ[3];
 double OG_RGB[3]={rOG,gOG,bOG};
 double WPchgRGB[3]={rOG,gOG,bOG};
 
-rgb2XYZ(OG_RGB,rgbXYZ,rgbXYZGrey,mde,0,lnr);
+rgb2XYZ(OG_RGB,rgbXYZ,rgbXYZGrey,mde,0,lnr,aprxPw);
 
 if(rOG==0 && (gOG==0) && (bOG==0)){
     WPchgRGB[0]=0;
@@ -391,7 +399,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 							fv_swt=2;
 							}
 
-						get_xy(rgb, xyY_rgb , mde,lnr);
+						get_xy(rgb, xyY_rgb , mde,lnr,aprxPw);
 
 						params->x=xyY_rgb[0];
 						params->y=xyY_rgb[1];
@@ -433,7 +441,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 							fv_swt=2;
 							}
 
-						get_xy(rgb, xyY_rgb , mde,lnr);
+						get_xy(rgb, xyY_rgb , mde,lnr,aprxPw);
 
 						params->x=xyY_rgb[0];
 						params->y=xyY_rgb[1];
@@ -459,7 +467,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
         double WPConvXYZ2[3]={WPConvXYZ[0],WPConvXYZ[1],WPConvXYZ[2]};
         WPconv(WPConvXYZ2,cust_XYZ,dst_XYZ,WPConvXYZ);
     }
-        XYZ2rgb(WPConvXYZ,WPchgRGB,mde,lnr);
+        XYZ2rgb(WPConvXYZ,WPchgRGB,mde,lnr,aprxPw);
 
 }else{
 
@@ -468,7 +476,7 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
         double dst_XYZ[3];
         xy2XYZ(dst_xy,dst_XYZ);
         WPconv(rgbXYZ,D65XYZ,dst_XYZ,WPConvXYZ);
-        XYZ2rgb(WPConvXYZ,WPchgRGB,mde,lnr);
+        XYZ2rgb(WPConvXYZ,WPchgRGB,mde,lnr,aprxPw);
     }
 
 
@@ -480,7 +488,14 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 if(dbg==1){
     double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
     double sat=(mx==0)?0:(mx-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx;
-    double dbg_out=(amp==1)?sat:fastPrecisePow(sat,amp);
+
+    double dbg_out;
+	if(aprxPw==1){
+     dbg_out=(amp==1)?sat:fastPrecisePow(sat,amp);
+	}else{
+		dbg_out=(amp==1)?sat:pow(sat,amp);
+	}
+
     WPchgRGB[0]=dbg_out;
     WPchgRGB[1]=dbg_out;
     WPchgRGB[2]=dbg_out;
@@ -700,6 +715,7 @@ if (!params){
                 params->linear=  avs_defined(avs_array_elt(args,16))?avs_as_bool(avs_array_elt(args, 16)):false;
                 params->ed_off=  avs_defined(avs_array_elt(args,18))?avs_as_int(avs_array_elt(args, 18)):0;
                 params->ed_base=  avs_defined(avs_array_elt(args,19))?avs_as_int(avs_array_elt(args, 19)):-1;
+				 params->approxPow=  avs_defined(avs_array_elt(args,21))?avs_as_bool(avs_array_elt(args, 21)):true;
 
 char* file_name ="";
 file_name = ((avs_as_string(avs_array_elt(args, 13)))&&(avs_as_string(avs_array_elt(args, 13))!="NULL"))?avs_as_string(avs_array_elt(args, 13)):file_name;
@@ -773,7 +789,7 @@ params->edits2 = edts2;
 
         int linar=(params->linear==true)?1:0;
 
-        get_xy(rgb, xyY_rgb , params->mode,linar);
+        get_xy(rgb, xyY_rgb , params->mode,linar,((params->approxPow==true)?1:0));
 
         params->x=xyY_rgb[0];
         params->y=xyY_rgb[1];
@@ -1054,6 +1070,6 @@ sprintf(str1,"%d",params->ed_end_fr[0]);
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s[approxPow]b", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
