@@ -220,7 +220,7 @@ var array = tx.value.match(re);
 		}
 		
 		for (let i=0; i<outp.length; i++){
-			if(outp[i][2]!=0){
+			if(outp[i][2]!=0 || outpTxt[i][2]=='+0' || outpTxt[i][2]=='-0'){
 				let ix=braceChangeStartIndex(outp[i][0],array3,outp[i][2]);
 				try{
 					array4.push([array3[ix][0],+array3[ix][1],array3[ix][2],outp[i][0],outp[i][1],array3[ix][5],array3[ix][6]]);
