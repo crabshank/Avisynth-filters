@@ -7,7 +7,6 @@
 #define rcptHiBit 1.0/65535.0
 #define root_twelve 3.464101615137755
 #define two53 9007199254740992.0
-#define M_PI 3.14159265358979323846
 
 uint64_t sconst[] = {
 0xcaf32e182df87139,
