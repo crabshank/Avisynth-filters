@@ -1,0 +1,5 @@
+(
+clip clip,
+float "sdv"=1.8,
+float "dark"=0.5 (0 to 1 by 0.0001),
+)
