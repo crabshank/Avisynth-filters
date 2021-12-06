@@ -102,14 +102,23 @@ b_dbg_six=1.0;
 D65_x= 0.312727;
    D65_y= 0.329023;
 
-double hueCount[360];
-double hueCount_prp[360];
+double* hueCount=(double*)malloc(sizeof(double)*361);
+double* hueCount_sat=(double*)malloc(sizeof(double)*361);
+double* hueCount_val=(double*)malloc(sizeof(double)*361);
+double* hueCount_prp=(double*)malloc(sizeof(double)*361);
+double* hueCount_wht=(double*)malloc(sizeof(double)*361);
+double* hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 
 
-for (int i=359; i>=0; i--){
+for (int i=360; i>=0; i--){
     hueCount[i]=0;
+    hueCount_wht[i]=0;
     hueCount_prp[i]=0;
+    hueCount_wht_prp[i]=0;
+    hueCount_sat[i]=0;
+    hueCount_val[i]=0;
 }
+
 
 if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
 
@@ -117,9 +126,14 @@ if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
-                 double currBlue=(sxf==1)?(double)rrcp[x]+rrcp[x+1]*256:(double)rrcp[x];
-                 double currGreen=(sxf==1)?(double)rrcp[x+2]+rrcp[x+3]*256:(double)rrcp[x+1];
-                 double currRed=(sxf==1)?(double)rrcp[x+4]+rrcp[x+5]*256:(double)rrcp[x+2];
+            int intBlue=(sxf==1)?rrcp[x]+rrcp[x+1]*256:rrcp[x];
+            int intGreen=(sxf==1)?rrcp[x+2]+rrcp[x+3]*256:rrcp[x+1];
+            int intRed=(sxf==1)?rrcp[x+4]+rrcp[x+5]*256:rrcp[x+2];
+
+                 double currBlue=(double)(intBlue);
+                 double currGreen=(double)(intGreen);
+                 double currRed=(double)(intRed);
+
 
 
     bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
@@ -128,12 +142,30 @@ if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
 
         double curr_rgb_dst_hsv[3];
         double curr_rgb_dst[3]={rOG,gOG,bOG};
+        double curr_rgb_prp[3];
 rgb2hsv_360(curr_rgb_dst,curr_rgb_dst_hsv);
-
 int hueEl=round(curr_rgb_dst_hsv[0]);
-hueEl=(hueEl==360)?0:hueEl;
 
+double score=(1-curr_rgb_dst_hsv[1])*curr_rgb_dst_hsv[2]*curr_rgb_dst_hsv[2]; //higher, more white
 
+if((intBlue==intGreen)&&(intGreen==intRed)){ //grey
+    hueEl=360;
+score*=score;
+//hueCount_sat[hueEl]+=0;
+
+}else{
+    hueEl=(hueEl==360)?0:hueEl;
+
+RGB_prp(curr_rgb_dst,curr_rgb_prp);
+
+score=(1-MAX(curr_rgb_dst_hsv[1],curr_rgb_dst_hsv[1]*curr_rgb_dst_hsv[2]))*(1-(MAX(curr_rgb_prp[0],MAX(curr_rgb_prp[1],curr_rgb_prp[2]))-MIN(curr_rgb_prp[0],MIN(curr_rgb_prp[1],curr_rgb_prp[2]))))*(1-curr_rgb_dst_hsv[1])*(score); //higher, more white
+score*=score;
+
+hueCount_sat[hueEl]+=curr_rgb_dst_hsv[1];
+}
+
+hueCount_val[hueEl]+=score;
+hueCount_wht[hueEl]+=score;
 hueCount[hueEl]++;
 
 x=(sxf==1)?x+7:x+3;
@@ -146,90 +178,53 @@ x=(sxf==1)?x+7:x+3;
 	rrcp=avs_get_read_ptr(src);
 
 	double hueSum=0;
+	double scoreSum=0;
 
-for (int i=0; i<360; i++){
+for (int i=0; i<361; i++){
+    double hueCnt_dbl=(double)(hueCount[i]);
+    hueCount_sat[i]=(hueCount[i]==0 || i==360)?0:hueCount_sat[i]/hueCnt_dbl;
+    hueCount_val[i]=(hueCount[i]==0)?0:hueCount_val[i]/hueCnt_dbl;
+}
+for (int i=0; i<361; i++){
+    scoreSum+=hueCount_wht[i];
+}
+for (int i=0; i<361; i++){
+    hueCount_wht_prp[i]=hueCount_wht[i]/scoreSum;
+}
+for (int i=0; i<361; i++){
     hueSum+=hueCount[i];
 }
-for (int i=0; i<360; i++){
+for (int i=0; i<361; i++){
     hueCount_prp[i]=hueCount[i]/hueSum;
 }
-/*double mx_diff=0;
-for (int i=0; i<360; i++){
-    double dff=fabs(hueCount_prp[i]-rcp_threeSixty);
-    mx_diff=(dff>mx_diff)?dff:mx_diff;
-}*/
-double cnt=0;
-double rf=0;
-double gf=0;
-double bf=0;
-int rfi=0;
-int gfi=0;
-int bfi=0;
-      for (y=0; y<height; y++) {
-      for (x=0; x<row_size; x++) {
 
-                 double currBlue=(sxf==1)?(double)rrcp[x]+rrcp[x+1]*256:(double)rrcp[x];
-                 double currGreen=(sxf==1)?(double)rrcp[x+2]+rrcp[x+3]*256:(double)rrcp[x+1];
-                 double currRed=(sxf==1)?(double)rrcp[x+4]+rrcp[x+5]*256:(double)rrcp[x+2];
+      double maxHueScore=0.0;
+      int maxHueScoreDeg=0;
 
-
-    bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
-       gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
-         rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
-
-         if (!((currBlue==currGreen)&&(currRed==currGreen))){
-
-
-                double curr_rgb_dst_fnl[3]={rOG,gOG,bOG};
-double curr_rgb_dst_fnl_Lin[3]={rOG,gOG,bOG};
-
-if(lnr==0){
-Linearise(curr_rgb_dst_fnl,curr_rgb_dst_fnl_Lin,mde,aprxPw);
-}
-
-double invK;
-
-if(aprxPw==1){
-invK=fastPrecisePow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
-}else{
-invK=pow(1-MIN(1-(curr_rgb_dst_fnl_Lin[0]),MIN(1-(curr_rgb_dst_fnl_Lin[1]),1-(curr_rgb_dst_fnl_Lin[2]))),3.38392888);
-}
-
-double curr_rgb_dst_fnl_hsv[3];
-rgb2hsv_360(curr_rgb_dst_fnl_Lin,curr_rgb_dst_fnl_hsv);
-
-double init_Sat=curr_rgb_dst_fnl_hsv[1];
-
-double mid_dist=2*fabs(0.5-init_Sat);
-
-double initSat2=2*init_Sat;
-
-double mid_cnt=(initSat2<1)?0.5*(1-fabs(1-initSat2)):0.5*(fabs(initSat2-1)+1);
-double hl_cnt=(initSat2<1)?0.5*initSat2:0.5*(2-fabs(2-initSat2));
-double lrp1=lerp(mid_cnt,hl_cnt,mid_dist);
-curr_rgb_dst_fnl_hsv[1]=lerp(0,lrp1,init_Sat);
-
-
-double WPchgRGB_Lin[3];
-
-hsv2rgb_360(curr_rgb_dst_fnl_hsv,WPchgRGB_Lin);
-
-double redu=(init_Sat==0)?1:MIN((init_Sat-curr_rgb_dst_fnl_hsv[1])/init_Sat*(1-curr_rgb_dst_fnl_hsv[1]),1);
-redu*=0.5*((1-invK)+(init_Sat)*curr_rgb_dst_fnl_hsv[1]);
-
-       rf+=WPchgRGB_Lin[0]*redu;
-       gf+=WPchgRGB_Lin[1]*redu;
-       bf+=WPchgRGB_Lin[2]*redu;
-         cnt+=1;
-         }
-
-      x=(sxf==1)?x+7:x+3;
-       }
-      rrcp+=src_pitch;
-
+for (int i=0; i<361; i++){
+            double currScore=(1-hueCount_prp[i])*hueCount_wht_prp[i];
+      if(currScore>maxHueScore){
+    maxHueScore=currScore;
+    maxHueScoreDeg=i;
       }
+}
 
-      double rgb_ato[3]={rf/cnt,gf/cnt,bf/cnt};
+double maxHueScoreDeg_dbl=(double)(maxHueScoreDeg);
+double greys_val=(double)(hueCount_val[maxHueScoreDeg]);
+double rgb_ato[3]={greys_val,greys_val,greys_val};
+
+if(maxHueScoreDeg!=360){ //not grey
+        double hsv_ato[3]={maxHueScoreDeg_dbl,hueCount_sat[maxHueScoreDeg],greys_val};
+ hsv2rgb_360(hsv_ato,rgb_ato);
+}
+
+    free(hueCount);
+    free(hueCount_wht);
+    free(hueCount_prp);
+    free(hueCount_wht_prp);
+    free(hueCount_sat);
+    free(hueCount_val);
+
       double rgbLin[3];
 
        rgbLin[0]=rgb_ato[0];
@@ -248,9 +243,9 @@ redu*=0.5*((1-invK)+(init_Sat)*curr_rgb_dst_fnl_hsv[1]);
         cust_x=xyY_ato[0];
         cust_y=xyY_ato[1];
 
-rfi=(sxf==1)?round(rgb_ato[0]*rcptHiBit):round(rgb_ato[0]*rcptwoFiveFive);
-gfi=(sxf==1)?round(rgb_ato[1]*rcptHiBit):round(rgb_ato[1]*rcptwoFiveFive);
-bfi=(sxf==1)?round(rgb_ato[2]*rcptHiBit):round(rgb_ato[2]*rcptwoFiveFive);
+double rfi=(sxf==1)?round(rgb_ato[0]*rcptHiBit):round(rgb_ato[0]*rcptwoFiveFive);
+double gfi=(sxf==1)?round(rgb_ato[1]*rcptHiBit):round(rgb_ato[1]*rcptwoFiveFive);
+double bfi=(sxf==1)?round(rgb_ato[2]*rcptHiBit):round(rgb_ato[2]*rcptwoFiveFive);
 
 
 if ((nm!="")&&(nm!="NULL")){
