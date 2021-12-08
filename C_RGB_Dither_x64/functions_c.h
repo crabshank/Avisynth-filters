@@ -94,11 +94,11 @@ return (xx ^ x2)>>11;
 
 //Source: Middle Square Weyl Sequence RNG - Bernard Widynski1
 
-double grey_dither(double colour, double rand,double sdv){
+double grey_dither(double colour, double rand,double sdv, int sxf){
 
 double sAB=sdv*root_twelve*0.5;
 double randm=sAB*(2*rand-1)*-1;
-double out=(sdv!=0)?colour+(randm/255):colour;
+double out=(sdv!=0)?colour+(randm*( (sxf==1)?rcptHiBit:rcptwoFiveFive) ):colour;
 
 return out;
 
