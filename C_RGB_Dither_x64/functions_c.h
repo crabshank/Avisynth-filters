@@ -108,10 +108,10 @@ double logisticMap(double rand){
 double rMap =3.98;
 double randOld=rand;
 
-for (int i=0;i<25;i++){
+for (int i=0;i<20;i++){
 randOld=rMap*randOld*(1-randOld);
 }
-randOld=10000*randOld+0.597*randOld;
+randOld=12000*randOld+0.597*randOld;
 
 double fractpart, intpart;
 fractpart = modf(randOld, &intpart);
