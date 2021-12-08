@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include <time.h>
-#include <stdio.h>
 #include "..\avisynth_c.h"
 #include "functions_c.h"
 
@@ -57,17 +55,19 @@ uint64_t mn=(uint64_t)(MIN(currRed,MIN(currGreen,currBlue)));
 uint64_t rgb_sum=(uint64_t)(currRed+currGreen+currBlue);
 uint64_t rgb_prod=(uint64_t)(currRed*currGreen*currBlue);
 
-uint64_t x1 = 0, w1 = 0, s1 =((uint64_t)(n+1)*(uint64_t)(x)*(uint64_t)(height))*(mx+1);
-uint64_t x2 = 0, w2 = 0, s2 =((uint64_t)(p->vi.num_frames)*(uint64_t)(y)*(uint64_t)(row_size))*(mn+1);
-
+uint64_t x1 = 0, w1 = 0, s1 =((uint64_t)(n+1)*(uint64_t)(x+1)*(uint64_t)(height+1))*(mx+1);
+uint64_t x2 = 0, w2 = 0, s2 =((uint64_t)(p->vi.num_frames+1)*(uint64_t)(y+1)*(uint64_t)(row_size+1))*(mn+1);
 
 double r1=msws53(x1, w1, s1, x2, w2, s2)/two53;
 
 uint64_t f_nm=(uint64_t)(p->vi.fps_numerator);
-uint64_t f_dnm=(uint64_t)(p->vi.fps_denominator);
+f_nm=(f_nm>1)?f_nm:1;
 
-s1 =((f_nm+1)*(uint64_t)(x)*(uint64_t)(height))*(rgb_sum+1);
-s2=((f_dnm+1)*(uint64_t)(y)*(uint64_t)(row_size))*(rgb_prod+1);
+uint64_t f_dnm=(uint64_t)(p->vi.fps_denominator);
+f_dnm=(f_dnm>1)?f_dnm:1;
+
+s1 =((f_nm+1)*(uint64_t)(x+1)*(uint64_t)(row_size+1))*(rgb_prod+1)*(uint64_t)(n+1);
+s2=((f_dnm+1)*(uint64_t)(y+1)*(uint64_t)(height+1))*(rgb_sum+1)*(uint64_t)(n+1);
 
 double r2=msws53(x1, w1, s1, x2, w2, s2)/two53;
 
