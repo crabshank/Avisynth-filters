@@ -57,23 +57,26 @@ uint64_t mn=(uint64_t)(MIN(currRed,MIN(currGreen,currBlue)));
 uint64_t rgb_sum=(uint64_t)(currRed+currGreen+currBlue);
 uint64_t rgb_prod=(uint64_t)(currRed*currGreen*currBlue);
 
-uint64_t x1 = 0, w1 = 0, s1 =((uint64_t)(clock)*(uint64_t)(x)*(uint64_t)(height))*(mx+1);
-uint64_t x2 = 0, w2 = 0, s2 =((uint64_t)(clock)*(uint64_t)(y)*(uint64_t)(row_size))*(mn+1);
+uint64_t x1 = 0, w1 = 0, s1 =((uint64_t)(n+1)*(uint64_t)(x)*(uint64_t)(height))*(mx+1);
+uint64_t x2 = 0, w2 = 0, s2 =((uint64_t)(p->vi.num_frames)*(uint64_t)(y)*(uint64_t)(row_size))*(mn+1);
 
 
 double r1=msws53(x1, w1, s1, x2, w2, s2)/two53;
 
-s1 =((uint64_t)(clock)*(uint64_t)(x)*(uint64_t)(height))*(rgb_sum+1);
-s2=((uint64_t)(clock)*(uint64_t)(y)*(uint64_t)(row_size))*(rgb_prod+1);
+uint64_t f_nm=(uint64_t)(p->vi.fps_numerator);
+uint64_t f_dnm=(uint64_t)(p->vi.fps_denominator);
+
+s1 =((f_nm+1)*(uint64_t)(x)*(uint64_t)(height))*(rgb_sum+1);
+s2=((f_dnm+1)*(uint64_t)(y)*(uint64_t)(row_size))*(rgb_prod+1);
 
 double r2=msws53(x1, w1, s1, x2, w2, s2)/two53;
 
 double r12=logisticMap(r1*r2);
-double dth=grey_dither(mx_d,r12,sddev);
+double dth=grey_dither(mx_d,r12,sddev,sxf);
 
-R=(mx_d==0)?0:dth*(R/mx_d);
-G=(mx_d==0)?0:dth*(G/mx_d);
-B=(mx_d==0)?0:dth*(B/mx_d);
+R=(mx_d==0)?dth:dth*(R/mx_d);
+G=(mx_d==0)?dth:dth*(G/mx_d);
+B=(mx_d==0)?dth:dth*(B/mx_d);
 
 R=lerp(R,lerp(R,rOG,mx_d),drk);
 G=lerp(G,lerp(G,gOG,mx_d),drk);
