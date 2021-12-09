@@ -243,9 +243,9 @@ if(maxHueScoreDeg!=360){ //not grey
         cust_x=xyY_ato[0];
         cust_y=xyY_ato[1];
 
-double rfi=(sxf==1)?round(rgb_ato[0]*rcptHiBit):round(rgb_ato[0]*rcptwoFiveFive);
-double gfi=(sxf==1)?round(rgb_ato[1]*rcptHiBit):round(rgb_ato[1]*rcptwoFiveFive);
-double bfi=(sxf==1)?round(rgb_ato[2]*rcptHiBit):round(rgb_ato[2]*rcptwoFiveFive);
+int rfi=(sxf==1)?round(rgb_ato[0]*65535):round(rgb_ato[0]*255);
+int gfi=(sxf==1)?round(rgb_ato[1]*65535):round(rgb_ato[1]*255);
+int bfi=(sxf==1)?round(rgb_ato[2]*65535):round(rgb_ato[2]*255);
 
 
 if ((nm!="")&&(nm!="NULL")){
