@@ -50,28 +50,32 @@ double G=gOG;
 double B=bOG;
 
 double mx_d=MAX(rOG,MAX(gOG,bOG));
-uint64_t mx=(uint64_t)(MAX(currRed,MAX(currGreen,currBlue)));
-uint64_t mn=(uint64_t)(MIN(currRed,MIN(currGreen,currBlue)));
-uint64_t rgb_sum=(uint64_t)(currRed+currGreen+currBlue);
-uint64_t rgb_prod=(uint64_t)(currRed*currGreen*currBlue);
+uint64_t mx=MAX(currRed,MAX(currGreen,currBlue));
+uint64_t mn=MIN(currRed,MIN(currGreen,currBlue));
+uint64_t rgb_sum=currRed+currGreen+currBlue;
+uint64_t rgb_prod=currRed*currGreen*currBlue;
 
-uint64_t x1 = 0, w1 = 0, s1 =((uint64_t)(n+1)*(uint64_t)(x+1)*(uint64_t)(height+1))*(mx+1);
-uint64_t x2 = 0, w2 = 0, s2 =((uint64_t)(p->vi.num_frames+1)*(uint64_t)(y+1)*(uint64_t)(row_size+1))*(mn+1);
+uint64_t x1 = 0, w1 = 0, s1 =((n+1)*(x+1)*(height+1))*(mx+1);
+uint64_t x2 = 0, w2 = 0, s2 =((p->vi.num_frames+1)*(y+1)*(row_size+1))*(mn+1);
 
-double r1=msws53(x1, w1, s1, x2, w2, s2)/two53;
+uint64_t r1=msws53(x1, w1, s1, x2, w2, s2);
 
-uint64_t f_nm=(uint64_t)(p->vi.fps_numerator);
+uint64_t f_nm=p->vi.fps_numerator;
 f_nm=(f_nm>1)?f_nm:1;
 
-uint64_t f_dnm=(uint64_t)(p->vi.fps_denominator);
+uint64_t f_dnm=p->vi.fps_denominator;
 f_dnm=(f_dnm>1)?f_dnm:1;
 
-s1 =((f_nm+1)*(uint64_t)(x+1)*(uint64_t)(row_size+1))*(rgb_prod+1)*(uint64_t)(n+1);
-s2=((f_dnm+1)*(uint64_t)(y+1)*(uint64_t)(height+1))*(rgb_sum+1)*(uint64_t)(n+1);
+s1 =((f_nm)*(x+1)*(row_size+1))*(rgb_prod+1)*(n+1);
+s2=((f_dnm)*(y+1)*(height+1))*(rgb_sum+1)*(n+1);
 
-double r2=msws53(x1, w1, s1, x2, w2, s2)/two53;
+uint64_t r2=msws53(x1, w1, s1, x2, w2, s2);
 
-double r12=logisticMap(r1*r2);
+int xp;
+double r12 =(double)( (frexp (r1*r2 , &xp)-0.5)*2);
+
+ r12=logisticMap(r12);
+
 double dth=grey_dither(mx_d,r12,sddev,sxf);
 
 R=(mx_d==0)?dth:dth*(R/mx_d);
