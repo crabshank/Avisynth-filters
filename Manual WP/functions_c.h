@@ -33,11 +33,7 @@ void RGB_prp(double rgb[3], double rgb_prp[3]){
 	rgb_prp[0]=(rgbSum==0)?third:rgb[0]/rgbSum;
 	rgb_prp[1]=(rgbSum==0)?third:rgb[1]/rgbSum;
 	rgb_prp[2]=(rgbSum==0)?third:rgb[2]/rgbSum;
-
-	return rgb_prp;
 }
-
-
 
 void rgb2hsv_360 (double rgb[3],double hsv[3])
 {
