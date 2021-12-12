@@ -35,6 +35,7 @@ typedef struct Manual_WP {
         int* ed_start_fr;
         int* ed_end_fr;
         int* ed_switch;
+        int* ed_lookup;
         int ed_lim;
 		int* ed_Red2;
         int* ed_Green2;
@@ -44,6 +45,7 @@ typedef struct Manual_WP {
         int* ed_start_fr2;
         int* ed_end_fr2;
         int* ed_switch2;
+        int* ed_lookup2;
         int ed_lim2;
 		char* edits2;
 		int approxPow;
@@ -109,16 +111,12 @@ double* hueCount_prp=(double*)malloc(sizeof(double)*361);
 double* hueCount_wht=(double*)malloc(sizeof(double)*361);
 double* hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 
-
-for (int i=360; i>=0; i--){
-    hueCount[i]=0;
-    hueCount_wht[i]=0;
-    hueCount_prp[i]=0;
-    hueCount_wht_prp[i]=0;
-    hueCount_sat[i]=0;
-    hueCount_val[i]=0;
-}
-
+memset(hueCount,0,sizeof(hueCount[0])*361);
+memset(hueCount_wht,0,sizeof(hueCount_wht[0])*361);
+memset(hueCount_prp,0,sizeof(hueCount_prp[0])*361);
+memset(hueCount_wht_prp,0,sizeof(hueCount_wht_prp[0])*361);
+memset(hueCount_sat,0,sizeof(hueCount_sat[0])*361);
+memset(hueCount_val,0,sizeof(hueCount_val[0])*361);
 
 if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
 
@@ -305,42 +303,14 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 	 int found2=0;
 
 	 if((eds2!="")&&(eds2!="NULL")){
-		int ctf=0;
-		int ctb=edlm2-1;
-
-		while (ctb>=ctf){
-			        if ((bse>=params->ed_start_fr2[ctf])&&((bse<=params->ed_end_fr2[ctf])||(params->ed_end_fr2[ctf]==0))){
-                curr_clip=ctf;
-                found2=1;
-				break;
-				}else if ((bse>=params->ed_start_fr2[ctb])&&((bse<=params->ed_end_fr2[ctb])||(params->ed_end_fr2[ctb]==0))){
-                curr_clip=ctb;
-                found2=1;
-            break;
-			}
-        ctb--;
-        ctf++;
-		}
-
+        curr_clip=params->ed_lookup2[bse];
+        found2=(curr_clip==-1)?0:1;
 	 }
 
 	 if(((eds!="")&&(eds!="NULL"))&&(found2==0)){
 		bse=(ed_bse>=0)?ed_bse:n;
 
-		int ctf=0;
-		int ctb=edlm-1;
-
-		    while (ctb>=ctf){
-				if ((bse>=params->ed_start_fr[ctf])&&((bse<=params->ed_end_fr[ctf])||(params->ed_end_fr[ctf]==0))){
-					curr_clip=ctf;
-					break;
-				}else if ((bse>=params->ed_start_fr[ctb])&&((bse<=params->ed_end_fr[ctb])||(params->ed_end_fr[ctb]==0))){
-					curr_clip=ctb;
-					break;
-				}
-        ctb--;
-        ctf++;
-    }
+		curr_clip=params->ed_lookup[bse];
 
 	if(curr_clip !=-1){
 		if(curr_clip+ed_offst>edlm-1){
@@ -824,17 +794,19 @@ rest[js]='\0';
     int no_clips=tkn;
 
 
-            params->ed_Red2=(int*)malloc(sizeof(int)*no_clips);
-        params->ed_Green2=(int*)malloc(sizeof(int)*no_clips);
-        params->ed_Blue2=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_Red2=(int*)malloc(sizeof(int)*no_clips);
+      params->ed_Green2=(int*)malloc(sizeof(int)*no_clips);
+       params->ed_Blue2=(int*)malloc(sizeof(int)*no_clips);
 
         params->ed_x2=(double*)malloc(sizeof(double)*no_clips);
         params->ed_y2=(double*)malloc(sizeof(double)*no_clips);
 
-        params->ed_start_fr2=(int*)malloc(sizeof(int)*no_clips);
+      params->ed_start_fr2=(int*)malloc(sizeof(int)*no_clips);
         params->ed_end_fr2=(int*)malloc(sizeof(int)*no_clips);
         params->ed_switch2=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_lookup2=(int*)malloc(sizeof(int)*vi->num_frames);
 
+         memset(params->ed_lookup2,-1,sizeof(params->ed_lookup2[0])*vi->num_frames); //initialise to -1
 
         tkn-=1;
 
@@ -914,6 +886,15 @@ switch(cnt){
 
     }
 
+    int ed_frm2=params->ed_end_fr2[tkn];
+
+    if(ed_frm2==0){
+        ed_frm2=(params->ed_start_fr2[tkn]==0)?0:(vi->num_frames)-1;
+    }
+
+    for(int k=params->ed_start_fr2[tkn]; k<=ed_frm2; k++){
+    params->ed_lookup2[k]=tkn;
+    }
       tkn++;
     }
 
@@ -961,6 +942,9 @@ rest[js]='\0';
         params->ed_start_fr=(int*)malloc(sizeof(int)*no_clips);
         params->ed_end_fr=(int*)malloc(sizeof(int)*no_clips);
         params->ed_switch=(int*)malloc(sizeof(int)*no_clips);
+        params->ed_lookup=(int*)malloc(sizeof(int)*vi->num_frames);
+
+        memset(params->ed_lookup,-1,sizeof(params->ed_lookup[0])*vi->num_frames); //initialise to -1
 
 
         tkn-=1;
@@ -1039,6 +1023,16 @@ switch(cnt){
             }
         }
 
+    }
+
+    int ed_frm=params->ed_end_fr[tkn];
+
+    if(ed_frm==0){
+        ed_frm=(params->ed_start_fr[tkn]==0)?0:(vi->num_frames)-1;
+    }
+
+    for(int k=params->ed_start_fr[tkn]; k<=ed_frm; k++){
+        params->ed_lookup[k]=tkn;
     }
 
       tkn++;
