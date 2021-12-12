@@ -111,12 +111,14 @@ double* hueCount_prp=(double*)malloc(sizeof(double)*361);
 double* hueCount_wht=(double*)malloc(sizeof(double)*361);
 double* hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 
-memset(hueCount,0,sizeof(hueCount[0])*361);
-memset(hueCount_wht,0,sizeof(hueCount_wht[0])*361);
-memset(hueCount_prp,0,sizeof(hueCount_prp[0])*361);
-memset(hueCount_wht_prp,0,sizeof(hueCount_wht_prp[0])*361);
-memset(hueCount_sat,0,sizeof(hueCount_sat[0])*361);
-memset(hueCount_val,0,sizeof(hueCount_val[0])*361);
+for (int i=360; i>=0; i--){
+    hueCount[i]=0;
+    hueCount_wht[i]=0;
+    hueCount_prp[i]=0;
+    hueCount_wht_prp[i]=0;
+    hueCount_sat[i]=0;
+    hueCount_val[i]=0;
+}
 
 if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
 
