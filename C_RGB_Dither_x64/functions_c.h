@@ -6,7 +6,6 @@
 #define rcptwoFiveFive 1.0/255.0
 #define rcptHiBit 1.0/65535.0
 #define root_twelve 3.464101615137755
-#define two53 9007199254740992.0
 
 uint64_t sconst[] = {
 0xcaf32e182df87139,
@@ -94,7 +93,7 @@ return (xx ^ x2)>>11;
 
 //Source: Middle Square Weyl Sequence RNG - Bernard Widynski1
 
-double grey_dither(double colour, double rand,double sdv, int sxf){
+inline double grey_dither(double colour, double rand,double sdv, int sxf){
 
 double sAB=sdv*root_twelve*0.5;
 double randm=sAB*(2*rand-1)*-1;
@@ -108,13 +107,10 @@ double logisticMap(double rand){
 double rMap =3.98;
 double randOld=rand;
 
-for (int i=0;i<20;i++){
 randOld=rMap*randOld*(1-randOld);
-}
-randOld=12000*randOld+0.597*randOld;
+randOld=rMap*randOld*(1-randOld);
+randOld=rMap*randOld*(1-randOld);
+randOld=12050*randOld+0.597*randOld;
 
-double fractpart, intpart;
-fractpart = modf(randOld, &intpart);
-
-return fractpart;
+return randOld - floor(randOld);
 }
