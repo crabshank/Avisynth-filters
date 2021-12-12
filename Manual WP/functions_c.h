@@ -1,7 +1,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define lerp(a,b,t) ((1 - (t)) * (a) + (t) * (b) )
-#define lerp_clamp(a,b,t) fmax((fmin((b),((1 - (t)) * (a) + (t) * (b) ))),(a))
+#define lerp_clamp(a,b,t) MAX((MIN((b),((1 - (t)) * (a) + (t) * (b) ))),(a))
 #define rcptwoFiveFive 1.0/255.0
 #define rcptHiBit 1.0/65535.0
 #define rcpTwoFour 1.0/2.4
@@ -51,9 +51,9 @@ double b=rgb[2];
  int grey=((r==g)&&(g==b))?1:0;
 if (grey==0){
 
-if ((r>g)&&(r>b)){
+if ((r>=g)&&(r>=b)){
     hue_d =(g - b) / diff;
-}else if ((g>r)&&(g>b)){
+}else if ((g>=r)&&(g>=b)){
     hue_d = 2.0 + (b - r) / diff;
 }else{
     hue_d = 4.0 + (r - g) / diff;
