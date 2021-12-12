@@ -26,7 +26,7 @@ srcp = avs_get_read_ptr(src);
 src_pitch = avs_get_pitch(src);
 row_size = avs_get_row_size(src);
 height = avs_get_height(src);
-wdt=(sxf==1)?round(row_size*0.125):round(row_size*0.25);
+wdt=p->vi.width;
 
 
 dst = avs_new_video_frame(p->env, &p->vi);
