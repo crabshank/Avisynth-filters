@@ -655,6 +655,12 @@ if ((lid!="")&&(lid!="NULL")){
   return src;
 }
 
+void AVSC_CC free_Manual_WP(AVS_FilterInfo* fi)
+{
+   Manual_WP* params = (Manual_WP*) fi->user_data;
+   free(params);
+}
+
 AVS_Value AVSC_CC create_Manual_WP (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
 {
   AVS_Value v;
@@ -1050,6 +1056,7 @@ sprintf(str1,"%d",params->ed_end_fr[0]);
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
     v = avs_new_value_clip(new_clip);
+     fi->free_filter = free_Manual_WP;
    }
    }
    }
