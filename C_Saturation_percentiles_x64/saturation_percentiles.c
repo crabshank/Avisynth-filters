@@ -110,6 +110,12 @@ x=(sxf==1)?x+7:x+3;
   return src;
 }
 
+void AVSC_CC free_Saturation_Percentiles(AVS_FilterInfo* fi)
+{
+   Saturation_Percentiles* params = (Saturation_Percentiles*) fi->user_data;
+   free(params);
+}
+
 AVS_Value AVSC_CC create_Saturation_Percentiles (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
 {
   AVS_Value v;
@@ -135,6 +141,7 @@ if (!params)
          fi->user_data = (void*) params;
     fi->get_frame = Saturation_Percentiles_get_frame;
     v = avs_new_value_clip(new_clip);
+    fi->free_filter = free_Saturation_Percentiles;
   }
   avs_release_clip(new_clip);
   return v;
