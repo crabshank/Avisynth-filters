@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include "avisynth.h"
 #include <stdint.h>
+#include <intrin.h>
 #include <algorithm>
 #include <emmintrin.h>
 
