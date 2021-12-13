@@ -173,6 +173,12 @@ x=(sxf==1)?x+7:x+3;
   return src;
 }
 
+void AVSC_CC free_Linear_Gamma(AVS_FilterInfo* fi)
+{
+   Linear_Gamma* params = (Linear_Gamma*) fi->user_data;
+   free(params);
+}
+
 AVS_Value AVSC_CC create_Linear_Gamma (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
 {
   AVS_Value v;
@@ -202,6 +208,7 @@ if (!params)
          fi->user_data = (void*) params;
     fi->get_frame = Linear_Gamma_get_frame;
     v = avs_new_value_clip(new_clip);
+     fi->free_filter = free_Linear_Gamma;
   }
           }
   avs_release_clip(new_clip);
