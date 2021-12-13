@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include <time.h>
 #include "..\avisynth_c.h"
 #include "functions_c.h"
 
@@ -88,7 +87,7 @@ xarr=0;
 
             double cd[2]={d_x+0.5,d_y+0.5};
                 double cen[2];
-                double madr[3];
+                double madr[4];
     adjCenDist(wdt, height, cd,madr,cen);
       double r_n=pow(madr[3],xp)*MAX(madr[0],madr[2]);
 
@@ -139,6 +138,12 @@ return src;
 }
 }
 
+void AVSC_CC free_Circle_Warp(AVS_FilterInfo* fi)
+{
+   Circle_Warp* params = (Circle_Warp*) fi->user_data;
+   free(params);
+}
+
 AVS_Value AVSC_CC create_Circle_Warp (AVS_ScriptEnvironment * env,
                             AVS_Value args, void * dg)
 {
@@ -167,7 +172,7 @@ if (!params)
     fi->get_frame = Circle_Warp_get_frame;
 
     v = avs_new_value_clip(new_clip);
-
+    fi->free_filter = free_Circle_Warp;
 
   avs_release_clip(new_clip);
   return v;
