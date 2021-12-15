@@ -35,7 +35,7 @@ blw=params->below;
       row_size = avs_get_row_size(src);
       height = avs_get_height(src);
 
-wdt=(sxf==1)?round(0.125*row_size):round(0.25*row_size);
+wdt=p->vi.width;
 
 long k=0;
 pxls=height*wdt;
