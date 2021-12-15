@@ -49,6 +49,7 @@ typedef struct Manual_WP {
         int ed_lim2;
 		char* edits2;
 		int approxPow;
+        char** split;
 } Manual_WP;
 
 
@@ -911,7 +912,7 @@ switch(cnt){
 
   if((edts!="")&&(edts!="NULL")){
 
-    char** split=(char*)malloc(sizeof(char*)*strlen(edts));
+    params->split=(char*)malloc(sizeof(char*)*strlen(edts));
     char *dup = strdup(edts);
     char* token;
     char* rest=dup;
@@ -933,7 +934,7 @@ rest[js]='\0';
       int tkn=0;
     while ((token = strtok_r(rest, "{", &rest))){
 
-        split[tkn]=token;
+        params->split[tkn]=token;
         tkn++;
     }
     params->ed_lim=tkn;
@@ -958,7 +959,7 @@ rest[js]='\0';
         tkn-=1;
 
     while (tkn>=0){
-     split[tkn]=strtok(strdup(split[tkn]),"}");
+     params->split[tkn]=strtok(strdup(params->split[tkn]),"}");
         tkn--;
     }
 
@@ -966,7 +967,7 @@ rest[js]='\0';
     int cnt=0;
 
     while (tkn<no_clips){
-    while ((token = strtok_r(split[tkn], ",", &split[tkn]))){
+    while ((token = strtok_r(params->split[tkn], ",", &params->split[tkn]))){
 int intg;
 switch(cnt){
         case 0:
