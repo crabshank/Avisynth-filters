@@ -66,8 +66,19 @@ sxf=params->sixtyFour;
     double *rs=params->rs;
     double *gs=params->gs;
     double *bs=params->bs;
+
+for (int r = 0; r < params->pxels; ++r) {
+    memset(params->nbrsl[r],-1,sizeof(params->nbrsl[r][0])*(1+params->surr_p));
+}
+
+for (int r = 0; r < params->pxels; ++r) {
+    memset(params->nbrs_rankl[r],-1,sizeof(params->nbrs_rankl[r][0])*(1+params->surr_p));
+}
+
     int** nbrsl=params->nbrsl;
     int** nbrs_rankl=params->nbrs_rankl;
+
+
 
 int p_ix=0;
 int xarr=0;
@@ -198,22 +209,7 @@ int wp_r=MAX(MIN(round(rgb_out[0]*255),255),0);
 
 void AVSC_CC free_Luma_Smooth(AVS_FilterInfo* fi)
 {
-   Luma_Smooth* params = (Luma_Smooth*) fi->user_data;
-    free(params->rs);
-     free(params->gs);
-     free(params->bs);
-     free(params->ys);
-     free(params->out_ys);
-
-    for (int n = 0; n <params->pxels; ++n){
-        free(params->nbrsl[n]);
-    }
-    free(params->nbrsl);
-
-    for (int n = 0; n <params->pxels; ++n){
-        free(params->nbrs_rankl[n]);
-    }
-    free(params->nbrs_rankl);
+    Luma_Smooth* params = (Luma_Smooth*) fi->user_data;
     free(params);
 }
 
