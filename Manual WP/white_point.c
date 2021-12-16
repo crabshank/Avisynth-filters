@@ -51,6 +51,12 @@ typedef struct Manual_WP {
 		int approxPow;
         char** split;
         char** split2;
+        double* hueCount;
+        double* hueCount_sat;
+        double* hueCount_val;
+        double* hueCount_prp;
+        double* hueCount_wht;
+        double* hueCount_wht_prp;
 } Manual_WP;
 
 
@@ -106,23 +112,23 @@ b_dbg_six=1.0;
 D65_x= 0.312727;
    D65_y= 0.329023;
 
-double* hueCount=(double*)malloc(sizeof(double)*361);
-double* hueCount_sat=(double*)malloc(sizeof(double)*361);
-double* hueCount_val=(double*)malloc(sizeof(double)*361);
-double* hueCount_prp=(double*)malloc(sizeof(double)*361);
-double* hueCount_wht=(double*)malloc(sizeof(double)*361);
-double* hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
+if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
 
 for (int i=360; i>=0; i--){
-    hueCount[i]=0;
-    hueCount_wht[i]=0;
-    hueCount_prp[i]=0;
-    hueCount_wht_prp[i]=0;
-    hueCount_sat[i]=0;
-    hueCount_val[i]=0;
+    params->hueCount[i]=0;
+    params->hueCount_wht[i]=0;
+    params->hueCount_prp[i]=0;
+    params->hueCount_wht_prp[i]=0;
+    params->hueCount_sat[i]=0;
+    params->hueCount_val[i]=0;
 }
 
-if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
+double* hueCount=params->hueCount;
+double* hueCount_sat=params->hueCount_sat;
+double* hueCount_val=params->hueCount_val;
+double* hueCount_prp=params->hueCount_prp;
+double* hueCount_wht=params->hueCount_wht;
+double* hueCount_wht_prp=params->hueCount_wht_prp;
 
 //POLL FRAME/////////////////////////////////////////////////////////
       for (y=0; y<height; y++) {
@@ -219,13 +225,6 @@ if(maxHueScoreDeg!=360){ //not grey
         double hsv_ato[3]={maxHueScoreDeg_dbl,hueCount_sat[maxHueScoreDeg],greys_val};
  hsv2rgb_360(hsv_ato,rgb_ato);
 }
-
-    free(hueCount);
-    free(hueCount_wht);
-    free(hueCount_prp);
-    free(hueCount_wht_prp);
-    free(hueCount_sat);
-    free(hueCount_val);
 
       double rgbLin[3];
 
@@ -659,8 +658,8 @@ if ((lid!="")&&(lid!="NULL")){
 
 void AVSC_CC free_Manual_WP(AVS_FilterInfo* fi)
 {
-   Manual_WP* params = (Manual_WP*) fi->user_data;
-   free(params);
+    Manual_WP* params = (Manual_WP*) fi->user_data;
+    free(params);
 }
 
 AVS_Value AVSC_CC create_Manual_WP (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
@@ -1064,6 +1063,15 @@ sprintf(str1,"%d",params->ed_end_fr[0]);
 
   }
 
+if((params->auto_WP==1)&&((params->edits=="")||(params->edits=="NULL"))&&((params->edits2=="")||(params->edits2=="NULL"))){
+params->hueCount=(double*)malloc(sizeof(double)*361);
+params->hueCount_sat=(double*)malloc(sizeof(double)*361);
+params->hueCount_val=(double*)malloc(sizeof(double)*361);
+params->hueCount_prp=(double*)malloc(sizeof(double)*361);
+params->hueCount_wht=(double*)malloc(sizeof(double)*361);
+params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
+
+  }
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
     v = avs_new_value_clip(new_clip);
