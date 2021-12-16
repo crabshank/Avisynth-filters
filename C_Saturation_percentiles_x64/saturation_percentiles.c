@@ -8,6 +8,10 @@ typedef struct Saturation_Percentiles {
     double perc;
     int below;
     int sixtyFour;
+    int pxels;
+    double d_pxels;
+    double *sats;
+    double *satsOG;
 } Saturation_Percentiles;
 
 AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, int n)
@@ -17,7 +21,7 @@ AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, i
 
   src = avs_get_frame(p->child, n);
 
-    int row_size, height, src_pitch,x, y,sxf,wdt,blw;
+    int row_size, height, src_pitch,x, y,sxf,blw;
     long pxls;
   const BYTE* rrcp;
    BYTE* srcp;
@@ -35,15 +39,11 @@ blw=params->below;
       row_size = avs_get_row_size(src);
       height = avs_get_height(src);
 
-wdt=p->vi.width;
-
 long k=0;
-pxls=height*wdt;
-d_pxls=(double)(pxls);
-
-            double *sats = (double*)malloc( pxls* sizeof(double));
-            double *satsOG = (double*)malloc( pxls* sizeof(double));
-
+pxls=params->pxels;
+d_pxls=params->d_pxels;
+double* sats=params->sats;
+double* satsOG=params->satsOG;
                         for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
@@ -104,16 +104,17 @@ x=(sxf==1)?x+7:x+3;
             srcp += src_pitch;
       }
 
-      free(sats);
-      free(satsOG);
+
 
   return src;
 }
 
 void AVSC_CC free_Saturation_Percentiles(AVS_FilterInfo* fi)
 {
-   Saturation_Percentiles* params = (Saturation_Percentiles*) fi->user_data;
-   free(params);
+    Saturation_Percentiles* params = (Saturation_Percentiles*) fi->user_data;
+    free(params->sats);
+    free(params->satsOG);
+    free(params);
 }
 
 AVS_Value AVSC_CC create_Saturation_Percentiles (AVS_ScriptEnvironment * env,AVS_Value args, void * dg)
@@ -138,6 +139,12 @@ if (!params)
      }else{
        params->sixtyFour = (avs_is_rgb64(&fi->vi))?true:false;
      }
+     params->pxels=fi->vi.height*fi->vi.width;
+     params->d_pxels=(double)params->pxels;
+
+                params->sats = (double*)malloc( params->pxels* sizeof(double));
+            params->satsOG = (double*)malloc( params->pxels* sizeof(double));
+
          fi->user_data = (void*) params;
     fi->get_frame = Saturation_Percentiles_get_frame;
     v = avs_new_value_clip(new_clip);
