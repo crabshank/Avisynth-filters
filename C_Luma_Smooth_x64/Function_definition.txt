@@ -1,0 +1,8 @@
+(
+clip clip,
+int "surr"=3 (1 to 50 by 1),
+float "var"=0.01 (0 to 0.2 by 0.00001),
+float "smooth"=0.2 (0 to 1 by 0.001),
+bool "debug"=False,
+bool "sixtyFour"=False
+)
