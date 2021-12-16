@@ -11,11 +11,20 @@
 #define rcptHiBit 1.0/65535.0
 
 typedef struct Luma_Smooth {
-      int surr;
-      double var;
-      double smooth;
-      int debug;
-      int sixtyFour;
+    int surr;
+    double var;
+    double smooth;
+    int debug;
+    int sixtyFour;
+    double *ys;
+    double *out_ys;
+    double *rs;
+    double *gs;
+    double *bs;
+    int** nbrsl;
+    int** nbrs_rankl;
+    int pxels;
+    int surr_p;
 } Luma_Smooth;
 
 AVS_VideoFrame * AVSC_CC Luma_Smooth_get_frame (AVS_FilterInfo * p, int n)
@@ -30,7 +39,7 @@ Luma_Smooth* params = (Luma_Smooth*) p->user_data;
 vr=params->var;
 smo=params->smooth;
 l_sur=params->surr;
-surr_pl=1+((4*l_sur)*(l_sur+1));
+surr_pl=params->surr_p;
 dbg=params->debug;
 
 src = avs_get_frame(p->child, n);
@@ -42,7 +51,7 @@ height = avs_get_height(src);
 
 wdt=p->vi.width;
 
-pxls=height*wdt;
+pxls=params->pxels;
 
 dst = avs_new_video_frame(p->env, &p->vi);
 dst_pitch = avs_get_pitch(dst);
@@ -52,27 +61,13 @@ dst->row_size=row_size;
 
 sxf=params->sixtyFour;
 
-
- double *ys = (double*)malloc( pxls* sizeof(double));
- double *out_ys = (double*)malloc( pxls* sizeof(double));
-
- double *rs = (double*)malloc( pxls* sizeof(double));
- double *gs = (double*)malloc( pxls* sizeof(double));
- double *bs = (double*)malloc( pxls* sizeof(double));
-
-
-
-int** nbrsl  = malloc(pxls * sizeof(int*));    // rows
-for (int r = 0; r < pxls; ++r) {
-    nbrsl[r] = malloc((1+surr_pl) * sizeof(int)); // columns
-    memset(nbrsl[r],-1,sizeof(nbrsl[r][0])*(1+surr_pl));
-}
-
-int** nbrs_rankl  = malloc(pxls * sizeof(int*));    // rows
-for (int r = 0; r < pxls; ++r) {
-    nbrs_rankl[r] = malloc((1+surr_pl) * sizeof(int)); // columns
-    memset(nbrs_rankl[r],-1,sizeof(nbrs_rankl[r][0])*(1+surr_pl));
-}
+    double *ys=params->ys;
+    double *out_ys=params->out_ys;
+    double *rs=params->rs;
+    double *gs=params->gs;
+    double *bs=params->bs;
+    int** nbrsl=params->nbrsl;
+    int** nbrs_rankl=params->nbrs_rankl;
 
 int p_ix=0;
 int xarr=0;
@@ -196,22 +191,6 @@ int wp_r=MAX(MIN(round(rgb_out[0]*255),255),0);
       }
 
 
- free(rs);
- free(gs);
- free(bs);
- free(ys);
- free(out_ys);
-
-for (int n = 0; n <pxls; ++n){
-    free(nbrsl[n]);
-}
-free(nbrsl);
-
-for (int n = 0; n <pxls; ++n){
-    free(nbrs_rankl[n]);
-}
-free(nbrs_rankl);
-
  avs_release_frame(src);
   return dst;
 
@@ -220,7 +199,22 @@ free(nbrs_rankl);
 void AVSC_CC free_Luma_Smooth(AVS_FilterInfo* fi)
 {
    Luma_Smooth* params = (Luma_Smooth*) fi->user_data;
-   free(params);
+    free(params->rs);
+     free(params->gs);
+     free(params->bs);
+     free(params->ys);
+     free(params->out_ys);
+
+    for (int n = 0; n <params->pxels; ++n){
+        free(params->nbrsl[n]);
+    }
+    free(params->nbrsl);
+
+    for (int n = 0; n <params->pxels; ++n){
+        free(params->nbrs_rankl[n]);
+    }
+    free(params->nbrs_rankl);
+    free(params);
 }
 
 AVS_Value AVSC_CC create_Luma_Smooth (AVS_ScriptEnvironment * env,
@@ -260,6 +254,28 @@ if (!params)
      }else{
        params->sixtyFour = (avs_is_rgb64(&fi->vi))?true:false;
      }
+
+    params->pxels=fi->vi.width*fi->vi.height;
+    params->surr_p=1+((4* params->surr)*(params->surr+1));
+
+      params->ys = (double*)malloc( params->pxels* sizeof(double));
+ params->out_ys = (double*)malloc( params->pxels* sizeof(double));
+
+ params->rs = (double*)malloc( params->pxels* sizeof(double));
+ params->gs = (double*)malloc( params->pxels* sizeof(double));
+ params->bs = (double*)malloc( params->pxels* sizeof(double));
+
+params->nbrsl  = malloc(params->pxels * sizeof(int*));    // rows
+for (int r = 0; r < params->pxels; ++r) {
+    params->nbrsl[r] = malloc((1+params->surr_p) * sizeof(int)); // columns
+    memset(params->nbrsl[r],-1,sizeof(params->nbrsl[r][0])*(1+params->surr_p));
+}
+
+params->nbrs_rankl  = malloc(params->pxels * sizeof(int*));    // rows
+for (int r = 0; r < params->pxels; ++r) {
+    params->nbrs_rankl[r] = malloc((1+params->surr_p) * sizeof(int)); // columns
+    memset(params->nbrs_rankl[r],-1,sizeof(params->nbrs_rankl[r][0])*(1+params->surr_p));
+}
 
     fi->user_data = (void*) params;
 
