@@ -112,8 +112,6 @@ x=(sxf==1)?x+7:x+3;
 void AVSC_CC free_Saturation_Percentiles(AVS_FilterInfo* fi)
 {
     Saturation_Percentiles* params = (Saturation_Percentiles*) fi->user_data;
-    free(params->sats);
-    free(params->satsOG);
     free(params);
 }
 
