@@ -22,7 +22,7 @@ typedef struct Luma_Smooth {
     double *gs;
     double *bs;
     int** nbrsl;
-    int** nbrs_rankl;
+    //int** nbrs_rankl;
     int pxels;
     int surr_p;
 } Luma_Smooth;
@@ -71,12 +71,12 @@ for (int r = 0; r < params->pxels; ++r) {
     memset(params->nbrsl[r],-1,sizeof(params->nbrsl[r][0])*(1+params->surr_p));
 }
 
-for (int r = 0; r < params->pxels; ++r) {
+/*for (int r = 0; r < params->pxels; ++r) {
     memset(params->nbrs_rankl[r],-1,sizeof(params->nbrs_rankl[r][0])*(1+params->surr_p));
-}
+}*/
 
     int** nbrsl=params->nbrsl;
-    int** nbrs_rankl=params->nbrs_rankl;
+   // int** nbrs_rankl=params->nbrs_rankl;
 
 
 
@@ -110,10 +110,10 @@ int xarr=0;
         for(int i=xarr-l_sur; i<=xarr+l_sur; i++){
         for(int k=y-l_sur; k<=y+l_sur; k++){
             if((i>=0)&&(i<wdt)&&(k>=0)&&(k<height)){
-                int rnk=MAX(abs(xarr-i),abs(y-k));
+               // int rnk=MAX(abs(xarr-i),abs(y-k));
                 int nbr_ix=k*wdt+i;
                 nbrsl[p_ix][nbrs_cntl]=nbr_ix;
-                nbrs_rankl[p_ix][nbrs_cntl]=rnk;
+               // nbrs_rankl[p_ix][nbrs_cntl]=rnk;
                 nbrs_cntl++;
             }
         }
@@ -267,11 +267,11 @@ for (int r = 0; r < params->pxels; ++r) {
     memset(params->nbrsl[r],-1,sizeof(params->nbrsl[r][0])*(1+params->surr_p));
 }
 
-params->nbrs_rankl  = malloc(params->pxels * sizeof(int*));    // rows
+/*params->nbrs_rankl  = malloc(params->pxels * sizeof(int*));    // rows
 for (int r = 0; r < params->pxels; ++r) {
     params->nbrs_rankl[r] = malloc((1+params->surr_p) * sizeof(int)); // columns
     memset(params->nbrs_rankl[r],-1,sizeof(params->nbrs_rankl[r][0])*(1+params->surr_p));
-}
+}*/
 
     fi->user_data = (void*) params;
 
@@ -290,3 +290,4 @@ const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
    avs_add_function(env, "Luma_Smooth", "c[surr]i[var]f[smooth]f[debug]b[sixtyFour]b", create_Luma_Smooth, 0);
    return "Luma_Smooth C plugin";
 }
+
