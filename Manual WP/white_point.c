@@ -249,7 +249,7 @@ int gfi=(sxf==1)?round(rgb_ato[1]*65535):round(rgb_ato[1]*255);
 int bfi=(sxf==1)?round(rgb_ato[2]*65535):round(rgb_ato[2]*255);
 
 
-if ((nm!="")&&(nm!="NULL")){
+if ((nm!="")&&(nm!="NULL")&&(dbg!=6)){
    //int num;
    FILE *fptr;
    // use appropriate location if you are using MacOS or Linux
