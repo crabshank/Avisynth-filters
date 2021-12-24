@@ -64,6 +64,7 @@ typedef struct Manual_WP {
 	   double *abb_B;
 	   double *abb_mcs;
 	   double *abb_sat;
+	   double *abb_Y;
 } Manual_WP;
 
 
@@ -493,7 +494,7 @@ if(params->abb==1){
 	params->abb_R[p_ix]=lin_rgb_abb[0];
 	params->abb_G[p_ix]=lin_rgb_abb[1];
 	params->abb_B[p_ix]=lin_rgb_abb[2];
-
+	params->abb_Y[p_ix]=(blackOG==1)?0:WPConvXYZ[1];
 
 	if(greyOG==1){
 		params->abb_sat[p_ix]=0;
@@ -790,8 +791,11 @@ double og_msc=MIN(og_sat,og_chr);
             double nw_chr=nw_mx-nw_mn;
     double nw_sat=(nw_mx==0)?0:nw_chr/nw_mx;
     double nw_msc=MIN(nw_sat,nw_chr);
+    double nw_XYZ_pl[3];
+    double nw_XYZ[3];
+    rgb2XYZ(rgb_out_lin,nw_XYZ,nw_XYZ_pl,mde,0,1,aprxPw);
 
-    if(nw_msc>og_msc){
+    if(nw_msc>og_msc || params->abb_Y[p_ix]<nw_XYZ[1]){
         rgb_out_lin[0]=rgb_og_lin[0];
         rgb_out_lin[1]=rgb_og_lin[1];
         rgb_out_lin[2]=rgb_og_lin[2];
@@ -1343,6 +1347,7 @@ params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 	   params->abb_B = (double*)malloc( params->pxls* sizeof(double));
 	   params->abb_mcs = (double*)malloc( params->pxls* sizeof(double));
 	   params->abb_sat = (double*)malloc( params->pxls* sizeof(double));
+	   params->abb_Y = (double*)malloc( params->pxls* sizeof(double));
 
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
