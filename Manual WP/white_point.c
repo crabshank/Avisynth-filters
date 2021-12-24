@@ -63,7 +63,6 @@ typedef struct Manual_WP {
 	   double *abb_G;
 	   double *abb_B;
 	   double *abb_mcs;
-	   double *abb_sat;
 } Manual_WP;
 
 
@@ -494,9 +493,7 @@ if(params->abb==1){
 	params->abb_G[p_ix]=lin_rgb_abb[1];
 	params->abb_B[p_ix]=lin_rgb_abb[2];
 
-
 	if(greyOG==1){
-		params->abb_sat[p_ix]=0;
 		params->abb_mcs[p_ix]=0;
 	}else{
 		 mx_abb=MAX(WPchgRGB[0],MAX(  WPchgRGB[1],WPchgRGB[2]));
@@ -504,7 +501,6 @@ if(params->abb==1){
 		double chr_abb=mx_abb-mn_abb;
 		double sat_abb=(mx_abb==0)?0:chr_abb/mx_abb;
 		double mcs_abb=MIN(chr_abb,sat_abb);
-		params->abb_sat[p_ix]=sat_abb;
 		params->abb_mcs[p_ix]=mcs_abb;
 	}
 
@@ -769,15 +765,11 @@ if(params->abb==1){
 		  rgb_out_lin[2]=(use_dlt_b==1)?delta(params->abb_B[p_ix],dlt_b):x_delta(params->abb_B[p_ix],b,avg);
 
 
-            rgb_out_lin[0]=lerp(params->abb_R[p_ix],rgb_out_lin[0],params->abb_sat[p_ix]);
-            rgb_out_lin[0]=lerp(rgb_out_lin[0],params->abb_R[p_ix],params->abb_mcs[p_ix]);
+           rgb_out_lin[0]=lerp(params->abb_R[p_ix],rgb_out_lin[0],params->abb_mcs[p_ix]);
 
-            rgb_out_lin[1]=lerp(params->abb_G[p_ix],rgb_out_lin[1],params->abb_sat[p_ix]);
-            rgb_out_lin[1]=lerp(rgb_out_lin[1],params->abb_G[p_ix],params->abb_mcs[p_ix]);
+            rgb_out_lin[1]=lerp(params->abb_G[p_ix],rgb_out_lin[1],params->abb_mcs[p_ix]);
 
-            rgb_out_lin[2]=lerp(params->abb_B[p_ix],rgb_out_lin[2],params->abb_sat[p_ix]);
-            rgb_out_lin[2]=lerp(rgb_out_lin[2],params->abb_B[p_ix],params->abb_mcs[p_ix]);
-
+            rgb_out_lin[2]=lerp(params->abb_B[p_ix],rgb_out_lin[2],params->abb_mcs[p_ix]);
 
 		  if(lnr==0){
 			  Apply_gamma(rgb_out_lin,rgb_out,mde,aprxPw);
@@ -1324,7 +1316,6 @@ params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 	   params->abb_G = (double*)malloc( params->pxls* sizeof(double));
 	   params->abb_B = (double*)malloc( params->pxls* sizeof(double));
 	   params->abb_mcs = (double*)malloc( params->pxls* sizeof(double));
-	   params->abb_sat = (double*)malloc( params->pxls* sizeof(double));
 
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
