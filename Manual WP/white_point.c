@@ -765,18 +765,18 @@ if(params->abb==1){
 		  double rgb_out_lin[3];
 
 		  rgb_out_lin[0]=(use_dlt_r==1)?delta(params->abb_R[p_ix],dlt_r):x_delta(params->abb_R[p_ix],r,avg);
-		  rgb_out_lin[1]=(use_dlt_g==1)?delta(params->abb_G[p_ix],0):x_delta(params->abb_G[p_ix],g,avg);
+		  rgb_out_lin[1]=(use_dlt_g==1)?delta(params->abb_G[p_ix],dlt_g):x_delta(params->abb_G[p_ix],g,avg);
 		  rgb_out_lin[2]=(use_dlt_b==1)?delta(params->abb_B[p_ix],dlt_b):x_delta(params->abb_B[p_ix],b,avg);
 
 
-          /*  rgb_out_lin[0]=lerp(params->abb_R[p_ix],rgb_out_lin[0],params->abb_sat[p_ix]);
+            rgb_out_lin[0]=lerp(params->abb_R[p_ix],rgb_out_lin[0],params->abb_sat[p_ix]);
             rgb_out_lin[0]=lerp(rgb_out_lin[0],params->abb_R[p_ix],params->abb_mcs[p_ix]);
 
             rgb_out_lin[1]=lerp(params->abb_G[p_ix],rgb_out_lin[1],params->abb_sat[p_ix]);
             rgb_out_lin[1]=lerp(rgb_out_lin[1],params->abb_G[p_ix],params->abb_mcs[p_ix]);
 
             rgb_out_lin[2]=lerp(params->abb_B[p_ix],rgb_out_lin[2],params->abb_sat[p_ix]);
-            rgb_out_lin[2]=lerp(rgb_out_lin[2],params->abb_B[p_ix],params->abb_mcs[p_ix]);*/
+            rgb_out_lin[2]=lerp(rgb_out_lin[2],params->abb_B[p_ix],params->abb_mcs[p_ix]);
 
 
 		  if(lnr==0){
