@@ -1,4 +1,4 @@
-    #include <stdlib.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdio.h>
@@ -731,12 +731,11 @@ if(params->abb==1){
 	g/=cnt;
 	b/=cnt;
 
-	double avg=(r+g+b)/3.0;
-
+	double mn=MIN(r,MIN(g,b));
 
 	int use_dlt_r,use_dlt_g,use_dlt_b;
 
-	if(avg==0 || avg==1){
+	if(mn==0 || mn==1){
 		use_dlt_r=0;
 		use_dlt_g=0;
 		use_dlt_b=0;
@@ -746,16 +745,16 @@ if(params->abb==1){
 		use_dlt_b=(b==0 || b==1)?0:1;
 	}
 
-	if(r!=avg && use_dlt_r==1){
-		dlt_r=(avg>=r)?r/(r+avg):(avg-1)/(r+avg-2);
+	if(r!=mn && use_dlt_r==1){
+		dlt_r=(mn>=r)?r/(r+mn):(mn-1)/(r+mn-2);
 	}
 
-		if(g!=avg && use_dlt_g==1){
-		dlt_g=(avg>=g)?g/(g+avg):(avg-1)/(g+avg-2);
+		if(g!=mn && use_dlt_g==1){
+		dlt_g=(mn>=g)?g/(g+mn):(mn-1)/(g+mn-2);
 	}
 
-		if(b!=avg && use_dlt_b==1){
-		dlt_b=(avg>=b)?b/(b+avg):(avg-1)/(b+avg-2);
+		if(b!=mn && use_dlt_b==1){
+		dlt_b=(mn>=b)?b/(b+mn):(mn-1)/(b+mn-2);
 	}
 
 	p_ix=0;
@@ -771,9 +770,9 @@ double og_chr=og_mx-og_mn;
 double og_sat=(og_mx==0)?0:(og_mx-og_chr)/og_mx;
 double og_msc=MIN(og_sat,og_chr);
 
-		  rgb_out_lin[0]=(use_dlt_r==1)?delta(params->abb_R[p_ix],dlt_r):x_delta(params->abb_R[p_ix],r,avg);
-		  rgb_out_lin[1]=(use_dlt_g==1)?delta(params->abb_G[p_ix],dlt_g):x_delta(params->abb_G[p_ix],g,avg);
-		  rgb_out_lin[2]=(use_dlt_b==1)?delta(params->abb_B[p_ix],dlt_b):x_delta(params->abb_B[p_ix],b,avg);
+		  rgb_out_lin[0]=(use_dlt_r==1)?delta(params->abb_R[p_ix],dlt_r):x_delta(params->abb_R[p_ix],r,mn);
+		  rgb_out_lin[1]=(use_dlt_g==1)?delta(params->abb_G[p_ix],dlt_g):x_delta(params->abb_G[p_ix],g,mn);
+		  rgb_out_lin[2]=(use_dlt_b==1)?delta(params->abb_B[p_ix],dlt_b):x_delta(params->abb_B[p_ix],b,mn);
 
 
             rgb_out_lin[0]=lerp(params->abb_R[p_ix],rgb_out_lin[0],params->abb_sat[p_ix]);
