@@ -638,3 +638,33 @@ void get_xy( double rgb[3],double xyY[3] , int mode, int linr, int aprxPw){
         WPconv2Grey(XYZ1,XYZ2,XYZ3);
         XYZ2xyY(XYZ3,xyY);
 }
+
+double delta(double c, double dlt){
+	if(dlt==0){
+		return 0;
+	}else if(dlt==1){
+		return 1;
+	}else{
+		if(c>dlt){
+			double relxInv=(1-c)/(1-dlt);
+			return -dlt*relxInv+1;
+		}else{
+			double relx=c/dlt;
+			return (1-dlt)*relx;
+		}
+	}
+}
+
+double x_delta(double c, double fr, double to){
+	if(to==0){
+		return ((fr==1)?0:MAX(0,(c-fr)/(1-fr)));
+	}else if(to==1){
+		return ((fr==0)?1:MAX(1,c/fr));
+	}else if(fr==0){
+		return to+c*(-to+1);
+	}else if(fr==1){
+		return to*c;
+	}else{
+		return c;
+	}
+}
