@@ -718,7 +718,7 @@ if(params->abb==1){
 	p_ix=0;
 
 	while(p_ix<params->pxls){
-		score=1-params->abb_mcs[p_ix];
+		score=((1-params->abb_mcs[p_ix])*(1+MAX(0,MIN(1,params->abb_sat[p_ix]-params->abb_mcs[p_ix]))))*0.5;
 		r+=score*params->abb_R[p_ix];
 		g+=score*params->abb_G[p_ix];
 		b+=score*params->abb_B[p_ix];
@@ -795,7 +795,7 @@ double og_msc=MIN(og_sat,og_chr);
     double nw_XYZ[3];
     rgb2XYZ(rgb_out_lin,nw_XYZ,nw_XYZ_pl,mde,0,1,aprxPw);
 
-    if(nw_msc>og_msc || params->abb_Y[p_ix]<nw_XYZ[1]){
+   if(nw_msc>og_msc || params->abb_Y[p_ix]<nw_XYZ[1]){
         rgb_out_lin[0]=rgb_og_lin[0];
         rgb_out_lin[1]=rgb_og_lin[1];
         rgb_out_lin[2]=rgb_og_lin[2];
