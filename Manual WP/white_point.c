@@ -57,6 +57,13 @@ typedef struct Manual_WP {
         double* hueCount_prp;
         double* hueCount_wht;
         double* hueCount_wht_prp;
+		int pxls;
+		int abb;
+		double *abb_R;
+	   double *abb_G;
+	   double *abb_B;
+	   double *abb_mcs;
+	   double *abb_sat;
 } Manual_WP;
 
 
@@ -67,7 +74,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,edlm2,ed_offst,fv_swt,ed_bse,aprxPw;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,edlm2,ed_offst,fv_swt,ed_bse,aprxPw,p_ix;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
@@ -103,6 +110,7 @@ edlm2=params->ed_lim2;
 ed_offst=params->ed_off;
 ed_bse=params->ed_base;
 aprxPw=params->approxPow;
+
 
 sat_dbg_six=0.0;
 r_dbg_six=1.0;
@@ -272,14 +280,30 @@ if ((lid!="")&&(lid!="NULL")){
 }
 
 
+p_ix=0;
 
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
+int intRed, intGreen, intBlue;
 
-                 double currBlue=(sxf==1)?(double)srcp[x]+srcp[x+1]*256:(double)srcp[x];
-                 double currGreen=(sxf==1)?(double)srcp[x+2]+srcp[x+3]*256:(double)srcp[x+1];
-                 double currRed=(sxf==1)?(double)srcp[x+4]+srcp[x+5]*256:(double)srcp[x+2];
+					if(params->abb==1){
+	                intBlue=(sxf==1)?rrcp[x]+rrcp[x+1]*256:rrcp[x];
+                  intGreen=(sxf==1)?rrcp[x+2]+rrcp[x+3]*256:rrcp[x+1];
+                  intRed=(sxf==1)?rrcp[x+4]+rrcp[x+5]*256:rrcp[x+2];
+					}else{
+					intBlue=(sxf==1)?srcp[x]+srcp[x+1]*256:srcp[x];
+                  intGreen=(sxf==1)?srcp[x+2]+srcp[x+3]*256:srcp[x+1];
+                  intRed=(sxf==1)?srcp[x+4]+srcp[x+5]*256:srcp[x+2];
+					}
+
+
+				 double currBlue=(double)intBlue;
+				 double currGreen=(double)intGreen;
+				 double currRed=(double)intRed;
+
+int greyOG=((intRed==intGreen)&&(intGreen==intBlue))?1:0;
+int blackOG=((greyOG==1)&&(intRed==0))?1:0;
 
 
     bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
@@ -294,7 +318,7 @@ double WPchgRGB[3]={rOG,gOG,bOG};
 
 rgb2XYZ(OG_RGB,rgbXYZ,rgbXYZGrey,mde,0,lnr,aprxPw);
 
-if(rOG==0 && (gOG==0) && (bOG==0)){
+if(blackOG){
     WPchgRGB[0]=0;
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
@@ -450,8 +474,57 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 
 }
 
-
 }
+
+if(params->abb==1){
+	double mx_abb=0;
+	double lin_rgb_abb[3]={0,0,0};
+
+	if(lnr==0){
+		if(blackOG==0){
+			XYZ2rgb(WPConvXYZ,lin_rgb_abb,mde,1,aprxPw);
+		}
+	}else{
+		lin_rgb_abb[0]=WPchgRGB[0];
+		lin_rgb_abb[1]=WPchgRGB[1];
+		lin_rgb_abb[2]=WPchgRGB[2];
+	}
+
+	params->abb_R[p_ix]=lin_rgb_abb[0];
+	params->abb_G[p_ix]=lin_rgb_abb[1];
+	params->abb_B[p_ix]=lin_rgb_abb[2];
+
+
+	if(greyOG==1){
+		params->abb_sat[p_ix]=0;
+		params->abb_mcs[p_ix]=0;
+	}else{
+		 mx_abb=MAX(WPchgRGB[0],MAX(  WPchgRGB[1],WPchgRGB[2]));
+		double mn_abb=MIN(WPchgRGB[0],MIN(  WPchgRGB[1],WPchgRGB[2]));
+		double chr_abb=mx_abb-mn_abb;
+		double sat_abb=(mx_abb==0)?0:chr_abb/mx_abb;
+		double mcs_abb=MIN(chr_abb,sat_abb);
+		params->abb_sat[p_ix]=sat_abb;
+		params->abb_mcs[p_ix]=mcs_abb;
+	}
+
+	if(dbg==6){
+    double sat=(mx_abb==0)?0:(mx_abb-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx_abb;
+    double OGmx=MAX(rOG,MAX(gOG,bOG));
+    double OGsat=(mx_abb==0)?0:(OGmx-MIN(rOG,MIN(gOG,bOG)))/OGmx;
+    double redu=OGsat-sat;
+    if((redu>sat_dbg_six)&&(sat<=amp)){
+      sat_dbg_six=redu;
+        r_dbg_six=rOG;
+        g_dbg_six=gOG;
+        b_dbg_six=bOG;
+    }
+    WPchgRGB[0]=(sat<=amp)?rOG:0;
+    WPchgRGB[1]=(sat<=amp)?gOG:0;
+    WPchgRGB[2]=(sat<=amp)?bOG:0;
+}
+
+}else{
 
 if(dbg==1){
     double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
@@ -621,13 +694,186 @@ srcp[x+2] =(sxf==1)? wp_g:wp_r; // green: red
 srcp[x+3] =(sxf==1)? wp_g:srcp[x+3]; //green : self
 srcp[x+4] =(sxf==1)? wp_r:srcp[x+4]; //red : self
 srcp[x+5] =(sxf==1)? wp_r:srcp[x+5]; //red : self
-
+	  }
 
 x=(sxf==1)?x+7:x+3;
+p_ix++;
 
       }
-            srcp += src_pitch;
+		  if(params->abb==1){
+				rrcp += src_pitch;
+		  }else{
+				srcp += src_pitch;
+		  }
       }
+
+rrcp=avs_get_read_ptr(src);
+
+if(params->abb==1){
+	double cnt, score, r,g,b,dlt_r,dlt_g,dlt_b;
+	cnt=score=r=g=b=dlt_r=dlt_g=dlt_b=0;
+	dlt_r=dlt_g=dlt_b=0.5;
+
+	p_ix=0;
+
+	while(p_ix<params->pxls){
+		score=1-params->abb_mcs[p_ix];
+		r+=score*params->abb_R[p_ix];
+		g+=score*params->abb_G[p_ix];
+		b+=score*params->abb_B[p_ix];
+
+		cnt+=1;
+		p_ix++;
+	}
+
+	r/=cnt;
+	g/=cnt;
+	b/=cnt;
+
+	double avg=(r+g+b)/3.0;
+
+
+	int use_dlt_r,use_dlt_g,use_dlt_b;
+
+	if(avg==0 || avg==1){
+		use_dlt_r=0;
+		use_dlt_g=0;
+		use_dlt_b=0;
+	}else{
+		use_dlt_r=(r==0 || r==1)?0:1;
+		use_dlt_g=(g==0 || g==1)?0:1;
+		use_dlt_b=(b==0 || b==1)?0:1;
+	}
+
+	if(r!=avg && use_dlt_r==1){
+		dlt_r=(avg>=r)?r/(r+avg):(avg-1)/(r+avg-2);
+	}
+
+		if(g!=avg && use_dlt_g==1){
+		dlt_g=(avg>=g)?g/(g+avg):(avg-1)/(g+avg-2);
+	}
+
+		if(b!=avg && use_dlt_b==1){
+		dlt_b=(avg>=b)?b/(b+avg):(avg-1)/(b+avg-2);
+	}
+
+	p_ix=0;
+
+      for (y=0; y<height; y++) {
+      for (x=0; x<row_size; x++) {
+		  double rgb_out[3];
+		  double rgb_out_lin[3];
+
+		  rgb_out_lin[0]=(use_dlt_r==1)?delta(params->abb_R[p_ix],dlt_r):x_delta(params->abb_R[p_ix],r,avg);
+		  rgb_out_lin[1]=(use_dlt_g==1)?delta(params->abb_G[p_ix],0):x_delta(params->abb_G[p_ix],g,avg);
+		  rgb_out_lin[2]=(use_dlt_b==1)?delta(params->abb_B[p_ix],dlt_b):x_delta(params->abb_B[p_ix],b,avg);
+
+
+          /*  rgb_out_lin[0]=lerp(params->abb_R[p_ix],rgb_out_lin[0],params->abb_sat[p_ix]);
+            rgb_out_lin[0]=lerp(rgb_out_lin[0],params->abb_R[p_ix],params->abb_mcs[p_ix]);
+
+            rgb_out_lin[1]=lerp(params->abb_G[p_ix],rgb_out_lin[1],params->abb_sat[p_ix]);
+            rgb_out_lin[1]=lerp(rgb_out_lin[1],params->abb_G[p_ix],params->abb_mcs[p_ix]);
+
+            rgb_out_lin[2]=lerp(params->abb_B[p_ix],rgb_out_lin[2],params->abb_sat[p_ix]);
+            rgb_out_lin[2]=lerp(rgb_out_lin[2],params->abb_B[p_ix],params->abb_mcs[p_ix]);*/
+
+
+		  if(lnr==0){
+			  Apply_gamma(rgb_out_lin,rgb_out,mde,aprxPw);
+		  }else{
+			  rgb_out[0]=rgb_out_lin[0];
+			  rgb_out[1]=rgb_out_lin[1];
+			  rgb_out[2]=rgb_out_lin[2];
+		  }
+
+		  if(dbg==1){
+    double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2])))/mx;
+
+    double dbg_out;
+	if(aprxPw==1){
+     dbg_out=(amp==1)?sat:fastPrecisePow(sat,amp);
+	}else{
+		dbg_out=(amp==1)?sat:pow(sat,amp);
+	}
+
+    rgb_out[0]=dbg_out;
+    rgb_out[1]=dbg_out;
+    rgb_out[2]=dbg_out;
+}else if(dbg==2){
+    double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2])))/mx;
+
+    rgb_out[0]=(sat>=amp)?rgb_out[0]:0;
+    rgb_out[1]=(sat>=amp)?rgb_out[1]:0;
+    rgb_out[2]=(sat>=amp)?rgb_out[2]:0;
+}else if (dbg==3){
+    double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2])))/mx;
+
+    double mxOG=MAX(rOG,MAX(gOG,bOG));
+    double satOG=(mxOG==0)?0:(mxOG-MIN(rOG,MIN(gOG,bOG)))/mxOG;
+satOG=(amp>=0)?satOG*(1-amp):satOG;
+    rgb_out[0]=(sat>=satOG)?rgb_out[0]:0;
+    rgb_out[1]=(sat>=satOG)?rgb_out[1]:0;
+    rgb_out[2]=(sat>=satOG)?rgb_out[2]:0;
+}else if (dbg==4){
+    double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2])))/mx;
+
+    double mxOG=MAX(rOG,MAX(gOG,bOG));
+    double satOG=(mxOG==0)?0:(mxOG-MIN(rOG,MIN(gOG,bOG)))/mxOG;
+
+    double hue_dbg=120;
+
+    double abs_satDiff=(satOG==0)?fabs(satOG-sat):fabs(satOG-sat)/satOG;
+    double satDiff1=(satOG==0)?satOG-sat:fabs(satOG-sat)/satOG;
+     satDiff1=satDiff1*satDiff1;
+    double satDiff2=(satOG==1)?sat-satOG:(sat-satOG)/(1-satOG);
+     satDiff2=satDiff2*satDiff2;
+
+    hue_dbg=(sat<satOG)?lerp(157.5,240,satDiff1):hue_dbg;  //Sat decreased, cyan to blue
+    hue_dbg=(sat>satOG)?lerp(307.5,367.5,satDiff2):hue_dbg; //Sat increased, Magenta to Orange
+    hue_dbg=(hue_dbg==360)?0:hue_dbg;
+    hue_dbg=(hue_dbg>360)?hue_dbg-360:hue_dbg;
+    double hsv_dbg[3]={hue_dbg,1,lerp(0.3*(1-amp),1-amp,abs_satDiff)};
+    hsv2rgb_360(hsv_dbg,rgb_out);
+
+}else if (dbg==5){
+double x_shift=(double)(x)/(double)(row_size);
+
+if(fv_swt==1){
+    rgb_out[0]=(x_shift<0.5)?rOG:bOG;
+    rgb_out[1]=(x_shift<0.5)?rOG:bOG;
+    rgb_out[2]=(x_shift<0.5)?rOG:bOG;
+}else if(fv_swt==2){
+    rgb_out[0]=rOG;
+    rgb_out[1]=gOG;
+    rgb_out[2]=bOG;
+
+}
+
+}
+
+int wp_b=MAX(MIN(round(rgb_out[2]*255),255),0);
+int wp_g=MAX(MIN(round(rgb_out[1]*255),255),0);
+int wp_r=MAX(MIN(round(rgb_out[0]*255),255),0);
+
+srcp[x] =wp_b; //blue : blue
+srcp[x+1] =(sxf==1)?wp_b:wp_g; // blue : green
+srcp[x+2] =(sxf==1)? wp_g:wp_r; // green: red
+srcp[x+3] =(sxf==1)? wp_g:srcp[x+3]; //green : self
+srcp[x+4] =(sxf==1)? wp_r:srcp[x+4]; //red : self
+srcp[x+5] =(sxf==1)? wp_r:srcp[x+5]; //red : self
+		  x=(sxf==1)?x+7:x+3;
+		  p_ix++;
+}
+	  srcp += src_pitch;
+}
+
+
+}
 
       if ((dbg==6)&&(nm!="")&&(nm!="NULL")){
    //int num;
@@ -700,6 +946,7 @@ if (!params){
                 params->ed_off=  avs_defined(avs_array_elt(args,18))?avs_as_int(avs_array_elt(args, 18)):0;
                 params->ed_base=  avs_defined(avs_array_elt(args,19))?avs_as_int(avs_array_elt(args, 19)):-1;
 				 params->approxPow=  avs_defined(avs_array_elt(args,21))?avs_as_bool(avs_array_elt(args, 21)):true;
+				 params->abb=  avs_defined(avs_array_elt(args,22))?avs_as_bool(avs_array_elt(args, 22)):false;
 
 char* file_name ="";
 file_name = ((avs_as_string(avs_array_elt(args, 13)))&&(avs_as_string(avs_array_elt(args, 13))!="NULL"))?avs_as_string(avs_array_elt(args, 13)):file_name;
@@ -1070,8 +1317,15 @@ params->hueCount_val=(double*)malloc(sizeof(double)*361);
 params->hueCount_prp=(double*)malloc(sizeof(double)*361);
 params->hueCount_wht=(double*)malloc(sizeof(double)*361);
 params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
-
   }
+   params->pxls=fi->vi.width*fi->vi.height;
+
+	   params->abb_R = (double*)malloc( params->pxls* sizeof(double));
+	   params->abb_G = (double*)malloc( params->pxls* sizeof(double));
+	   params->abb_B = (double*)malloc( params->pxls* sizeof(double));
+	   params->abb_mcs = (double*)malloc( params->pxls* sizeof(double));
+	   params->abb_sat = (double*)malloc( params->pxls* sizeof(double));
+
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
     v = avs_new_value_clip(new_clip);
@@ -1087,6 +1341,6 @@ params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s[approxPow]b", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s[approxPow]b[abb]b", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
