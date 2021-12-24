@@ -1,4 +1,4 @@
-#include <stdlib.h>
+    #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdio.h>
@@ -795,7 +795,7 @@ double og_msc=MIN(og_sat,og_chr);
     double nw_XYZ[3];
     rgb2XYZ(rgb_out_lin,nw_XYZ,nw_XYZ_pl,mde,0,1,aprxPw);
 
-   if(nw_msc>og_msc || params->abb_Y[p_ix]<nw_XYZ[1]){
+   if(nw_msc>og_msc || params->abb_Y[p_ix]<=nw_XYZ[1]){
         rgb_out_lin[0]=rgb_og_lin[0];
         rgb_out_lin[1]=rgb_og_lin[1];
         rgb_out_lin[2]=rgb_og_lin[2];
