@@ -63,6 +63,7 @@ typedef struct Manual_WP {
 	   double *abb_G;
 	   double *abb_B;
 	   double *abb_mcs;
+	   double *abb_sat;
 } Manual_WP;
 
 
@@ -493,7 +494,9 @@ if(params->abb==1){
 	params->abb_G[p_ix]=lin_rgb_abb[1];
 	params->abb_B[p_ix]=lin_rgb_abb[2];
 
+
 	if(greyOG==1){
+		params->abb_sat[p_ix]=0;
 		params->abb_mcs[p_ix]=0;
 	}else{
 		 mx_abb=MAX(WPchgRGB[0],MAX(  WPchgRGB[1],WPchgRGB[2]));
@@ -501,6 +504,7 @@ if(params->abb==1){
 		double chr_abb=mx_abb-mn_abb;
 		double sat_abb=(mx_abb==0)?0:chr_abb/mx_abb;
 		double mcs_abb=MIN(chr_abb,sat_abb);
+		params->abb_sat[p_ix]=sat_abb;
 		params->abb_mcs[p_ix]=mcs_abb;
 	}
 
@@ -759,17 +763,39 @@ if(params->abb==1){
       for (x=0; x<row_size; x++) {
 		  double rgb_out[3];
 		  double rgb_out_lin[3];
+double rgb_og_lin[3]={params->abb_R[p_ix],params->abb_G[p_ix],params->abb_B[p_ix]};
+double og_mx=MAX(params->abb_R[p_ix],MAX(params->abb_G[p_ix],params->abb_B[p_ix]));
+double og_mn=MIN(params->abb_R[p_ix],MIN(params->abb_G[p_ix],params->abb_B[p_ix]));
+double og_chr=og_mx-og_mn;
+double og_sat=(og_mx==0)?0:(og_mx-og_chr)/og_mx;
+double og_msc=MIN(og_sat,og_chr);
 
 		  rgb_out_lin[0]=(use_dlt_r==1)?delta(params->abb_R[p_ix],dlt_r):x_delta(params->abb_R[p_ix],r,avg);
 		  rgb_out_lin[1]=(use_dlt_g==1)?delta(params->abb_G[p_ix],dlt_g):x_delta(params->abb_G[p_ix],g,avg);
 		  rgb_out_lin[2]=(use_dlt_b==1)?delta(params->abb_B[p_ix],dlt_b):x_delta(params->abb_B[p_ix],b,avg);
 
 
-           rgb_out_lin[0]=lerp(params->abb_R[p_ix],rgb_out_lin[0],params->abb_mcs[p_ix]);
+            rgb_out_lin[0]=lerp(params->abb_R[p_ix],rgb_out_lin[0],params->abb_sat[p_ix]);
+            rgb_out_lin[0]=lerp(rgb_out_lin[0],params->abb_R[p_ix],params->abb_mcs[p_ix]);
 
-            rgb_out_lin[1]=lerp(params->abb_G[p_ix],rgb_out_lin[1],params->abb_mcs[p_ix]);
 
-            rgb_out_lin[2]=lerp(params->abb_B[p_ix],rgb_out_lin[2],params->abb_mcs[p_ix]);
+            rgb_out_lin[1]=lerp(params->abb_G[p_ix],rgb_out_lin[1],params->abb_sat[p_ix]);
+            rgb_out_lin[1]=lerp(rgb_out_lin[1],params->abb_G[p_ix],params->abb_mcs[p_ix]);
+
+            rgb_out_lin[2]=lerp(params->abb_B[p_ix],rgb_out_lin[2],params->abb_sat[p_ix]);
+            rgb_out_lin[2]=lerp(rgb_out_lin[2],params->abb_B[p_ix],params->abb_mcs[p_ix]);
+
+            double nw_mx=MAX(rgb_out_lin[0],MAX(rgb_out_lin[1],rgb_out_lin[2]));
+            double nw_mn=MIN(rgb_out_lin[0],MIN(rgb_out_lin[1],rgb_out_lin[2]));
+            double nw_chr=nw_mx-nw_mn;
+    double nw_sat=(nw_mx==0)?0:nw_chr/nw_mx;
+    double nw_msc=MIN(nw_sat,nw_chr);
+
+    if(nw_msc>og_msc){
+        rgb_out_lin[0]=rgb_og_lin[0];
+        rgb_out_lin[1]=rgb_og_lin[1];
+        rgb_out_lin[2]=rgb_og_lin[2];
+    }
 
 		  if(lnr==0){
 			  Apply_gamma(rgb_out_lin,rgb_out,mde,aprxPw);
@@ -1316,6 +1342,7 @@ params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 	   params->abb_G = (double*)malloc( params->pxls* sizeof(double));
 	   params->abb_B = (double*)malloc( params->pxls* sizeof(double));
 	   params->abb_mcs = (double*)malloc( params->pxls* sizeof(double));
+	   params->abb_sat = (double*)malloc( params->pxls* sizeof(double));
 
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
