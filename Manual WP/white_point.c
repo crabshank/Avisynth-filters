@@ -30,6 +30,9 @@ typedef struct Manual_WP {
         int* ed_Red;
         int* ed_Green;
         int* ed_Blue;
+		double* ed_Red_dbl;
+        double* ed_Green_dbl;
+        double* ed_Blue_dbl;
         double* ed_x;
         double* ed_y;
         int* ed_start_fr;
@@ -40,6 +43,9 @@ typedef struct Manual_WP {
 		int* ed_Red2;
         int* ed_Green2;
         int* ed_Blue2;
+		double* ed_Red2_dbl;
+        double* ed_Green2_dbl;
+        double* ed_Blue2_dbl;
         double* ed_x2;
         double* ed_y2;
         int* ed_start_fr2;
@@ -48,15 +54,34 @@ typedef struct Manual_WP {
         int* ed_lookup2;
         int ed_lim2;
 		char* edits2;
+        int* bb_Red;
+        int* bb_Green;
+        int* bb_Blue;
+		double* bb_Red_dbl;
+        double* bb_Green_dbl;
+        double* bb_Blue_dbl;
+        double* bb_x;
+        double* bb_y;
+        int* bb_start_fr;
+        int* bb_end_fr;
+        int* bb_switch;
+        int* bb_lookup;
+        int bb_lim;
+        char* bb;
+		double *bb_R;
+	   double *bb_G;
+	   double *bb_B;
 		int approxPow;
         char** split;
         char** split2;
+        char** split_bb;
         double* hueCount;
         double* hueCount_sat;
         double* hueCount_val;
         double* hueCount_prp;
         double* hueCount_wht;
         double* hueCount_wht_prp;
+		int pxls;
 } Manual_WP;
 
 
@@ -67,15 +92,20 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
 
   src = avs_get_frame(p->child, n);
 
-   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,edlm2,ed_offst,fv_swt,ed_bse,aprxPw;
+   int row_size, height, src_pitch,x, y,dbg,mde,sxf,ato,lnr,edlm,edlm2,ed_offst,fv_swt,ed_bse,aprxPw,p_ix,bb_curr_clip;
    BYTE* srcp;
    const BYTE* rrcp;
      char* nm;
      char* lid;
      char* eds;
      char* eds2;
-   double rOG,bOG,gOG,cust_x,cust_y,amp,D65_x,D65_y, to_x, to_y,sat_dbg_six,r_dbg_six,g_dbg_six,b_dbg_six;
+   double rOG,bOG,gOG,cust_x,cust_y,cust_x_bb,cust_y_bb,amp,D65_x,D65_y, to_x, to_y,sat_dbg_six,r_dbg_six,g_dbg_six,b_dbg_six;
 
+bb_curr_clip=-1;
+
+if((params->bb!="")&&(params->bb!="NULL")){
+        bb_curr_clip=params->bb_lookup[n];
+}
 
   avs_make_writable(p->env, &src);
 
@@ -103,6 +133,7 @@ edlm2=params->ed_lim2;
 ed_offst=params->ed_off;
 ed_bse=params->ed_base;
 aprxPw=params->approxPow;
+
 
 sat_dbg_six=0.0;
 r_dbg_six=1.0;
@@ -239,8 +270,8 @@ if(maxHueScoreDeg!=360){ //not grey
       double xyY_ato[3];
        get_xy(rgb_ato, xyY_ato , params->mode,lnr,aprxPw);
 
-        params->x=xyY_ato[0];
-        params->y=xyY_ato[1];
+       // params->x=xyY_ato[0];
+      //  params->y=xyY_ato[1];
         cust_x=xyY_ato[0];
         cust_y=xyY_ato[1];
 
@@ -272,14 +303,30 @@ if ((lid!="")&&(lid!="NULL")){
 }
 
 
+p_ix=0;
 
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
+int intRed, intGreen, intBlue;
 
-                 double currBlue=(sxf==1)?(double)srcp[x]+srcp[x+1]*256:(double)srcp[x];
-                 double currGreen=(sxf==1)?(double)srcp[x+2]+srcp[x+3]*256:(double)srcp[x+1];
-                 double currRed=(sxf==1)?(double)srcp[x+4]+srcp[x+5]*256:(double)srcp[x+2];
+					if(bb_curr_clip!=-1){
+	                intBlue=(sxf==1)?rrcp[x]+rrcp[x+1]*256:rrcp[x];
+                  intGreen=(sxf==1)?rrcp[x+2]+rrcp[x+3]*256:rrcp[x+1];
+                  intRed=(sxf==1)?rrcp[x+4]+rrcp[x+5]*256:rrcp[x+2];
+					}else{
+					intBlue=(sxf==1)?srcp[x]+srcp[x+1]*256:srcp[x];
+                  intGreen=(sxf==1)?srcp[x+2]+srcp[x+3]*256:srcp[x+1];
+                  intRed=(sxf==1)?srcp[x+4]+srcp[x+5]*256:srcp[x+2];
+					}
+
+
+				 double currBlue=(double)intBlue;
+				 double currGreen=(double)intGreen;
+				 double currRed=(double)intRed;
+
+int greyOG=((intRed==intGreen)&&(intGreen==intBlue))?1:0;
+int blackOG=((greyOG==1)&&(intRed==0))?1:0;
 
 
     bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
@@ -294,7 +341,7 @@ double WPchgRGB[3]={rOG,gOG,bOG};
 
 rgb2XYZ(OG_RGB,rgbXYZ,rgbXYZGrey,mde,0,lnr,aprxPw);
 
-if(rOG==0 && (gOG==0) && (bOG==0)){
+if(blackOG){
     WPchgRGB[0]=0;
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
@@ -337,8 +384,8 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 		}else if(found2==0){
 						if (params->ed_switch[curr_clip]==1){
 
-				params->x=params->ed_x[curr_clip];
-				params->y=params->ed_y[curr_clip];
+				//params->x=params->ed_x[curr_clip];
+				//params->y=params->ed_y[curr_clip];
 				cust_x=params->ed_x[curr_clip];
 				cust_y=params->ed_y[curr_clip];
 
@@ -352,35 +399,35 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 			}else{
 
 				if((params->ed_Red[curr_clip]!=0) || (params->ed_Green[curr_clip]!=0) || (params->ed_Blue[curr_clip]!=0)){
-							double xyY_rgb[3];
+							double xyY_rgb_ed[3];
 
-						double rgb[3];
+						double rgb_ed[3];
 
-						rgb[0]=(sxf==1)?(double)(params->ed_Red[curr_clip])*rcptHiBit:(double)(params->ed_Red[curr_clip])*rcptwoFiveFive;
-						rgb[1]=(sxf==1)?(double)(params->ed_Green[curr_clip])*rcptHiBit:(double)(params->ed_Green[curr_clip])*rcptwoFiveFive;
-						rgb[2]=(sxf==1)?(double)(params->ed_Blue[curr_clip])*rcptHiBit:(double)(params->ed_Blue[curr_clip])*rcptwoFiveFive;
+						rgb_ed[0]=params->ed_Red_dbl[curr_clip];
+						rgb_ed[1]=params->ed_Green_dbl[curr_clip];
+						rgb_ed[2]=params->ed_Blue_dbl[curr_clip];
 
 							if(dbg==5){
-							rOG=rgb[0];
-							gOG=rgb[1];
-							bOG=rgb[2];
+							rOG=rgb_ed[0];
+							gOG=rgb_ed[1];
+							bOG=rgb_ed[2];
 							fv_swt=2;
 							}
 
-						get_xy(rgb, xyY_rgb , mde,lnr,aprxPw);
+						get_xy(rgb_ed, xyY_rgb_ed , mde,lnr,aprxPw);
 
-						params->x=xyY_rgb[0];
-						params->y=xyY_rgb[1];
-						cust_x=xyY_rgb[0];
-						cust_y=xyY_rgb[1];
+						//params->x=xyY_rgb[0];
+						//params->y=xyY_rgb[1];
+						cust_x=xyY_rgb_ed[0];
+						cust_y=xyY_rgb_ed[1];
 				}
 
 			  }
 		}else{
 									if (params->ed_switch2[curr_clip]==1){
 
-				params->x=params->ed_x2[curr_clip];
-				params->y=params->ed_y2[curr_clip];
+				//params->x=params->ed_x2[curr_clip];
+				//params->y=params->ed_y2[curr_clip];
 				cust_x=params->ed_x2[curr_clip];
 				cust_y=params->ed_y2[curr_clip];
 
@@ -394,27 +441,27 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 			}else{
 
 				if((params->ed_Red2[curr_clip]!=0) || (params->ed_Green2[curr_clip]!=0) || (params->ed_Blue2[curr_clip]!=0)){
-							double xyY_rgb[3];
+							double xyY_rgb_ed2[3];
 
-						double rgb[3];
+						double rgb_ed2[3];
 
-						rgb[0]=(sxf==1)?(double)(params->ed_Red2[curr_clip])*rcptHiBit:(double)(params->ed_Red2[curr_clip])*rcptwoFiveFive;
-						rgb[1]=(sxf==1)?(double)(params->ed_Green2[curr_clip])*rcptHiBit:(double)(params->ed_Green2[curr_clip])*rcptwoFiveFive;
-						rgb[2]=(sxf==1)?(double)(params->ed_Blue2[curr_clip])*rcptHiBit:(double)(params->ed_Blue2[curr_clip])*rcptwoFiveFive;
+                        rgb_ed2[0]=params->ed_Red2_dbl[curr_clip];
+						rgb_ed2[1]=params->ed_Green2_dbl[curr_clip];
+						rgb_ed2[2]=params->ed_Blue2_dbl[curr_clip];
 
 							if(dbg==5){
-							rOG=rgb[0];
-							gOG=rgb[1];
-							bOG=rgb[2];
+							rOG=rgb_ed2[0];
+							gOG=rgb_ed2[1];
+							bOG=rgb_ed2[2];
 							fv_swt=2;
 							}
 
-						get_xy(rgb, xyY_rgb , mde,lnr,aprxPw);
+						get_xy(rgb_ed2, xyY_rgb_ed2 , mde,lnr,aprxPw);
 
-						params->x=xyY_rgb[0];
-						params->y=xyY_rgb[1];
-						cust_x=xyY_rgb[0];
-						cust_y=xyY_rgb[1];
+						//params->y=xyY_rgb[1];
+						//params->x=xyY_rgb[0];
+						cust_x=xyY_rgb_ed2[0];
+						cust_y=xyY_rgb_ed2[1];
 				}
 
 			  }
@@ -450,8 +497,44 @@ if(rOG==0 && (gOG==0) && (bOG==0)){
 
 }
 
-
 }
+
+if(bb_curr_clip!=-1){
+	double mx_bb=0;
+	double lin_rgb_bb[3]={0,0,0};
+
+	 if(lnr==0){
+                if(blackOG==0){
+                        XYZ2rgb(WPConvXYZ,lin_rgb_bb,mde,1,aprxPw);
+                }
+        }else{
+			lin_rgb_bb[0]=WPchgRGB[0];
+			lin_rgb_bb[1]=WPchgRGB[1];
+			lin_rgb_bb[2]=WPchgRGB[2];
+		}
+
+	params->bb_R[p_ix]=lin_rgb_bb[0];
+	params->bb_G[p_ix]=lin_rgb_bb[1];
+	params->bb_B[p_ix]=lin_rgb_bb[2];
+
+
+	if(dbg==6){
+    double sat=(mx_bb==0)?0:(mx_bb-MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2])))/mx_bb;
+    double OGmx=MAX(rOG,MAX(gOG,bOG));
+    double OGsat=(mx_bb==0)?0:(OGmx-MIN(rOG,MIN(gOG,bOG)))/OGmx;
+    double redu=OGsat-sat;
+    if((redu>sat_dbg_six)&&(sat<=amp)){
+      sat_dbg_six=redu;
+        r_dbg_six=rOG;
+        g_dbg_six=gOG;
+        b_dbg_six=bOG;
+    }
+    WPchgRGB[0]=(sat<=amp)?rOG:0;
+    WPchgRGB[1]=(sat<=amp)?gOG:0;
+    WPchgRGB[2]=(sat<=amp)?bOG:0;
+}
+
+}else{
 
 if(dbg==1){
     double mx=MAX(WPchgRGB[0],MAX(WPchgRGB[1],WPchgRGB[2]));
@@ -539,8 +622,6 @@ if(fv_swt==1){
 
     int grey=((WPchgRGB[0]==WPchgRGB[1])&&(WPchgRGB[1]==WPchgRGB[2]))?1:0;
 
-
-
 if (grey==0){
 
 double mn=MIN(WPchgRGB[0],MIN(WPchgRGB[1],WPchgRGB[2]));
@@ -621,13 +702,227 @@ srcp[x+2] =(sxf==1)? wp_g:wp_r; // green: red
 srcp[x+3] =(sxf==1)? wp_g:srcp[x+3]; //green : self
 srcp[x+4] =(sxf==1)? wp_r:srcp[x+4]; //red : self
 srcp[x+5] =(sxf==1)? wp_r:srcp[x+5]; //red : self
-
+	  }
 
 x=(sxf==1)?x+7:x+3;
+p_ix++;
 
       }
-            srcp += src_pitch;
+		  if(bb_curr_clip!=-1){
+				rrcp += src_pitch;
+		  }else{
+				srcp += src_pitch;
+		  }
       }
+
+rrcp=avs_get_read_ptr(src);
+
+if(bb_curr_clip!=-1){
+
+if (params->bb_switch[bb_curr_clip]==1){
+
+				cust_x_bb=params->bb_x[bb_curr_clip];
+				cust_y_bb=params->bb_y[bb_curr_clip];
+
+}else{
+
+				if((params->bb_Red[bb_curr_clip]!=0) || (params->bb_Green[bb_curr_clip]!=0) || (params->bb_Blue[bb_curr_clip]!=0)){
+							double xyY_rgb_bb[3];
+
+						double rgb_bb[3];
+						 rgb_bb[0]=params->bb_Red_dbl[bb_curr_clip];
+						 rgb_bb[1]=params->bb_Green_dbl[bb_curr_clip];
+						 rgb_bb[2]=params->bb_Blue_dbl[bb_curr_clip];
+
+						get_xy(rgb_bb, xyY_rgb_bb , mde,1,aprxPw);
+
+						cust_x_bb=xyY_rgb_bb[0];
+						cust_y_bb=xyY_rgb_bb[1];
+				}
+
+}
+
+	p_ix=0;
+
+      for (y=0; y<height; y++) {
+      for (x=0; x<row_size; x++) {
+
+		  double rgb_out[3]={0,0,0};
+            double rgb_og_lin[3];
+             rgb_og_lin[0]=params->bb_R[p_ix];
+             rgb_og_lin[1]=params->bb_G[p_ix];
+             rgb_og_lin[2]=params->bb_B[p_ix];
+		  double rgb_out_lin[3];
+
+            if((rgb_og_lin[0]!=0) || (rgb_og_lin[1]!=0) || (rgb_og_lin[2]!=0)){ //not black
+
+		  double WPConvXYZ_bb[2];
+
+double rgbXYZ_bb[3];
+double rgbXYZGrey_bb_plh[3];
+
+rgb2XYZ(rgb_og_lin,rgbXYZ_bb,rgbXYZGrey_bb_plh,mde,0,1,aprxPw);
+
+if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
+    double cust_xy_bb[2]={cust_x_bb,cust_y_bb};
+    double cust_XYZ_bb[3];
+    xy2XYZ(cust_xy_bb,cust_XYZ_bb);
+    WPconv(rgbXYZ_bb,D65XYZ,cust_XYZ_bb,WPConvXYZ_bb);
+
+    if (to_x!=D65_x || (to_y!=D65_y)){
+        double dst_xy_bb[2]={to_x,to_y};
+        double dst_XYZ_bb[3];
+        xy2XYZ(dst_xy_bb,dst_XYZ_bb);
+        double WPConvXYZ2_bb[3]={WPConvXYZ_bb[0],WPConvXYZ_bb[1],WPConvXYZ_bb[2]};
+        WPconv(WPConvXYZ2_bb,cust_XYZ_bb,dst_XYZ_bb,WPConvXYZ_bb);
+    }
+        XYZ2rgb(WPConvXYZ_bb,rgb_out_lin,mde,1,aprxPw);
+
+}else{
+
+    if (to_x!=D65_x || (to_y!=D65_y)){
+        double dst_xy_bb[2]={to_x,to_y};
+        double dst_XYZ_bb[3];
+        xy2XYZ(dst_xy_bb,dst_XYZ_bb);
+        WPconv(rgbXYZ_bb,D65XYZ,dst_XYZ_bb,WPConvXYZ_bb);
+        XYZ2rgb(WPConvXYZ_bb,rgb_out_lin,mde,1,aprxPw);
+    }
+
+
+}
+		  }
+
+
+		double mn=MIN(rgb_og_lin[0],MIN(rgb_og_lin[1],rgb_og_lin[2]));
+		double mx=MAX(rgb_og_lin[0],MAX(rgb_og_lin[1],rgb_og_lin[2]));
+		double chr=mx-mn;
+		double sat=(mx==0)?0:chr/mx;
+		double mcs=MIN(chr,sat);
+		double gry=lerp(mcs,sat,mx);
+		double msd=MAX(0,MIN(1,sat- mcs));
+
+		double mn_bb=MIN(rgb_out_lin[0],MIN(rgb_out_lin[1],rgb_out_lin[2]));
+		double mx_bb=MAX(rgb_out_lin[0],MAX(rgb_out_lin[1],rgb_out_lin[2]));
+		double chr_bb=mx_bb-mn_bb;
+		double sat_bb=(mx_bb==0)?0:chr_bb/mx_bb;
+		double mcs_bb=MIN(chr_bb,sat_bb);
+		double gry_bb=lerp(mcs_bb,sat_bb,mx_bb);
+		double msd_bb=MAX(0,MIN(1,sat_bb-mcs_bb));
+
+rgb_out_lin[0]=lerp(rgb_og_lin[0],rgb_out_lin[0],sat);
+rgb_out_lin[0]=lerp(rgb_out_lin[0],rgb_og_lin[0],0.5*(max(mcs_bb,chr)+msd));
+rgb_out_lin[0]=lerp(rgb_og_lin[0],rgb_out_lin[0],1-gry);
+rgb_out_lin[0]=lerp(rgb_out_lin[0],rgb_og_lin[0],mx*chr_bb);
+rgb_out_lin[0]=lerp(rgb_out_lin[0],rgb_og_lin[0],mx_bb*(1-chr));
+
+rgb_out_lin[1]=lerp(rgb_og_lin[1],rgb_out_lin[1],sat);
+rgb_out_lin[1]=lerp(rgb_out_lin[1],rgb_og_lin[1],0.5*(max(mcs_bb,chr)+msd));
+rgb_out_lin[1]=lerp(rgb_og_lin[1],rgb_out_lin[1],1-gry);
+rgb_out_lin[1]=lerp(rgb_out_lin[1],rgb_og_lin[1],mx*chr_bb);
+rgb_out_lin[1]=lerp(rgb_out_lin[1],rgb_og_lin[1],mx_bb*(1-chr));
+
+rgb_out_lin[2]=lerp(rgb_og_lin[2],rgb_out_lin[2],sat);
+rgb_out_lin[2]=lerp(rgb_out_lin[2],rgb_og_lin[2],0.5*(max(mcs_bb,chr)+msd));
+rgb_out_lin[2]=lerp(rgb_og_lin[2],rgb_out_lin[2],1-gry);
+rgb_out_lin[2]=lerp(rgb_out_lin[2],rgb_og_lin[2],mx*chr_bb);
+rgb_out_lin[2]=lerp(rgb_out_lin[2],rgb_og_lin[2],mx_bb*(1-chr));
+
+
+		  if(lnr==0){
+			  Apply_gamma(rgb_out_lin,rgb_out,mde,aprxPw);
+		  }else{
+			  rgb_out[0]=rgb_out_lin[0];
+			  rgb_out[1]=rgb_out_lin[1];
+			  rgb_out[2]=rgb_out_lin[2];
+		  }
+
+		  if(dbg==1){
+    double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2])))/mx;
+
+    double dbg_out;
+	if(aprxPw==1){
+     dbg_out=(amp==1)?sat:fastPrecisePow(sat,amp);
+	}else{
+		dbg_out=(amp==1)?sat:pow(sat,amp);
+	}
+
+    rgb_out[0]=dbg_out;
+    rgb_out[1]=dbg_out;
+    rgb_out[2]=dbg_out;
+}else if(dbg==2){
+    double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2])))/mx;
+
+    rgb_out[0]=(sat>=amp)?rgb_out[0]:0;
+    rgb_out[1]=(sat>=amp)?rgb_out[1]:0;
+    rgb_out[2]=(sat>=amp)?rgb_out[2]:0;
+}else if (dbg==3){
+    double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2])))/mx;
+
+    double mxOG=MAX(rOG,MAX(gOG,bOG));
+    double satOG=(mxOG==0)?0:(mxOG-MIN(rOG,MIN(gOG,bOG)))/mxOG;
+satOG=(amp>=0)?satOG*(1-amp):satOG;
+    rgb_out[0]=(sat>=satOG)?rgb_out[0]:0;
+    rgb_out[1]=(sat>=satOG)?rgb_out[1]:0;
+    rgb_out[2]=(sat>=satOG)?rgb_out[2]:0;
+}else if (dbg==4){
+    double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2])))/mx;
+
+    double mxOG=MAX(rOG,MAX(gOG,bOG));
+    double satOG=(mxOG==0)?0:(mxOG-MIN(rOG,MIN(gOG,bOG)))/mxOG;
+
+    double hue_dbg=120;
+
+    double abs_satDiff=(satOG==0)?fabs(satOG-sat):fabs(satOG-sat)/satOG;
+    double satDiff1=(satOG==0)?satOG-sat:fabs(satOG-sat)/satOG;
+     satDiff1=satDiff1*satDiff1;
+    double satDiff2=(satOG==1)?sat-satOG:(sat-satOG)/(1-satOG);
+     satDiff2=satDiff2*satDiff2;
+
+    hue_dbg=(sat<satOG)?lerp(157.5,240,satDiff1):hue_dbg;  //Sat decreased, cyan to blue
+    hue_dbg=(sat>satOG)?lerp(307.5,367.5,satDiff2):hue_dbg; //Sat increased, Magenta to Orange
+    hue_dbg=(hue_dbg==360)?0:hue_dbg;
+    hue_dbg=(hue_dbg>360)?hue_dbg-360:hue_dbg;
+    double hsv_dbg[3]={hue_dbg,1,lerp(0.3*(1-amp),1-amp,abs_satDiff)};
+    hsv2rgb_360(hsv_dbg,rgb_out);
+
+}else if (dbg==5){
+double x_shift=(double)(x)/(double)(row_size);
+
+if(fv_swt==1){
+    rgb_out[0]=(x_shift<0.5)?rOG:bOG;
+    rgb_out[1]=(x_shift<0.5)?rOG:bOG;
+    rgb_out[2]=(x_shift<0.5)?rOG:bOG;
+}else if(fv_swt==2){
+    rgb_out[0]=rOG;
+    rgb_out[1]=gOG;
+    rgb_out[2]=bOG;
+
+}
+
+}
+
+int wp_b=MAX(MIN(round(rgb_out[2]*255),255),0);
+int wp_g=MAX(MIN(round(rgb_out[1]*255),255),0);
+int wp_r=MAX(MIN(round(rgb_out[0]*255),255),0);
+
+srcp[x] =wp_b; //blue : blue
+srcp[x+1] =(sxf==1)?wp_b:wp_g; // blue : green
+srcp[x+2] =(sxf==1)? wp_g:wp_r; // green: red
+srcp[x+3] =(sxf==1)? wp_g:srcp[x+3]; //green : self
+srcp[x+4] =(sxf==1)? wp_r:srcp[x+4]; //red : self
+srcp[x+5] =(sxf==1)? wp_r:srcp[x+5]; //red : self
+		  x=(sxf==1)?x+7:x+3;
+		  p_ix++;
+}
+	  srcp += src_pitch;
+}
+
+
+}
 
       if ((dbg==6)&&(nm!="")&&(nm!="NULL")){
    //int num;
@@ -717,6 +1012,10 @@ char* edts2 ="";
 edts2 = ((avs_as_string(avs_array_elt(args, 20)))&&(avs_as_string(avs_array_elt(args, 20))!="NULL"))?avs_as_string(avs_array_elt(args, 20)):edts2;
 params->edits2 = edts2;
 
+char* bbs ="";
+bbs = ((avs_as_string(avs_array_elt(args, 22)))&&(avs_as_string(avs_array_elt(args, 22))!="NULL"))?avs_as_string(avs_array_elt(args, 22)):bbs;
+params->bb = bbs;
+
 
     if (params->ed_base<-1) {
     return avs_new_value_error ("'ed_base' must be >= -1");
@@ -782,6 +1081,154 @@ params->edits2 = edts2;
 
   }
 
+  if((bbs!="")&&(bbs!="NULL")){
+
+    params->split=(char*)malloc(sizeof(char*)*strlen(bbs));
+    char *dup = strdup(bbs);
+    char* token;
+    char* rest=dup;
+
+int is = 0;
+int js = 0;
+
+while (dup[is]!='\0'){
+        if ((isdigit(dup[is]))||(dup[is]==',')||(dup[is]=='-')||(dup[is]=='.')||(dup[is]=='}')||(dup[is]=='{')){
+        rest[js]=dup[is];
+        js++;
+        }
+        is++;
+    }
+
+rest[js]='\0';
+
+
+      int tkn=0;
+    while ((token = strtok_r(rest, "{", &rest))){
+
+        params->split[tkn]=token;
+        tkn++;
+    }
+    params->bb_lim=tkn;
+    int no_clips=tkn;
+
+
+            params->bb_Red=(int*)malloc(sizeof(int)*no_clips);
+        params->bb_Green=(int*)malloc(sizeof(int)*no_clips);
+        params->bb_Blue=(int*)malloc(sizeof(int)*no_clips);
+
+			   params->bb_Red_dbl=(double*)malloc(sizeof(double)*no_clips);
+      params->bb_Green_dbl=(double*)malloc(sizeof(double)*no_clips);
+       params->bb_Blue_dbl=(double*)malloc(sizeof(double)*no_clips);
+
+        params->bb_x=(double*)malloc(sizeof(double)*no_clips);
+        params->bb_y=(double*)malloc(sizeof(double)*no_clips);
+
+        params->bb_start_fr=(int*)malloc(sizeof(int)*no_clips);
+        params->bb_end_fr=(int*)malloc(sizeof(int)*no_clips);
+        params->bb_switch=(int*)malloc(sizeof(int)*no_clips);
+        params->bb_lookup=(int*)malloc(sizeof(int)*vi->num_frames);
+
+        memset(params->bb_lookup,-1,sizeof(params->bb_lookup[0])*vi->num_frames); //initialise to -1
+
+
+        tkn-=1;
+
+    while (tkn>=0){
+     params->split[tkn]=strtok(strdup(params->split[tkn]),"}");
+        tkn--;
+    }
+
+    tkn=0;
+    int cnt=0;
+
+    while (tkn<no_clips){
+    while ((token = strtok_r(params->split[tkn], ",", &params->split[tkn]))){
+int intg;
+switch(cnt){
+        case 0:
+        intg=atoi(token);
+        params->bb_Red[tkn]=intg;
+        params->bb_Red_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
+        break;
+
+    case 1:
+    intg=atoi(token);
+    params->bb_Green[tkn]=intg;
+	params->bb_Green_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
+    break;
+
+        case 2:
+        intg=atoi(token);
+        params->bb_Blue[tkn]=intg;
+		params->bb_Blue_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
+        break;
+
+    case 3:
+    intg=atoi(token);
+    intg=(intg<0)?0:intg;
+    params->bb_start_fr[tkn]=intg;
+    break;
+
+        case 4:
+        intg=atoi(token);
+        intg=(intg>(vi->num_frames)-1)?0:intg;
+        params->bb_end_fr[tkn]=intg;
+        break;
+
+    case 5:
+    params->bb_x[tkn]=atof(token);
+    break;
+
+        case 6:
+        params->bb_y[tkn]=atof(token);
+        break;
+
+    default:
+    ;
+
+
+}
+ cnt=(cnt==6)?0:cnt+1;
+    }
+
+
+    if((params->bb_Red[tkn]<0)||(params->bb_Green[tkn]<0)||(params->bb_Blue[tkn]<0)){
+            params->bb_switch[tkn]=1;
+    }else{
+
+        if(params->sixtyFour==false){
+            if((params->bb_Red[tkn]>255)||(params->bb_Green[tkn]>255)||(params->bb_Blue[tkn]>255)){
+                params->bb_switch[tkn]=1;
+            }else{
+                params->bb_switch[tkn]=0;
+            }
+        }else{
+            if((params->bb_Red[tkn]>65535)||(params->bb_Green[tkn]>65535)||(params->bb_Blue[tkn]>65535)){
+            params->bb_switch[tkn]=1;
+            }else{
+            params->bb_switch[tkn]=0;
+            }
+        }
+
+    }
+
+    int bb_frm=params->bb_end_fr[tkn];
+
+    if(bb_frm==0){
+        bb_frm=(params->bb_start_fr[tkn]==0)?0:(vi->num_frames)-1;
+    }
+
+    for(int k=params->bb_start_fr[tkn]; k<=bb_frm; k++){
+        params->bb_lookup[k]=tkn;
+    }
+
+      tkn++;
+    }
+
+free(dup);
+
+  }
+
  if((edts2!="")&&(edts2!="NULL")){
 
     params->split2=(char*)malloc(sizeof(char*)*strlen(edts2));
@@ -817,6 +1264,10 @@ rest[js]='\0';
       params->ed_Green2=(int*)malloc(sizeof(int)*no_clips);
        params->ed_Blue2=(int*)malloc(sizeof(int)*no_clips);
 
+	   params->ed_Red2_dbl=(double*)malloc(sizeof(double)*no_clips);
+      params->ed_Green2_dbl=(double*)malloc(sizeof(double)*no_clips);
+       params->ed_Blue2_dbl=(double*)malloc(sizeof(double)*no_clips);
+
         params->ed_x2=(double*)malloc(sizeof(double)*no_clips);
         params->ed_y2=(double*)malloc(sizeof(double)*no_clips);
 
@@ -844,16 +1295,19 @@ switch(cnt){
         case 0:
         intg=atoi(token);
         params->ed_Red2[tkn]=intg;
+        params->ed_Red2_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
         break;
 
     case 1:
     intg=atoi(token);
     params->ed_Green2[tkn]=intg;
+	params->ed_Green2_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
     break;
 
         case 2:
         intg=atoi(token);
         params->ed_Blue2[tkn]=intg;
+        params->ed_Blue2_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
         break;
 
     case 3:
@@ -916,7 +1370,7 @@ switch(cnt){
     }
       tkn++;
     }
-
+free(dup);
   }
 
   if((edts!="")&&(edts!="NULL")){
@@ -954,6 +1408,10 @@ rest[js]='\0';
         params->ed_Green=(int*)malloc(sizeof(int)*no_clips);
         params->ed_Blue=(int*)malloc(sizeof(int)*no_clips);
 
+			   params->ed_Red_dbl=(double*)malloc(sizeof(double)*no_clips);
+      params->ed_Green_dbl=(double*)malloc(sizeof(double)*no_clips);
+       params->ed_Blue_dbl=(double*)malloc(sizeof(double)*no_clips);
+
         params->ed_x=(double*)malloc(sizeof(double)*no_clips);
         params->ed_y=(double*)malloc(sizeof(double)*no_clips);
 
@@ -982,16 +1440,19 @@ switch(cnt){
         case 0:
         intg=atoi(token);
         params->ed_Red[tkn]=intg;
+        params->ed_Red_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
         break;
 
     case 1:
     intg=atoi(token);
     params->ed_Green[tkn]=intg;
+	params->ed_Green_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
     break;
 
         case 2:
         intg=atoi(token);
         params->ed_Blue[tkn]=intg;
+		params->ed_Blue_dbl[tkn]=(params->sixtyFour==true)?((double)(intg))*rcptHiBit:((double)(intg))*rcptwoFiveFive;
         break;
 
     case 3:
@@ -1056,6 +1517,8 @@ switch(cnt){
       tkn++;
     }
 
+free(dup);
+
   //Write int to error
  /* char *str1 = malloc(MAX_PATH);
 sprintf(str1,"%d",params->ed_end_fr[0]);
@@ -1070,8 +1533,13 @@ params->hueCount_val=(double*)malloc(sizeof(double)*361);
 params->hueCount_prp=(double*)malloc(sizeof(double)*361);
 params->hueCount_wht=(double*)malloc(sizeof(double)*361);
 params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
-
   }
+   params->pxls=fi->vi.width*fi->vi.height;
+
+	   params->bb_R = (double*)malloc( params->pxls* sizeof(double));
+	   params->bb_G = (double*)malloc( params->pxls* sizeof(double));
+	   params->bb_B = (double*)malloc( params->pxls* sizeof(double));
+
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
     v = avs_new_value_clip(new_clip);
@@ -1087,6 +1555,6 @@ params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s[approxPow]b", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s[approxPow]b[bb]s", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
