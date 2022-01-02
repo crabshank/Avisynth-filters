@@ -5,13 +5,15 @@
 #include "functions_c.h"
 
 typedef struct Saturation_Percentiles {
-    double perc;
     int below;
     int sixtyFour;
     int pxels;
-    double d_pxels;
     double *sats;
     double *satsOG;
+    int refEl_lo;
+    int refEl_hi;
+    double refEl_lerp;
+    int refEl;
 } Saturation_Percentiles;
 
 AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, int n)
@@ -25,9 +27,8 @@ AVS_VideoFrame * AVSC_CC Saturation_Percentiles_get_frame (AVS_FilterInfo * p, i
     long pxls;
   const BYTE* rrcp;
    BYTE* srcp;
-   double bOG,gOG,rOG,prc,d_pxls;
+   double bOG,gOG,rOG;
 
-prc=params->perc;
 sxf=params->sixtyFour;
 blw=params->below;
 
@@ -41,7 +42,6 @@ blw=params->below;
 
 long k=0;
 pxls=params->pxels;
-d_pxls=params->d_pxels;
 double* sats=params->sats;
 double* satsOG=params->satsOG;
                         for (y=0; y<height; y++) {
@@ -70,9 +70,10 @@ double* satsOG=params->satsOG;
       }
 
  qsort(sats, pxls, sizeof(double), compare);
-long refEl=ceil(prc*d_pxls)-1;
-  double refSat=sats[refEl];
+double refSat=(params->refEl!=-1)?sats[params->refEl]:lerp(sats[params->refEl_lo],sats[params->refEl_hi],params->refEl_lerp);
+
 k=0;
+
 ///////////////ACTUALLY DRAW PIXELS///////////////////////////////////////
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
@@ -125,7 +126,7 @@ AVS_Value AVSC_CC create_Saturation_Percentiles (AVS_ScriptEnvironment * env,AVS
 if (!params)
       return avs_void;
 
-        params->perc= avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):1;
+       double perc= avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):1;
         params->below= avs_defined(avs_array_elt(args, 2))?avs_as_bool(avs_array_elt(args, 2)):true;
 
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
@@ -138,9 +139,18 @@ if (!params)
        params->sixtyFour = (avs_is_rgb64(&fi->vi))?true:false;
      }
      params->pxels=fi->vi.height*fi->vi.width;
-     params->d_pxels=(double)params->pxels;
+     double d_pxels=(double)params->pxels;
+    if(params->pxels==1){
+        params->refEl=1;
+    }else{
+        double refEl_d=((d_pxels+1)*perc)-1;
+        params->refEl_lo=floor(refEl_d);
+        params->refEl_hi=ceil(refEl_d);
+        params->refEl_lerp=refEl_d-floor(refEl_d);
+        params->refEl=(params->refEl_lo==params->refEl_hi)?params->refEl_lo:-1;
+    }
 
-                params->sats = (double*)malloc( params->pxels* sizeof(double));
+            params->sats = (double*)malloc( params->pxels* sizeof(double));
             params->satsOG = (double*)malloc( params->pxels* sizeof(double));
 
          fi->user_data = (void*) params;
