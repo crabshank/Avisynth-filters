@@ -509,24 +509,23 @@ if(blackOG){
 
 if(bb_curr_clip!=-1){
 
-         if(blackOG==0){
-            params->WP_R_lin[p_ix]=0;
-            params->WP_G_lin[p_ix]=0;
-            params->WP_B_lin[p_ix]=0;
-         }else{
-            if(lnr==0){
-                double lin_rgb_bb[3];
-                XYZ2rgb(WPConvXYZ,lin_rgb_bb,mde,1,aprxPw);
-                params->WP_R_lin[p_ix]=lin_rgb_bb[0];
-                params->WP_G_lin[p_ix]=lin_rgb_bb[1];
-                params->WP_B_lin[p_ix]=lin_rgb_bb[2];
-            }else{
-                params->WP_R_lin[p_ix]=WPchgRGB[0];
-                params->WP_G_lin[p_ix]=WPchgRGB[1];
-                params->WP_B_lin[p_ix]=WPchgRGB[2];
-            }
-         }
-
+	 if(lnr==0){
+                if(blackOG==0){
+                    double lin_rgb_bb[3];
+                    XYZ2rgb(WPConvXYZ,lin_rgb_bb,mde,1,aprxPw);
+                    params->WP_R_lin[p_ix]=lin_rgb_bb[0];
+                    params->WP_G_lin[p_ix]=lin_rgb_bb[1];
+                    params->WP_B_lin[p_ix]=lin_rgb_bb[2];
+                }else{
+                    params->WP_R_lin[p_ix]=0;
+                    params->WP_G_lin[p_ix]=0;
+                    params->WP_B_lin[p_ix]=0;
+                }
+        }else{
+			params->WP_R_lin[p_ix]=WPchgRGB[0];
+			params->WP_G_lin[p_ix]=WPchgRGB[1];
+			params->WP_B_lin[p_ix]=WPchgRGB[2];
+		}
 
 	params->bb_R[p_ix]=OG_RGB_lin[0];
 	params->bb_G[p_ix]=OG_RGB_lin[1];
