@@ -845,8 +845,10 @@ if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
                 h=(h < 0) ? h + 360 : h;
 
             }
-
-double rgb_WP_lin_adj_hsv[3]={h, MIN(sat,sat_bb), mx};
+            double mxs=MAX(sat_bb,sat);
+            double mss=MIN(sat_bb,sat);
+            double lrp=(MIN(chr,MAX(sat_bb,chr))*(1+(1-MIN(MAX(0,1-sat-chr),1-sat))))*0.5;
+double rgb_WP_lin_adj_hsv[3]={h, MIN(sat,lerp(mss,MIN(1,2*mxs-mss),lrp)) , mx};
 double rgb_WP_lin_adj_hsv_rgb[3];
 
 hsv2rgb_360(rgb_WP_lin_adj_hsv,rgb_out_lin);
