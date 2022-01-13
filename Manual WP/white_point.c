@@ -820,35 +820,36 @@ if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
 		double mx=MAX(rgb_WP_lin[0],MAX(rgb_WP_lin[1],rgb_WP_lin[2]));
 		double chr=mx-mn;
 		double sat=(mx==0)?0:chr/mx;
-		double mcs=MIN(chr,sat);
-		double gry=lerp(mcs,sat,mx);
-		double msd=MAX(0,MIN(1,sat- mcs));
+
 
 		double mn_bb=MIN(rgb_out_lin[0],MIN(rgb_out_lin[1],rgb_out_lin[2]));
 		double mx_bb=MAX(rgb_out_lin[0],MAX(rgb_out_lin[1],rgb_out_lin[2]));
 		double chr_bb=mx_bb-mn_bb;
 		double sat_bb=(mx_bb==0)?0:chr_bb/mx_bb;
-		double mcs_bb=MIN(chr_bb,sat_bb);
-		double gry_bb=lerp(mcs_bb,sat_bb,mx_bb);
-		double msd_bb=MAX(0,MIN(1,sat_bb-mcs_bb));
 
-rgb_out_lin[0]=lerp(rgb_WP_lin[0],rgb_out_lin[0],sat);
-rgb_out_lin[0]=lerp(rgb_out_lin[0],rgb_WP_lin[0],0.5*(max(mcs_bb,chr)+msd));
-rgb_out_lin[0]=lerp(rgb_WP_lin[0],rgb_out_lin[0],1-gry);
-rgb_out_lin[0]=lerp(rgb_out_lin[0],rgb_WP_lin[0],mx*chr_bb);
-rgb_out_lin[0]=lerp(rgb_out_lin[0],rgb_WP_lin[0],mx_bb*(1-chr));
+		double r=rgb_WP_lin[0];
+		double g=rgb_WP_lin[1];
+		double b=rgb_WP_lin[2];
+		double h=0;
 
-rgb_out_lin[1]=lerp(rgb_WP_lin[1],rgb_out_lin[1],sat);
-rgb_out_lin[1]=lerp(rgb_out_lin[1],rgb_WP_lin[1],0.5*(max(mcs_bb,chr)+msd));
-rgb_out_lin[1]=lerp(rgb_WP_lin[1],rgb_out_lin[1],1-gry);
-rgb_out_lin[1]=lerp(rgb_out_lin[1],rgb_WP_lin[1],mx*chr_bb);
-rgb_out_lin[1]=lerp(rgb_out_lin[1],rgb_WP_lin[1],mx_bb*(1-chr));
+            if(chr!=0){
 
-rgb_out_lin[2]=lerp(rgb_WP_lin[2],rgb_out_lin[2],sat);
-rgb_out_lin[2]=lerp(rgb_out_lin[2],rgb_WP_lin[2],0.5*(max(mcs_bb,chr)+msd));
-rgb_out_lin[2]=lerp(rgb_WP_lin[2],rgb_out_lin[2],1-gry);
-rgb_out_lin[2]=lerp(rgb_out_lin[2],rgb_WP_lin[2],mx*chr_bb);
-rgb_out_lin[2]=lerp(rgb_out_lin[2],rgb_WP_lin[2],mx_bb*(1-chr));
+                if ((r >= g) && (r >= b)) {
+                    h=(g - b) / chr;
+                } else if ((g >= r) && (g >= b)) {
+                   h = (b - r) / chr + 2.0;
+                } else {
+                    h = (r - g) / chr + 4.0;
+                }
+                h*=60;
+                h=(h < 0) ? h + 360 : h;
+
+            }
+
+double rgb_WP_lin_adj_hsv[3]={h, MIN(sat,sat_bb), mx};
+double rgb_WP_lin_adj_hsv_rgb[3];
+
+hsv2rgb_360(rgb_WP_lin_adj_hsv,rgb_out_lin);
 
 		  if(lnr==0){
 			  Apply_gamma(rgb_out_lin,rgb_out,mde,aprxPw);
