@@ -1022,7 +1022,7 @@ if (!params){
                params->debug = avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
 
                double dbg_v=1;
-               if(params->debug==2 || params->debug==4 || params->debug==6){
+               if(params->debug==2 || params->debug==4 || params->debug==6 || params->debug==8){
                 dbg_v=0.03;
                }else if(params->debug==3){
                 dbg_v=0.97;
