@@ -6,7 +6,7 @@ int "R"=-1,
 int "G"=-1,
 int "B"=-1,
 int "mode"=0 (0 to 10 by 1),
-int "debug"=0 (0 to 7 by 1),
+int "debug"=0 (0 to 8 by 1),
 float "debug_val"=1 (0 to 1 by 0.001),
 bool "sixtyFour" = false,
 bool "auto_WP" = false,
@@ -19,4 +19,6 @@ int "ed_off"=0,
 int "ed_base"=-1,
 bool "approxPow" = true,
 string "bb"=""
+int "bb_off"=0,
+int "bb_base"=-1
 )
