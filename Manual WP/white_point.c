@@ -90,6 +90,9 @@ typedef struct Manual_WP {
 	   double *WP_R_lin;
 	   double *WP_G_lin;
 	   double *WP_B_lin;
+        double *WP_X_lin;
+	   double *WP_Y_lin;
+	   double *WP_Z_lin;
 		int approxPow;
         char** split;
         char** split2;
@@ -559,15 +562,24 @@ if(bb_curr_clip!=-1){
                     params->WP_R_lin[p_ix]=lin_rgb_bb[0];
                     params->WP_G_lin[p_ix]=lin_rgb_bb[1];
                     params->WP_B_lin[p_ix]=lin_rgb_bb[2];
+                    params->WP_X_lin[p_ix]=WPConvXYZ[0];
+                    params->WP_Y_lin[p_ix]=WPConvXYZ[1];
+                    params->WP_Z_lin[p_ix]=WPConvXYZ[2];
                 }else{
                     params->WP_R_lin[p_ix]=0;
                     params->WP_G_lin[p_ix]=0;
                     params->WP_B_lin[p_ix]=0;
+                    params->WP_X_lin[p_ix]=0;
+                    params->WP_Y_lin[p_ix]=0;
+                    params->WP_Z_lin[p_ix]=0;
                 }
         }else{
 			params->WP_R_lin[p_ix]=WPchgRGB[0];
 			params->WP_G_lin[p_ix]=WPchgRGB[1];
 			params->WP_B_lin[p_ix]=WPchgRGB[2];
+            params->WP_X_lin[p_ix]=WPConvXYZ[0];
+            params->WP_Y_lin[p_ix]=WPConvXYZ[1];
+            params->WP_Z_lin[p_ix]=WPConvXYZ[2];
 		}
 
 	params->bb_R[p_ix]=OG_RGB_lin[0];
@@ -831,7 +843,7 @@ if (params->bb_switch2[bb_curr_clip]==1){
 
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
-
+double bb_XYZ[3];
 		  double rgb_out[3]={0,0,0};
             double rgb_og_lin[3];
              rgb_og_lin[0]=params->bb_R[p_ix];
@@ -854,6 +866,8 @@ double rgbXYZGrey_bb_plh[3];
 
 rgb2XYZ(rgb_og_lin,rgbXYZ_bb,rgbXYZGrey_bb_plh,mde,0,1,aprxPw);
 
+
+
 if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
     double cust_xy_bb[2]={cust_x_bb,cust_y_bb};
     double cust_XYZ_bb[3];
@@ -868,6 +882,9 @@ if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
         WPconv(WPConvXYZ2_bb,cust_XYZ_bb,dst_XYZ_bb,WPConvXYZ_bb);
     }
         XYZ2rgb(WPConvXYZ_bb,rgb_out_lin,mde,1,aprxPw);
+        bb_XYZ[0]=WPConvXYZ_bb[0];
+        bb_XYZ[1]=WPConvXYZ_bb[1];
+        bb_XYZ[2]=WPConvXYZ_bb[2];
 
 }else{
 
@@ -877,6 +894,9 @@ if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
         xy2XYZ(dst_xy_bb,dst_XYZ_bb);
         WPconv(rgbXYZ_bb,D65XYZ,dst_XYZ_bb,WPConvXYZ_bb);
         XYZ2rgb(WPConvXYZ_bb,rgb_out_lin,mde,1,aprxPw);
+        bb_XYZ[0]=WPConvXYZ_bb[0];
+        bb_XYZ[1]=WPConvXYZ_bb[1];
+        bb_XYZ[2]=WPConvXYZ_bb[2];
     }
 
 
@@ -922,6 +942,23 @@ if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
 double rgb_WP_lin_adj_hsv[3]={h, MIN(sat,lerp(mss,MIN(1,2*mxs-mss),lrp)) , mx};
 
 hsv2rgb_360(rgb_WP_lin_adj_hsv,rgb_out_lin);
+double WP_XYZ[3]={params->WP_X_lin[p_ix],params->WP_Y_lin[p_ix],params->WP_Z_lin[p_ix]};
+double WP_xyY[3];
+XYZ2xyY(WP_XYZ,WP_xyY);
+
+double bb_xyY[3];
+XYZ2xyY(bb_XYZ,bb_xyY);
+
+double rgb_out_lin_XYZ[3];
+double rgb_out_lin_XYZ_plh[3];
+rgb2XYZ(rgb_out_lin,rgb_out_lin_XYZ,rgb_out_lin_XYZ_plh,mde,0,1,aprxPw);
+double rgb_out_lin_xyY[3];
+XYZ2xyY(rgb_out_lin_XYZ,rgb_out_lin_xyY);
+
+double out_xyY[3]={rgb_out_lin_xyY[0],rgb_out_lin_xyY[1],params->WP_Y_lin[p_ix]};
+double out_XYZ[3];
+xyY2XYZ(out_xyY,out_XYZ);
+XYZ2rgb(out_XYZ,rgb_out_lin,mde,1,aprxPw);
 
 		  if(lnr==0){
 			  Apply_gamma(rgb_out_lin,rgb_out,mde,aprxPw);
@@ -1867,6 +1904,9 @@ params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 	   params->WP_R_lin = (double*)malloc( params->pxls* sizeof(double));
 	   params->WP_G_lin = (double*)malloc( params->pxls* sizeof(double));
 	   params->WP_B_lin = (double*)malloc( params->pxls* sizeof(double));
+	   params->WP_X_lin = (double*)malloc( params->pxls* sizeof(double));
+	   params->WP_Y_lin = (double*)malloc( params->pxls* sizeof(double));
+	   params->WP_Z_lin = (double*)malloc( params->pxls* sizeof(double));
 
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
