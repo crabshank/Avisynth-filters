@@ -151,12 +151,11 @@ bb_offst=params->bb_off;
 ed_bse=params->ed_base;
 bb_bse=params->bb_base;
 aprxPw=params->approxPow;
-
+found2_bb=0;
 
 if(((params->bb!="")&&(params->bb!="NULL"))||((params->bb2!="")&&(params->bb2!="NULL"))){
     bb_curr_clip=-1;
 	 int bse=n;
-	 found2_bb=0;
 
 	 if((params->bb2!="")&&(params->bb2!="NULL")){
         bb_curr_clip=params->bb_lookup2[bse];
@@ -781,30 +780,8 @@ rrcp=avs_get_read_ptr(src);
 
 if(bb_curr_clip!=-1){
 
-if(found2_bb==0){
-if (params->bb_switch[bb_curr_clip]==1){
+if(found2_bb==1){
 
-				cust_x_bb=params->bb_x[bb_curr_clip];
-				cust_y_bb=params->bb_y[bb_curr_clip];
-
-}else{
-
-				if((params->bb_Red[bb_curr_clip]!=0) || (params->bb_Green[bb_curr_clip]!=0) || (params->bb_Blue[bb_curr_clip]!=0)){
-							double xyY_rgb_bb[3];
-
-						double rgb_bb[3];
-						 rgb_bb[0]=params->bb_Red_dbl[bb_curr_clip];
-						 rgb_bb[1]=params->bb_Green_dbl[bb_curr_clip];
-						 rgb_bb[2]=params->bb_Blue_dbl[bb_curr_clip];
-
-						get_xy(rgb_bb, xyY_rgb_bb , mde,1,aprxPw);
-
-						cust_x_bb=xyY_rgb_bb[0];
-						cust_y_bb=xyY_rgb_bb[1];
-				}
-
-}
-}else{
 if (params->bb_switch2[bb_curr_clip]==1){
 
 				cust_x_bb=params->bb_x2[bb_curr_clip];
@@ -819,6 +796,30 @@ if (params->bb_switch2[bb_curr_clip]==1){
 						 rgb_bb[0]=params->bb_Red2_dbl[bb_curr_clip];
 						 rgb_bb[1]=params->bb_Green2_dbl[bb_curr_clip];
 						 rgb_bb[2]=params->bb_Blue2_dbl[bb_curr_clip];
+
+						get_xy(rgb_bb, xyY_rgb_bb , mde,1,aprxPw);
+
+						cust_x_bb=xyY_rgb_bb[0];
+						cust_y_bb=xyY_rgb_bb[1];
+				}
+
+}
+
+}else{
+    if (params->bb_switch[bb_curr_clip]==1){
+
+				cust_x_bb=params->bb_x[bb_curr_clip];
+				cust_y_bb=params->bb_y[bb_curr_clip];
+
+}else{
+
+				if((params->bb_Red[bb_curr_clip]!=0) || (params->bb_Green[bb_curr_clip]!=0) || (params->bb_Blue[bb_curr_clip]!=0)){
+							double xyY_rgb_bb[3];
+
+						double rgb_bb[3];
+						 rgb_bb[0]=params->bb_Red_dbl[bb_curr_clip];
+						 rgb_bb[1]=params->bb_Green_dbl[bb_curr_clip];
+						 rgb_bb[2]=params->bb_Blue_dbl[bb_curr_clip];
 
 						get_xy(rgb_bb, xyY_rgb_bb , mde,1,aprxPw);
 
