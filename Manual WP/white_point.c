@@ -152,20 +152,18 @@ ed_bse=params->ed_base;
 bb_bse=params->bb_base;
 aprxPw=params->approxPow;
 found2_bb=0;
-
+int b_bse=n;
 if(((params->bb!="")&&(params->bb!="NULL"))||((params->bb2!="")&&(params->bb2!="NULL"))){
     bb_curr_clip=-1;
-	 int bse=n;
 
 	 if((params->bb2!="")&&(params->bb2!="NULL")){
-        bb_curr_clip=params->bb_lookup2[bse];
+        bb_curr_clip=params->bb_lookup2[b_bse];
         found2_bb=(bb_curr_clip==-1)?0:1;
 	 }
 
 	 if(((params->bb!="")&&(params->bb!="NULL"))&&(found2_bb==0)){
-		bse=(bb_bse>=0)?bb_bse:n;
-
-		bb_curr_clip=params->bb_lookup[bse];
+		b_bse=(bb_bse>=0)?bb_bse:n;
+		bb_curr_clip=params->bb_lookup[b_bse];
 
 	if(bb_curr_clip !=-1){
 		if(bb_curr_clip+bb_offst>bblm-1){
@@ -182,7 +180,6 @@ if(((params->bb!="")&&(params->bb!="NULL"))||((params->bb2!="")&&(params->bb2!="
 }else{
     bb_curr_clip=-1;
 }
-
 
 sat_dbg_six=0.0;
 r_dbg_six=1.0;
@@ -1773,9 +1770,11 @@ switch(cnt){
 free(dup);
 
   //Write int to error
+
 /*char *str1 = malloc(MAX_PATH);
-sprintf(str1,"%d",params->ed_lookup[0]);
-  return avs_new_value_error (str1);*/
+sprintf(str1,"%d: %d %d %d - %d %d",bb_curr_clip,params->bb_Red[bb_curr_clip],params->bb_Green[bb_curr_clip],params->bb_Blue[bb_curr_clip],params->bb_switch [bb_curr_clip], params->bb_lookup2[bse]);
+return avs_new_value_error (str1);
+*/
 
   }
 
