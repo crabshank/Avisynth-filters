@@ -1186,7 +1186,7 @@ bbs = ((avs_as_string(avs_array_elt(args, 22)))&&(avs_as_string(avs_array_elt(ar
 params->bb = bbs;
 
 char* bbs2 ="";
-bbs2 = ((avs_as_string(avs_array_elt(args, 23)))&&(avs_as_string(avs_array_elt(args, 23))!="NULL"))?avs_as_string(avs_array_elt(args, 23)):edts2;
+bbs2 = ((avs_as_string(avs_array_elt(args, 23)))&&(avs_as_string(avs_array_elt(args, 23))!="NULL"))?avs_as_string(avs_array_elt(args, 23)):bbs2;
 params->bb2 = bbs2;
 
 params->bb_off=  avs_defined(avs_array_elt(args,24))?avs_as_int(avs_array_elt(args, 24)):0;
