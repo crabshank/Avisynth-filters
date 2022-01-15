@@ -999,6 +999,78 @@ if(fv_swt==1){
 
 }
 
+}else if(dbg==7){
+
+    int grey=((rgb_out[0]==rgb_out[1])&&(rgb_out[1]==rgb_out[2]))?1:0;
+
+if (grey==0){
+
+double mn=MIN(rgb_out[0],MIN(rgb_out[1],rgb_out[2]));
+double mx=MAX(rgb_out[0],MAX(rgb_out[1],rgb_out[2]));
+double diff=mx-mn;
+
+double dbgHSV[3];
+dbgHSV[1]=1.0;
+dbgHSV[2]=1-amp;
+
+double dbgRGB[3];
+
+    double hue_d;
+
+        if ((rgb_out[0]>rgb_out[1])&&(rgb_out[0]>rgb_out[2])){
+            hue_d =(rgb_out[1] - rgb_out[2]) / diff;
+        }else if ((rgb_out[1]>rgb_out[0])&&(rgb_out[1]>rgb_out[2])){
+            hue_d = 2.0 + (rgb_out[2] - rgb_out[0]) / diff;
+        }else{
+            hue_d = 4.0 + (rgb_out[0] - rgb_out[1]) / diff;
+        }
+            hue_d*=60;
+            hue_d =(hue_d < 0)?hue_d + 360:hue_d;
+
+            int hue=floor(hue_d*10);
+
+
+if((hue>=3525)||(((hue>=0) && (hue<75)))){
+dbgHSV[0]=0.0;
+}else if((hue>=75) && (hue<375)){
+dbgHSV[0]=30.0;
+}else if((hue>=375) && (hue<675)){
+dbgHSV[0]=60.0;
+}else if((hue>=675) && (hue<975)){
+dbgHSV[0]=90.0;
+}else if((hue>=975) && (hue<1275)){
+dbgHSV[0]=120.0;
+}else if((hue>=1275) && (hue<1575)){
+dbgHSV[0]=150.0;
+}else if((hue>=1575) && (hue<1875)){
+dbgHSV[0]=180.0;
+}else if((hue>=1875) && (hue<2175)){
+dbgHSV[0]=210.0;
+}else if((hue>=2175) && (hue<2475)){
+dbgHSV[0]=240.0;
+}else if((hue>=2475) && (hue<3075)){
+dbgHSV[0]=270.0;
+}else if((hue>=3075) && (hue<3375)){
+dbgHSV[0]=330.0;
+dbgHSV[1]=0.8;
+}else if((hue>=3375) && (hue<3525)){
+dbgHSV[0]=345.0;
+dbgHSV[1]=0.95;
+}
+
+ hsv2rgb_360(dbgHSV, dbgRGB);
+    rgb_out[0]=dbgRGB[0];
+    rgb_out[1]=dbgRGB[1];
+    rgb_out[2]=dbgRGB[2];
+
+
+}else{
+    rgb_out[0]=1.0;
+    rgb_out[1]=1.0;
+    rgb_out[2]=1.0;
+}
+
+
 }
 
 int wp_b=MAX(MIN(round(rgb_out[2]*255),255),0);
