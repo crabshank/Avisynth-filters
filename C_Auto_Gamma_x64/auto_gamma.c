@@ -23,17 +23,17 @@ typedef struct Auto_Gamma {
 
 AVS_VideoFrame * AVSC_CC Auto_Gamma_get_frame (AVS_FilterInfo * p, int n)
 {
-  AVS_VideoFrame * src;
-   Auto_Gamma* params = (Auto_Gamma*) p->user_data;
+    AVS_VideoFrame * src;
+    Auto_Gamma* params = (Auto_Gamma*) p->user_data;
+    AVS_FilterInfo * og_p=p;
+    src = avs_get_frame(p->child, n);
 
-  src = avs_get_frame(p->child, n);
-
-    int row_size, height, src_pitch,x, y,max_iters,tol,tolr,opt,lmr,crs,lnr,mde,sxf;
+    int row_size, height, src_pitch,x, y,max_iters,tol,tolr,lmr,crs,lnr,mde,sxf;
    BYTE* srcp;
    const BYTE* rrcp;
-   double a,b,lw,hi,c,mx,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter,rLin,gLin,bLin;
+   double a,b,lw,hi,c,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter;
 
-a =   params->bracketA;
+a=params->bracketA;
 b=params->bracketB;
 lw=params->l;
 hi=params->h;
@@ -187,19 +187,21 @@ counter+=1;
 p_ix=0;
 
 //Bisection method solver/////////////////////////////////////////
+gamma_high=1;
+gamma_low=1;
+
 p=1;
 tolr=1.0/fastPrecisePow(10,(double)(tol));
 max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
-opt=0;
+
 double mxMean[3]={runTot_r/counter,runTot_g/counter,runTot_b/counter};
 while(p<=max_iters){
     c=0.5*(a+b);
     f_gammaLow(mxMean, c,gamma_high,f_c);
 
     if(f_c==0||(0.5*(b-a)<tolr)){
-    p=max_iters;
-    gamma_low=c;
-    opt=1;
+        p=max_iters;
+        gamma_low=c;
     }
 
     p++;
@@ -213,6 +215,7 @@ while(p<=max_iters){
     }
 
 }
+p=og_p;
 ///////////////////////////////////////////////////////
 
 
@@ -226,21 +229,13 @@ double og_B=params->use_B[p_ix];
 
 double og_RGB[3]={og_R,og_G,og_B};
 int og_RGB_is_blk=(og_R==0 && og_G==0 && og_B==0)?1:0;
-if(og_RGB_is_blk==1){
-    og_RGB[0]=1;
-    og_RGB[1]=1;
-    og_RGB[2]=1;
-}
-double og_XYZ[3];
-double og_XYZ_plh[3];
-LinRGB2XYZ(og_RGB,og_XYZ,og_XYZ_plh,mde,0);
+double og_XYZ[3]={0,0,0};
 
-if(og_RGB_is_blk==1){
-og_XYZ[1]=(og_RGB_is_blk==1)?0:og_XYZ[1];
-og_RGB[0]=og_R;
-og_RGB[1]=og_G;
-og_RGB[2]=og_B;
+if(og_RGB_is_blk==0){
+    double og_XYZ_plh[3];
+    LinRGB2XYZ(og_RGB,og_XYZ,og_XYZ_plh,mde,0);
 }
+double og_Y=og_XYZ[1];
 
 double nw_R=(gamma_high==1 && gamma_low==1)?og_R:lerp(fastPrecisePow(og_R,gamma_low),fastPrecisePow(og_R,gamma_high),og_R);
 double nw_G=(gamma_high==1 && gamma_low==1)?og_G:lerp(fastPrecisePow(og_G,gamma_low),fastPrecisePow(og_G,gamma_high),og_G);
@@ -248,27 +243,19 @@ double nw_B=(gamma_high==1 && gamma_low==1)?og_B:lerp(fastPrecisePow(og_B,gamma_
 
 double nw_RGB[3]={nw_R,nw_G,nw_B};
 int nw_RGB_is_blk=(nw_R==0 && nw_G==0 && nw_B==0)?1:0;
-if(nw_RGB_is_blk==1){
-    nw_RGB[0]=1;
-    nw_RGB[1]=1;
-    nw_RGB[2]=1;
-}
-double nw_XYZ[3];
-double nw_XYZ_plh[3];
-LinRGB2XYZ(nw_RGB,nw_XYZ,nw_XYZ_plh,mde,0);
+double nw_XYZ[3]={0,0,0};
 
-if(nw_RGB_is_blk==1){
-nw_XYZ[1]=(nw_RGB_is_blk==1)?0:nw_XYZ[1];
-nw_RGB[0]=nw_R;
-nw_RGB[1]=nw_G;
-nw_RGB[2]=nw_B;
+if(nw_RGB_is_blk==0){
+    double nw_XYZ_plh[3];
+    LinRGB2XYZ(nw_RGB,nw_XYZ,nw_XYZ_plh,mde,0);
 }
+double nw_Y=nw_XYZ[1];
 
 R=nw_RGB[0];
 G=nw_RGB[1];
 B=nw_RGB[2];
 
-if ((crs==0 && nw_XYZ[1]<og_XYZ[1])||(crs==1 && nw_XYZ[1]>og_XYZ[1])){
+if ((crs==0 && nw_Y<og_Y)||(crs==1 && nw_Y>og_Y)){
     R=og_RGB[0];
     G=og_RGB[1];
     B=og_RGB[2];
