@@ -90,9 +90,6 @@ typedef struct Manual_WP {
 	   double *WP_R_lin;
 	   double *WP_G_lin;
 	   double *WP_B_lin;
-        double *WP_X_lin;
-	   double *WP_Y_lin;
-	   double *WP_Z_lin;
 		int approxPow;
         char** split;
         char** split2;
@@ -122,6 +119,8 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
      char* lid;
      char* eds;
      char* eds2;
+     char* bbs;
+     char* bbs2;
    double rOG,bOG,gOG,cust_x,cust_y,cust_x_bb,cust_y_bb,amp,D65_x,D65_y, to_x, to_y,sat_dbg_six,r_dbg_six,g_dbg_six,b_dbg_six;
 
   avs_make_writable(p->env, &src);
@@ -145,6 +144,8 @@ lid=params->log_id;
 lnr=params->linear;
 eds=params->edits;
 eds2=params->edits2;
+bbs=params->bb;
+bbs2=params->bb2;
 edlm=params->ed_lim;
 edlm2=params->ed_lim2;
 bblm=params->bb_lim;
@@ -192,7 +193,7 @@ b_dbg_six=1.0;
 D65_x= 0.312727;
    D65_y= 0.329023;
 
-if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))){
+if((ato==1)&&((eds=="")||(eds=="NULL"))&&((eds2=="")||(eds2=="NULL"))&&((bbs=="")||(bbs=="NULL"))&&((bbs2=="")||(bbs2=="NULL"))){
 
 for (int i=360; i>=0; i--){
     params->hueCount[i]=0;
@@ -559,9 +560,6 @@ if(bb_curr_clip!=-1){
                     params->WP_R_lin[p_ix]=0;
                     params->WP_G_lin[p_ix]=0;
                     params->WP_B_lin[p_ix]=0;
-                    params->WP_X_lin[p_ix]=0;
-                    params->WP_Y_lin[p_ix]=0;
-                    params->WP_Z_lin[p_ix]=0;
                 }else{
 					if(lnr==0){
 						double lin_rgb_bb[3];
@@ -569,16 +567,10 @@ if(bb_curr_clip!=-1){
 						params->WP_R_lin[p_ix]=lin_rgb_bb[0];
 						params->WP_G_lin[p_ix]=lin_rgb_bb[1];
 						params->WP_B_lin[p_ix]=lin_rgb_bb[2];
-						params->WP_X_lin[p_ix]=WPConvXYZ[0];
-						params->WP_Y_lin[p_ix]=WPConvXYZ[1];
-						params->WP_Z_lin[p_ix]=WPConvXYZ[2];
 					}else{
 						params->WP_R_lin[p_ix]=WPchgRGB[0];
 						params->WP_G_lin[p_ix]=WPchgRGB[1];
 						params->WP_B_lin[p_ix]=WPchgRGB[2];
-						params->WP_X_lin[p_ix]=WPConvXYZ[0];
-						params->WP_Y_lin[p_ix]=WPConvXYZ[1];
-						params->WP_Z_lin[p_ix]=WPConvXYZ[2];
 					}
 
 				}
@@ -844,7 +836,7 @@ if (params->bb_switch2[bb_curr_clip]==1){
 
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
-double bb_XYZ[3]={0,0,0};
+
 		  double rgb_out[3]={0,0,0};
             double rgb_og_lin[3];
              rgb_og_lin[0]=params->bb_R[p_ix];
@@ -858,7 +850,9 @@ double bb_XYZ[3]={0,0,0};
 
 		  double rgb_out_lin[3]={0,0,0};
 
-            if((rgb_og_lin[0]!=0) || (rgb_og_lin[1]!=0) || (rgb_og_lin[2]!=0)){ //not black
+            int rgb_og_lin_blk=((rgb_og_lin[0]!=0) || (rgb_og_lin[1]!=0) || (rgb_og_lin[2]!=0))?0:1;
+
+            if(rgb_og_lin_blk==0){ //not black
 
 		  double WPConvXYZ_bb[3];
 
@@ -866,8 +860,6 @@ double rgbXYZ_bb[3];
 double rgbXYZGrey_bb_plh[3];
 
 rgb2XYZ(rgb_og_lin,rgbXYZ_bb,rgbXYZGrey_bb_plh,mde,0,1,aprxPw);
-
-
 
 if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
     double cust_xy_bb[2]={cust_x_bb,cust_y_bb};
@@ -883,10 +875,6 @@ if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
         WPconv(WPConvXYZ2_bb,cust_XYZ_bb,dst_XYZ_bb,WPConvXYZ_bb);
     }
         XYZ2rgb(WPConvXYZ_bb,rgb_out_lin,mde,1,aprxPw);
-        bb_XYZ[0]=WPConvXYZ_bb[0];
-        bb_XYZ[1]=WPConvXYZ_bb[1];
-        bb_XYZ[2]=WPConvXYZ_bb[2];
-
 }else{
 
     if (to_x!=D65_x || (to_y!=D65_y)){
@@ -895,9 +883,6 @@ if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
         xy2XYZ(dst_xy_bb,dst_XYZ_bb);
         WPconv(rgbXYZ_bb,D65XYZ,dst_XYZ_bb,WPConvXYZ_bb);
         XYZ2rgb(WPConvXYZ_bb,rgb_out_lin,mde,1,aprxPw);
-        bb_XYZ[0]=WPConvXYZ_bb[0];
-        bb_XYZ[1]=WPConvXYZ_bb[1];
-        bb_XYZ[2]=WPConvXYZ_bb[2];
     }
 
 
@@ -944,12 +929,14 @@ double rgb_WP_lin_adj_hsv[3]={h, MIN(sat,lerp(mss,MIN(1,2*mxs-mss),lrp)) , mx};
 
 hsv2rgb_360(rgb_WP_lin_adj_hsv,rgb_out_lin);
 
-double WP_XYZ[3]={params->WP_X_lin[p_ix],params->WP_Y_lin[p_ix],params->WP_Z_lin[p_ix]};
-double WP_xyY[3];
-XYZ2xyY(WP_XYZ,WP_xyY);
+//take xy of rgb_out_lin, and Y of rgb_WP_lin:
 
-double bb_xyY[3];
-XYZ2xyY(bb_XYZ,bb_xyY);
+  int rgb_out_lin_blk=((rgb_out_lin[0]!=0) || (rgb_out_lin[1]!=0) || (rgb_out_lin[2]!=0))?0:1;
+ if(rgb_out_lin_blk==1){
+	 rgb_out_lin[0]=1;
+	 rgb_out_lin[1]=1;
+	 rgb_out_lin[2]=1;
+ } //Avoid problem of black in xyY calc.
 
 double rgb_out_lin_XYZ[3];
 double rgb_out_lin_XYZ_plh[3];
@@ -957,7 +944,20 @@ rgb2XYZ(rgb_out_lin,rgb_out_lin_XYZ,rgb_out_lin_XYZ_plh,mde,0,1,aprxPw);
 double rgb_out_lin_xyY[3];
 XYZ2xyY(rgb_out_lin_XYZ,rgb_out_lin_xyY);
 
-double out_xyY[3]={rgb_out_lin_xyY[0],rgb_out_lin_xyY[1],params->WP_Y_lin[p_ix]};
+
+double out_Y=0;
+ int rgb_WP_lin_blk=((rgb_WP_lin[0]!=0) || (rgb_WP_lin[1]!=0) || (rgb_WP_lin[2]!=0))?0:1;
+
+if(rgb_WP_lin_blk==0){
+	double rgb_WP_lin_XYZ[3];
+	double rgb_WP_lin_XYZ_plh[3];
+	rgb2XYZ(rgb_WP_lin,rgb_WP_lin_XYZ,rgb_WP_lin_XYZ_plh,mde,0,1,aprxPw);
+	double rgb_out_lin_xyY[3];
+	XYZ2xyY(rgb_WP_lin_XYZ,rgb_out_lin_xyY);
+	out_Y=rgb_out_lin_xyY[2];
+}
+
+double out_xyY[3]={rgb_out_lin_xyY[0],rgb_out_lin_xyY[1],out_Y};
 double out_XYZ[3];
 xyY2XYZ(out_xyY,out_XYZ);
 XYZ2rgb(out_XYZ,rgb_out_lin,mde,1,aprxPw);
@@ -1883,13 +1883,13 @@ free(dup);
   //Write int to error
 
 /*char *str1 = malloc(MAX_PATH);
-sprintf(str1,"%d: %d %d %d - %d %d",bb_curr_clip,params->bb_Red[bb_curr_clip],params->bb_Green[bb_curr_clip],params->bb_Blue[bb_curr_clip],params->bb_switch [bb_curr_clip], params->bb_lookup2[bse]);
+sprintf(str1,"%d",params->bb_Red[0]);
 return avs_new_value_error (str1);
 */
 
   }
 
-if((params->auto_WP==1)&&((params->edits=="")||(params->edits=="NULL"))&&((params->edits2=="")||(params->edits2=="NULL"))){
+if((params->auto_WP==1)&&((params->edits=="")||(params->edits=="NULL"))&&((params->edits2=="")||(params->edits2=="NULL"))&&((params->bb=="")||(params->bb=="NULL"))&&((params->bb2=="")||(params->bb2=="NULL"))){
 params->hueCount=(double*)malloc(sizeof(double)*361);
 params->hueCount_sat=(double*)malloc(sizeof(double)*361);
 params->hueCount_val=(double*)malloc(sizeof(double)*361);
@@ -1906,9 +1906,6 @@ params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 	   params->WP_R_lin = (double*)malloc( params->pxls* sizeof(double));
 	   params->WP_G_lin = (double*)malloc( params->pxls* sizeof(double));
 	   params->WP_B_lin = (double*)malloc( params->pxls* sizeof(double));
-	   params->WP_X_lin = (double*)malloc( params->pxls* sizeof(double));
-	   params->WP_Y_lin = (double*)malloc( params->pxls* sizeof(double));
-	   params->WP_Z_lin = (double*)malloc( params->pxls* sizeof(double));
 
          fi->user_data = (void*) params;
     fi->get_frame = Manual_WP_get_frame;
