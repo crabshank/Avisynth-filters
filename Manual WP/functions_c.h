@@ -23,6 +23,7 @@
 #define HLG_c 0.55991073
 #define euler_e 2.718281828459045
 #define third 1.0/3.0
+#define st_dff_mult (3.0/50.0)
 
 double D65XYZ[3]={0.95047,1,1.08883};
 
@@ -626,6 +627,12 @@ void xy2XYZ(double xyCoord[2],double outp[3]){
         outp[0]=(1.0/xyCoord[1])*xyCoord[0];
         outp[1]=1;
         outp[2]=(1.0/xyCoord[1])*(1-xyCoord[0]-xyCoord[1]);
+}
+
+void xyY2XYZ(double xyY[3], double XYZ[3]){
+    XYZ[0]= (1.0/xyY[1])*xyY[0]*xyY[2];
+    XYZ[1]=xyY[2];
+    XYZ[2]=(1.0/xyY[1])*(1-xyY[0]-xyY[1])*(xyY[2]);
 }
 
 void get_xy( double rgb[3],double xyY[3] , int mode, int linr, int aprxPw){
