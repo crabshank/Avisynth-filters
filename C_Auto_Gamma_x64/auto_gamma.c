@@ -5,12 +5,6 @@
 #include "functions_c.h"
 
 typedef struct Auto_Gamma {
-    double* x;
-    double* y;
-    double* Y;
-    double* R;
-    double* G;
-    double* B;
     double* use_R;
     double* use_G;
     double* use_B;
@@ -78,11 +72,6 @@ int p_ix=0;
     bOG=(sxf==1)?currBlue*rcptHiBit:currBlue*rcptwoFiveFive;     // B
        gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
-
-params->R[p_ix]=rOG;
-params->G[p_ix]=gOG;
-params->B[p_ix]=bOG;
-
 
 if ((lnr!=2)&&(lnr!=4)&&(lnr!=6)&&(lnr!=8)&&(lnr!=10)){
 //to linear
@@ -355,12 +344,6 @@ if (!params)
      }
       params->pxels=fi->vi.height*fi->vi.width;
 
-    params->x = (double*)malloc( params->pxels* sizeof(double));
-    params->y= (double*)malloc( params->pxels* sizeof(double));
-    params->Y= (double*)malloc( params->pxels* sizeof(double));
-    params->R = (double*)malloc( params->pxels* sizeof(double));
-    params->G= (double*)malloc( params->pxels* sizeof(double));
-    params->B= (double*)malloc( params->pxels* sizeof(double));
     params->use_R = (double*)malloc( params->pxels* sizeof(double));
     params->use_G= (double*)malloc( params->pxels* sizeof(double));
     params->use_B= (double*)malloc( params->pxels* sizeof(double));
