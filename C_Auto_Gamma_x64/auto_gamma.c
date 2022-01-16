@@ -73,53 +73,54 @@ int p_ix=0;
        gOG=(sxf==1)?currGreen*rcptHiBit:currGreen*rcptwoFiveFive;   //G
          rOG=(sxf==1)?currRed*rcptHiBit:currRed*rcptwoFiveFive;     // R
 
-if ((lnr!=2)&&(lnr!=4)&&(lnr!=6)&&(lnr!=8)&&(lnr!=10)){
-//to linear
-    if ((((mde>=1)&&(mde<=4))||(mde==8)||(mde==9))||(lnr==3)){ //Rec
-        bOG=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
-        gOG=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
-        rOG=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
-    }else if (((mde==5)||(mde==10))||(lnr==7)){ //2.6
-          bOG=fastPrecisePow(bOG,2.6);
-          gOG=fastPrecisePow(gOG,2.6);
-          rOG=fastPrecisePow(rOG,2.6);
-    }else if ((mde==7)||(lnr==5)){ //2.2
-          bOG=fastPrecisePow(bOG,2.2);
-          gOG=fastPrecisePow(gOG,2.2);
-          rOG=fastPrecisePow(rOG,2.2);
-    }else if ((mde==11)||(lnr==9)){ //HLG
-          bOG=(bOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(bOG-HLG_c)*rcp_HLG_a)+HLG_b):bOG*bOG*third;
-          gOG=(gOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(gOG-HLG_c)*rcp_HLG_a)+HLG_b):gOG*gOG*third;
-          rOG=(rOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rOG-HLG_c)*rcp_HLG_a)+HLG_b):rOG*rOG*third;
-    }else{ //sRGB
-        bOG=(bOG > 0.0404482362771082 )?fastPrecisePow(fabs((bOG+0.055)*rcpOFiveFive),2.4):bOG*rcpTwelveNineTwo;
-        gOG=(gOG > 0.0404482362771082 )?fastPrecisePow(fabs((gOG+0.055)*rcpOFiveFive),2.4):gOG*rcpTwelveNineTwo;
-        rOG=(rOG > 0.0404482362771082 )?fastPrecisePow(fabs((rOG+0.055)*rcpOFiveFive),2.4):rOG*rcpTwelveNineTwo;
-    }
-
-}else{ //apply gamma
-        if (((mde>=1)&&(mde<=4))||(mde==8)||(mde==9)){
-            rOG=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
-            gOG=(gOG< recBeta)?4.5*gOG:recAlpha*fastPrecisePow(gOG,0.45)-(recAlpha-1);
-            bOG=(bOG< recBeta)?4.5*bOG:recAlpha*fastPrecisePow(bOG,0.45)-(recAlpha-1);
-        }else if ((mde==5)||(mde==10)){
-            bOG=fastPrecisePow(bOG,invTwoSix);
-            gOG=fastPrecisePow(gOG,invTwoSix);
-            rOG=fastPrecisePow(rOG,invTwoSix);
-        }else if (mde==7){
-            bOG=fastPrecisePow(bOG,invTwoTwo);
-            gOG=fastPrecisePow(gOG,invTwoTwo);
-            rOG=fastPrecisePow(rOG,invTwoTwo);
-        }else if (mde==11){
-            bOG=(bOG > rcpTwelve)?HLG_a*log(12.0*bOG-HLG_b)+HLG_c:root_three*fastPrecisePow(bOG,0.5);
-            gOG=(gOG > rcpTwelve)?HLG_a*log(12.0*gOG-HLG_b)+HLG_c:root_three*fastPrecisePow(gOG,0.5);
-            rOG=(rOG > rcpTwelve)?HLG_a*log(12.0*rOG-HLG_b)+HLG_c:root_three*fastPrecisePow(rOG,0.5);
-        }else{
-            rOG=(rOG> 0.00313066844250063)?1.055 * fastPrecisePow(rOG,rcpTwoFour) - 0.055:12.92 *rOG;
-            gOG=(gOG> 0.00313066844250063)?1.055 * fastPrecisePow(gOG,rcpTwoFour) - 0.055:12.92 *gOG;
-            bOG=(bOG> 0.00313066844250063)?1.055 * fastPrecisePow(bOG,rcpTwoFour) - 0.055:12.92 *bOG;
-            }
-
+if (lnr==1){
+    rOG=(rOG > 0.0404482362771082 )?fastPrecisePow(fabs((rOG+0.055)*rcpOFiveFive),2.4):rOG*rcpTwelveNineTwo;
+    gOG=(gOG > 0.0404482362771082 )?fastPrecisePow(fabs((gOG+0.055)*rcpOFiveFive),2.4):gOG*rcpTwelveNineTwo;
+    bOG=(bOG > 0.0404482362771082 )?fastPrecisePow(fabs((bOG+0.055)*rcpOFiveFive),2.4):bOG*rcpTwelveNineTwo;
+}else if(lnr==8){
+    rOG=fastPrecisePow(rOG,invTwoSix);
+    gOG=fastPrecisePow(gOG,invTwoSix);
+    bOG=fastPrecisePow(bOG,invTwoSix);
+}else if (lnr==5){
+    rOG=fastPrecisePow(rOG,2.2);
+    gOG=fastPrecisePow(gOG,2.2);
+    bOG=fastPrecisePow(bOG,2.2);
+}else if (lnr==12){
+    rOG=fastPrecisePow(rOG,rcpTwoFour);
+    gOG=fastPrecisePow(gOG,rcpTwoFour);
+    bOG=fastPrecisePow(bOG,rcpTwoFour);
+}else if (lnr==11){
+    rOG=fastPrecisePow(rOG,2.4);
+    gOG=fastPrecisePow(gOG,2.4);
+    bOG=fastPrecisePow(bOG,2.4);
+}else if(lnr==3){
+    rOG=(rOG < recBetaLin )?rcpFourFive*rOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-rOG)),rcpTxFourFive);
+    gOG=(gOG < recBetaLin )?rcpFourFive*gOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-gOG)),rcpTxFourFive);
+    bOG=(bOG < recBetaLin )?rcpFourFive*bOG:fastPrecisePow(-1*(rcpRecAlpha*(1-recAlpha-bOG)),rcpTxFourFive);
+}else if(lnr==2){
+    rOG=(rOG> 0.00313066844250063)?1.055 * fastPrecisePow(rOG,rcpTwoFour) - 0.055:12.92 *rOG;
+    gOG=(gOG> 0.00313066844250063)?1.055 * fastPrecisePow(gOG,rcpTwoFour) - 0.055:12.92 *gOG;
+    bOG=(bOG> 0.00313066844250063)?1.055 * fastPrecisePow(bOG,rcpTwoFour) - 0.055:12.92 *bOG;
+}else if(lnr==7){
+    rOG=fastPrecisePow(rOG,2.6);
+    gOG=fastPrecisePow(gOG,2.6);
+    bOG=fastPrecisePow(bOG,2.6);
+}else if(lnr==6){
+    rOG=fastPrecisePow(rOG,invTwoTwo);
+    gOG=fastPrecisePow(gOG,invTwoTwo);
+    B=fastPrecisePow(bOG,invTwoTwo);
+}else if(lnr==4){
+    rOG=(rOG< recBeta)?4.5*rOG:recAlpha*fastPrecisePow(rOG,0.45)-(recAlpha-1);
+    gOG=(gOG< recBeta)?4.5*gOG:recAlpha*fastPrecisePow(gOG,0.45)-(recAlpha-1);
+    bOG=(bOG< recBeta)?4.5*bOG:recAlpha*fastPrecisePow(bOG,0.45)-(recAlpha-1);
+}else if (lnr==9){
+    rOG=(rOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(rOG-HLG_c)*rcp_HLG_a)+HLG_b):rOG*rOG*third;
+    gOG=(gOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(gOG-HLG_c)*rcp_HLG_a)+HLG_b):gOG*gOG*third;
+    bOG=(bOG>0.5)?rcpTwelve*(fastPrecisePow(euler_e,(bOG-HLG_c)*rcp_HLG_a)+HLG_b):bOG*bOG*third;
+}else if (lnr==10){
+    rOG=(rOG > rcpTwelve)?HLG_a*log(12.0*rOG-HLG_b)+HLG_c:root_three*fastPrecisePow(rOG,0.5);
+    gOG=(gOG > rcpTwelve)?HLG_a*log(12.0*gOG-HLG_b)+HLG_c:root_three*fastPrecisePow(gOG,0.5);
+    bOG=(bOG > rcpTwelve)?HLG_a*log(12.0*bOG-HLG_b)+HLG_c:root_three*fastPrecisePow(bOG,0.5);
 }
 
 rOG=lerp(lw,hi,rOG);
@@ -172,10 +173,6 @@ bOG=lerp(lw,hi,bOG);
 params->use_R[p_ix]=rOG;
 params->use_G[p_ix]=gOG;
 params->use_B[p_ix]=bOG;
-
-runTot_r+=rOG;
-runTot_g+=gOG;
-runTot_g+=bOG;
 
 counter+=1;
 
@@ -255,10 +252,14 @@ R=nw_RGB[0];
 G=nw_RGB[1];
 B=nw_RGB[2];
 
-if ((crs==0 && nw_Y<og_Y)||(crs==1 && nw_Y>og_Y)){
-    R=og_RGB[0];
-    G=og_RGB[1];
-    B=og_RGB[2];
+if (crs==0 && nw_Y<og_Y){
+        R=og_RGB[0];
+        G=og_RGB[1];
+        B=og_RGB[2];
+}else if (crs==1 && og_Y<nw_Y){
+        R=og_RGB[0];
+        G=og_RGB[1];
+        B=og_RGB[2];
 }
 
 if(lmr==1){
@@ -317,8 +318,8 @@ if (!params)
             return avs_new_value_error ("h and l must be between 0 and 1!");
           }if ((params->mode<0)||(params->mode>11)){
             return avs_new_value_error ("Allowed modes are between 0 and 11!");
-          } else if ((params->linear<0)||(params->linear>10)){
-            return avs_new_value_error ("Allowed linear values are between 0 and 10!");
+          } else if ((params->linear<0)||(params->linear>12)){
+            return avs_new_value_error ("Allowed linear values are between 0 and 12!");
           }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
