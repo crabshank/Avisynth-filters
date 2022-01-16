@@ -395,7 +395,7 @@ if(lnr==0){
 
 rgb2XYZ(OG_RGB_lin,rgbXYZ,rgbXYZGrey,mde,0,1,aprxPw);
 
-if(blackOG){
+if(blackOG==1){
     WPchgRGB[0]=0;
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
@@ -555,32 +555,33 @@ if(blackOG){
 
 if(bb_curr_clip!=-1){
 
-	 if(lnr==0){
-                if(blackOG==0){
-                    double lin_rgb_bb[3];
-                    XYZ2rgb(WPConvXYZ,lin_rgb_bb,mde,1,aprxPw);
-                    params->WP_R_lin[p_ix]=lin_rgb_bb[0];
-                    params->WP_G_lin[p_ix]=lin_rgb_bb[1];
-                    params->WP_B_lin[p_ix]=lin_rgb_bb[2];
-                    params->WP_X_lin[p_ix]=WPConvXYZ[0];
-                    params->WP_Y_lin[p_ix]=WPConvXYZ[1];
-                    params->WP_Z_lin[p_ix]=WPConvXYZ[2];
-                }else{
+	  if(blackOG==1){
                     params->WP_R_lin[p_ix]=0;
                     params->WP_G_lin[p_ix]=0;
                     params->WP_B_lin[p_ix]=0;
                     params->WP_X_lin[p_ix]=0;
                     params->WP_Y_lin[p_ix]=0;
                     params->WP_Z_lin[p_ix]=0;
-                }
-        }else{
-			params->WP_R_lin[p_ix]=WPchgRGB[0];
-			params->WP_G_lin[p_ix]=WPchgRGB[1];
-			params->WP_B_lin[p_ix]=WPchgRGB[2];
-            params->WP_X_lin[p_ix]=WPConvXYZ[0];
-            params->WP_Y_lin[p_ix]=WPConvXYZ[1];
-            params->WP_Z_lin[p_ix]=WPConvXYZ[2];
-		}
+                }else{
+					if(lnr==0){
+						double lin_rgb_bb[3];
+						XYZ2rgb(WPConvXYZ,lin_rgb_bb,mde,1,aprxPw);
+						params->WP_R_lin[p_ix]=lin_rgb_bb[0];
+						params->WP_G_lin[p_ix]=lin_rgb_bb[1];
+						params->WP_B_lin[p_ix]=lin_rgb_bb[2];
+						params->WP_X_lin[p_ix]=WPConvXYZ[0];
+						params->WP_Y_lin[p_ix]=WPConvXYZ[1];
+						params->WP_Z_lin[p_ix]=WPConvXYZ[2];
+					}else{
+						params->WP_R_lin[p_ix]=WPchgRGB[0];
+						params->WP_G_lin[p_ix]=WPchgRGB[1];
+						params->WP_B_lin[p_ix]=WPchgRGB[2];
+						params->WP_X_lin[p_ix]=WPConvXYZ[0];
+						params->WP_Y_lin[p_ix]=WPConvXYZ[1];
+						params->WP_Z_lin[p_ix]=WPConvXYZ[2];
+					}
+
+				}
 
 	params->bb_R[p_ix]=OG_RGB_lin[0];
 	params->bb_G[p_ix]=OG_RGB_lin[1];
@@ -843,7 +844,7 @@ if (params->bb_switch2[bb_curr_clip]==1){
 
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
-double bb_XYZ[3];
+double bb_XYZ[3]={0,0,0};
 		  double rgb_out[3]={0,0,0};
             double rgb_og_lin[3];
              rgb_og_lin[0]=params->bb_R[p_ix];
@@ -855,7 +856,7 @@ double bb_XYZ[3];
              rgb_WP_lin[1]=params->WP_G_lin[p_ix];
              rgb_WP_lin[2]=params->WP_B_lin[p_ix];
 
-		  double rgb_out_lin[3];
+		  double rgb_out_lin[3]={0,0,0};
 
             if((rgb_og_lin[0]!=0) || (rgb_og_lin[1]!=0) || (rgb_og_lin[2]!=0)){ //not black
 
@@ -942,6 +943,7 @@ if (cust_x_bb!=D65_x || (cust_y_bb!=D65_y)){
 double rgb_WP_lin_adj_hsv[3]={h, MIN(sat,lerp(mss,MIN(1,2*mxs-mss),lrp)) , mx};
 
 hsv2rgb_360(rgb_WP_lin_adj_hsv,rgb_out_lin);
+
 double WP_XYZ[3]={params->WP_X_lin[p_ix],params->WP_Y_lin[p_ix],params->WP_Z_lin[p_ix]};
 double WP_xyY[3];
 XYZ2xyY(WP_XYZ,WP_xyY);
