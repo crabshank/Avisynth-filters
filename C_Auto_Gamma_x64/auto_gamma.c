@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdarg.h>
 #include <math.h>
+#include <stdio.h>
 #include "..\avisynth_c.h"
 #include "functions_c.h"
 
@@ -8,11 +10,9 @@ typedef struct Auto_Gamma {
     double* use_R;
     double* use_G;
     double* use_B;
-    double bracketA;
-    double bracketB;
+    double a;
     double l;
     double h;
-    int tolerance;
     int crush;
     int limitedRange;
     int mode;
@@ -21,23 +21,54 @@ typedef struct Auto_Gamma {
     int pxels;
 } Auto_Gamma;
 
+/*
+//DEBUG FILE STUFF
+
+char* d_file_path="C:\\Program Files (x86)\\~AvsPmod\\plugins\\C_Auto_Gamma_x64\\debug.txt";
+
+void makeFile(char* f_name){
+
+    FILE *fptr;
+
+    fptr = fopen(f_name,"w");
+
+    if(fptr == NULL){
+        exit(1);
+    }
+
+    fclose(fptr);
+}
+
+void appendFormattedToFile(char* f_name, const char * format, ...)
+{
+    FILE * fptr;
+
+    fptr = fopen (f_name,"a");
+
+    va_list args;
+    va_start (args, format);
+    vfprintf (fptr, format, args);
+    va_end (args);
+
+    fclose (fptr);
+
+   return 0;
+}*/
+
 AVS_VideoFrame * AVSC_CC Auto_Gamma_get_frame (AVS_FilterInfo * p, int n)
 {
     AVS_VideoFrame * src;
     Auto_Gamma* params = (Auto_Gamma*) p->user_data;
-    AVS_FilterInfo * og_p=p;
     src = avs_get_frame(p->child, n);
 
-    int row_size, height, src_pitch,x, y,max_iters,tol,tolr,lmr,crs,lnr,mde,sxf;
+    int row_size, height, src_pitch,x, y,lmr,crs,lnr,mde,sxf;
    BYTE* srcp;
    const BYTE* rrcp;
-   double a,b,lw,hi,c,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,f_c,gamma_high,gamma_high_tmp,gamma_low,f_a,R,G,B,counter;
+   double a,lw,hi,runTot_r,runTot_g,runTot_b,bOG,gOG,rOG,gamma_high,gamma_low,R,G,B,counter;
 
-a=params->bracketA;
-b=params->bracketB;
+a=params->a;
 lw=params->l;
 hi=params->h;
-tol=params->tolerance;
 crs=params->crush;
 lmr=params->limitedRange;
 mde=params->mode;
@@ -61,9 +92,6 @@ int p_ix=0;
       for (y=0; y<height; y++) {
       for (x=0; x<row_size; x++) {
 
-
-
-//double x_shift=(double)x/(double)row_size;
                  double currBlue=(sxf==1)?(double)rrcp[x]+rrcp[x+1]*256:(double)rrcp[x];
                  double currGreen=(sxf==1)?(double)rrcp[x+2]+rrcp[x+3]*256:(double)rrcp[x+1];
                  double currRed=(sxf==1)?(double)rrcp[x+4]+rrcp[x+5]*256:(double)rrcp[x+2];
@@ -183,38 +211,21 @@ counter+=1;
       }
 p_ix=0;
 
-//Bisection method solver/////////////////////////////////////////
-gamma_high=1;
-gamma_low=1;
-
-p=1;
-tolr=1.0/fastPrecisePow(10,(double)(tol));
-max_iters=ceil((log10(b-a)-log10(tolr))/log10(2));
 
 double mxMean[3]={runTot_r/counter,runTot_g/counter,runTot_b/counter};
-while(p<=max_iters){
-    c=0.5*(a+b);
-    f_gammaLow(mxMean, c,gamma_high,f_c);
 
-    if(f_c==0||(0.5*(b-a)<tolr)){
-        p=max_iters;
-        gamma_low=c;
-    }
+  double avg=(mxMean[0]+mxMean[1]+mxMean[2])*third;
+  gamma_high=a;
 
-    p++;
-    f_gammaLow(mxMean, a,gamma_high_tmp,f_a );
-   // sgn_c=(f_c<0)?-1:1;
-    //sgn_a=(f_a<0)?-1:1;
-    if(f_a>f_c){
-        a=c;
-    }else{
-    b=c;
-    }
+  if(avg==1 || a==0){
+    gamma_low=1;
+  }else{
+    double lt=(avg-(avg*fastPrecisePow(avg,a)))/(1-avg);
 
-}
-p=og_p;
-///////////////////////////////////////////////////////
+    gamma_low=(lt<=0)?1:log(lt)/log(avg);
+  }
 
+//appendFormattedToFile(d_file_path, "%f & %f\n",gamma_low, gamma_high);
 
 ///////////////ACTUALLY DRAW PIXELS///////////////////////////////////////
       for (y=0; y<height; y++) {
@@ -225,28 +236,16 @@ double og_G=params->use_G[p_ix];
 double og_B=params->use_B[p_ix];
 
 double og_RGB[3]={og_R,og_G,og_B};
-int og_RGB_is_blk=(og_R==0 && og_G==0 && og_B==0)?1:0;
-double og_XYZ[3]={0,0,0};
 
-if(og_RGB_is_blk==0){
-    double og_XYZ_plh[3];
-    LinRGB2XYZ(og_RGB,og_XYZ,og_XYZ_plh,mde,0);
-}
-double og_Y=og_XYZ[1];
+double og_Y=LinRGB2Y(og_RGB, mde);
 
 double nw_R=(gamma_high==1 && gamma_low==1)?og_R:lerp(fastPrecisePow(og_R,gamma_low),fastPrecisePow(og_R,gamma_high),og_R);
 double nw_G=(gamma_high==1 && gamma_low==1)?og_G:lerp(fastPrecisePow(og_G,gamma_low),fastPrecisePow(og_G,gamma_high),og_G);
 double nw_B=(gamma_high==1 && gamma_low==1)?og_B:lerp(fastPrecisePow(og_B,gamma_low),fastPrecisePow(og_B,gamma_high),og_B);
 
 double nw_RGB[3]={nw_R,nw_G,nw_B};
-int nw_RGB_is_blk=(nw_R==0 && nw_G==0 && nw_B==0)?1:0;
-double nw_XYZ[3]={0,0,0};
 
-if(nw_RGB_is_blk==0){
-    double nw_XYZ_plh[3];
-    LinRGB2XYZ(nw_RGB,nw_XYZ,nw_XYZ_plh,mde,0);
-}
-double nw_Y=nw_XYZ[1];
+double nw_Y=LinRGB2Y(nw_RGB, mde);
 
 R=nw_RGB[0];
 G=nw_RGB[1];
@@ -304,15 +303,13 @@ AVS_Value AVSC_CC create_Auto_Gamma (AVS_ScriptEnvironment * env,AVS_Value args,
 
 if (!params)
       return avs_void;
-        params->bracketA = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0;
-        params->bracketB = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):4.3;
-        params->l = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):0;
-        params->h = avs_defined(avs_array_elt(args, 4))?avs_as_float(avs_array_elt(args, 4)):1;
-        params->tolerance = avs_defined(avs_array_elt(args, 5))?avs_as_int(avs_array_elt(args, 5)):4;
-        params->crush = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
-        params->limitedRange= avs_defined(avs_array_elt(args, 7))?avs_as_bool(avs_array_elt(args, 7)):false;
-        params->mode = avs_defined(avs_array_elt(args, 8))?avs_as_int(avs_array_elt(args, 8)):0;
-        params->linear= avs_defined(avs_array_elt(args, 9))?avs_as_int(avs_array_elt(args, 9)):0;
+        params->a = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0.25;
+        params->l = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0;
+        params->h = avs_defined(avs_array_elt(args, 3))?avs_as_float(avs_array_elt(args, 3)):1;
+        params->crush = avs_defined(avs_array_elt(args, 4))?avs_as_int(avs_array_elt(args, 4)):0;
+        params->limitedRange= avs_defined(avs_array_elt(args, 5))?avs_as_bool(avs_array_elt(args, 5)):false;
+        params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
+        params->linear= avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
 
           if ((params->l>1 || params->l<0)||(params->h>1 || params->h<0)){
             return avs_new_value_error ("h and l must be between 0 and 1!");
@@ -325,8 +322,8 @@ if (!params)
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
   } else {
 
-     if(avs_defined(avs_array_elt(args, 10))){
-        params->sixtyFour =avs_as_bool(avs_array_elt(args, 10));
+     if(avs_defined(avs_array_elt(args, 8))){
+        params->sixtyFour =avs_as_bool(avs_array_elt(args, 8));
      }else{
        params->sixtyFour = (avs_is_rgb64(&fi->vi))?true:false;
      }
@@ -336,7 +333,10 @@ if (!params)
     params->use_G= (double*)malloc( params->pxels* sizeof(double));
     params->use_B= (double*)malloc( params->pxels* sizeof(double));
 
-         fi->user_data = (void*) params;
+    //DEBUG FILE
+    //makeFile(d_file_path);
+
+    fi->user_data = (void*) params;
     fi->get_frame = Auto_Gamma_get_frame;
     v = avs_new_value_clip(new_clip);
       fi->free_filter = free_Auto_Gamma;
@@ -349,6 +349,6 @@ if (!params)
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Auto_Gamma", "c[a]f[b]f[l]f[h]f[tolerance]i[crush]i[limitedRange]b[mode]i[linear]i[sixtyFour]b", create_Auto_Gamma, 0);
+   avs_add_function(env, "Auto_Gamma", "c[a]f[l]f[h]f[crush]i[limitedRange]b[mode]i[linear]i[sixtyFour]b", create_Auto_Gamma, 0);
    return "Auto_Gamma C plugin";
 }
