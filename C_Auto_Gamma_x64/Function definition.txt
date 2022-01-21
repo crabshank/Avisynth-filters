@@ -1,10 +1,8 @@
 (
 	clip clip,
-	float "a"=0.00 (0.00 to 20.00 by 0.01),
-	float "b"=4.3 (0.00 to 20.00 by 0.01),
+	float "a"=0.250 (0.00 to 6.00 by 0.001),
 	float "l"=0.000 (0.00 to 1.00 by 0.001),
 	float "h"=1.000 (0.00 to 1.00 by 0.001),
-	int "tolerance"=4 (1 to 7 by 1),
 	int "crush"=0 (0 to 2 by 1),
 	bool "limitedRange"=False,
 	int "mode"=0 (0 to 10 by 1),
