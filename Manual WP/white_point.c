@@ -17,6 +17,7 @@ typedef struct Manual_WP {
         int mode;
         int debug;
         double debug_val;
+        double debug_val2;
         int sixtyFour;
         double dst_x;
         double dst_y;
@@ -123,7 +124,7 @@ AVS_VideoFrame * AVSC_CC Manual_WP_get_frame (AVS_FilterInfo * p, int n)
      char* eds2;
      char* bbs;
      char* bbs2;
-   double rOG,bOG,gOG,cust_x,cust_y,cust_x_bb,cust_y_bb,amp, to_x, to_y;
+   double rOG,bOG,gOG,cust_x,cust_y,cust_x_bb,cust_y_bb,amp,amp2, to_x, to_y;
    double rgbs_dbg_six[4]={1.0, 1.0, 1.0, 0.0};
 
   avs_make_writable(p->env, &src);
@@ -138,6 +139,7 @@ cust_y=params->y;
 mde=params->mode;
 dbg=params->debug;
 amp=params->debug_val;
+amp2=params->debug_val2;
 sxf=params->sixtyFour;
 to_x=params->dst_x;
 to_y=params->dst_y;
@@ -598,6 +600,8 @@ if(bb_curr_clip==-1){
 
     if(dbg==1){
         debug_1(WPchgRGB, WPchgRGB, amp, aprxPw);
+    }else if(dbg==9){
+        debug_9(WPchgRGB, WPchgRGB, amp, amp2);
     }else if(dbg==2){
         debug_2(WPchgRGB, WPchgRGB, amp);
     }else if(dbg==8){
@@ -786,6 +790,8 @@ xyY2LinRGB(out_xyY,rgb_out_lin,mde);
 
 if(dbg==1){
     debug_1(rgb_out,rgb_out,amp,aprxPw);
+}else if(dbg==9){
+    debug_9(rgb_out, rgb_out, amp, amp2);
 }else if(dbg==2){
     debug_2(rgb_out, rgb_out,amp);
 }else if(dbg==8){
@@ -864,69 +870,72 @@ if (!params){
       return avs_void;
 }
 
-                   params->x = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0.312727;
-                   params->y = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.329023;
-                   params->R = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):-1;
-                   params->G = avs_defined(avs_array_elt(args, 4))?avs_as_int(avs_array_elt(args, 4)):-1;
-                   params->B = avs_defined(avs_array_elt(args, 5))?avs_as_int(avs_array_elt(args, 5)):-1;
-                params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
-               params->debug = avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
+				   params->x = avs_defined(avs_array_elt(args, 1))?avs_as_float(avs_array_elt(args, 1)):0.312727;
+				   params->y = avs_defined(avs_array_elt(args, 2))?avs_as_float(avs_array_elt(args, 2)):0.329023;
+				   params->R = avs_defined(avs_array_elt(args, 3))?avs_as_int(avs_array_elt(args, 3)):-1;
+				   params->G = avs_defined(avs_array_elt(args, 4))?avs_as_int(avs_array_elt(args, 4)):-1;
+				   params->B = avs_defined(avs_array_elt(args, 5))?avs_as_int(avs_array_elt(args, 5)):-1;
+					params->mode = avs_defined(avs_array_elt(args, 6))?avs_as_int(avs_array_elt(args, 6)):0;
+				   params->debug = avs_defined(avs_array_elt(args, 7))?avs_as_int(avs_array_elt(args, 7)):0;
 
-               double dbg_v=1;
-               if(params->debug==2 || params->debug==4 || params->debug==6 || params->debug==8){
-                dbg_v=0.03;
-               }else if(params->debug==3){
-                dbg_v=0.97;
-               }else if(params->debug==7){
-                dbg_v=0.37;
-               }
-            params->debug_val=  avs_defined(avs_array_elt(args,8))?avs_as_float(avs_array_elt(args, 8)):dbg_v;
+				   double dbg_v=1;
+				   if(params->debug==2 || params->debug==4 || params->debug==6 || params->debug==8 || params->debug==9){
+					dbg_v=0.03;
+				   }else if(params->debug==3){
+					dbg_v=0.97;
+				   }else if(params->debug==7){
+					dbg_v=0.37;
+				   }
+				params->debug_val=  avs_defined(avs_array_elt(args,8))?avs_as_float(avs_array_elt(args, 8)):dbg_v;
+				params->debug_val2=  avs_defined(avs_array_elt(args,9))?avs_as_float(avs_array_elt(args, 9)):((params->debug==9)?0.17:1);
 
-                params->dst_x=  avs_defined(avs_array_elt(args,10))?avs_as_float(avs_array_elt(args, 10)):0.312727;
-                params->dst_y=  avs_defined(avs_array_elt(args,11))?avs_as_float(avs_array_elt(args, 11)):0.329023;
-                params->auto_WP=  avs_defined(avs_array_elt(args,12))?avs_as_bool(avs_array_elt(args, 12)):false;
-                params->overwrite=  avs_defined(avs_array_elt(args,15))?avs_as_bool(avs_array_elt(args, 15)):true;
-                params->linear=  avs_defined(avs_array_elt(args,16))?avs_as_bool(avs_array_elt(args, 16)):false;
-                params->ed_off=  avs_defined(avs_array_elt(args,18))?avs_as_int(avs_array_elt(args, 18)):0;
-                params->ed_base=  avs_defined(avs_array_elt(args,19))?avs_as_int(avs_array_elt(args, 19)):-1;
+                params->dst_x=  avs_defined(avs_array_elt(args,11))?avs_as_float(avs_array_elt(args, 11)):0.312727;
+                params->dst_y=  avs_defined(avs_array_elt(args,12))?avs_as_float(avs_array_elt(args, 12)):0.329023;
+                params->auto_WP=  avs_defined(avs_array_elt(args,13))?avs_as_bool(avs_array_elt(args, 13)):false;
 
-				 params->approxPow=  avs_defined(avs_array_elt(args,21))?avs_as_bool(avs_array_elt(args, 21)):true;
+				char* file_name ="";
+				file_name = ((avs_as_string(avs_array_elt(args, 14)))&&(avs_as_string(avs_array_elt(args, 14))!="NULL"))?avs_as_string(avs_array_elt(args, 14)):file_name;
+				params->file = file_name;
 
-char* file_name ="";
-file_name = ((avs_as_string(avs_array_elt(args, 13)))&&(avs_as_string(avs_array_elt(args, 13))!="NULL"))?avs_as_string(avs_array_elt(args, 13)):file_name;
-params->file = file_name;
+				char* log_idt ="";
+				log_idt = ((avs_as_string(avs_array_elt(args, 15)))&&(avs_as_string(avs_array_elt(args, 15))!="NULL"))?avs_as_string(avs_array_elt(args, 15)):log_idt;
+				params->log_id = log_idt;
 
-char* log_idt ="";
-log_idt = ((avs_as_string(avs_array_elt(args, 14)))&&(avs_as_string(avs_array_elt(args, 14))!="NULL"))?avs_as_string(avs_array_elt(args, 14)):log_idt;
-params->log_id = log_idt;
+                params->overwrite=  avs_defined(avs_array_elt(args,16))?avs_as_bool(avs_array_elt(args, 16)):true;
+                params->linear=  avs_defined(avs_array_elt(args,17))?avs_as_bool(avs_array_elt(args, 17)):false;
 
-char* edts ="";
-edts = ((avs_as_string(avs_array_elt(args, 17)))&&(avs_as_string(avs_array_elt(args, 17))!="NULL"))?avs_as_string(avs_array_elt(args, 17)):edts;
-params->edits = edts;
+				char* edts ="";
+				edts = ((avs_as_string(avs_array_elt(args, 18)))&&(avs_as_string(avs_array_elt(args, 18))!="NULL"))?avs_as_string(avs_array_elt(args, 18)):edts;
+				params->edits = edts;
 
-char* edts2 ="";
-edts2 = ((avs_as_string(avs_array_elt(args, 20)))&&(avs_as_string(avs_array_elt(args, 20))!="NULL"))?avs_as_string(avs_array_elt(args, 20)):edts2;
-params->edits2 = edts2;
+				params->ed_off=  avs_defined(avs_array_elt(args,19))?avs_as_int(avs_array_elt(args, 19)):0;
+				params->ed_base=  avs_defined(avs_array_elt(args,20))?avs_as_int(avs_array_elt(args, 20)):-1;
 
-char* bbs ="";
-bbs = ((avs_as_string(avs_array_elt(args, 22)))&&(avs_as_string(avs_array_elt(args, 22))!="NULL"))?avs_as_string(avs_array_elt(args, 22)):bbs;
-params->bb = bbs;
+				char* edts2 ="";
+				edts2 = ((avs_as_string(avs_array_elt(args, 21)))&&(avs_as_string(avs_array_elt(args, 21))!="NULL"))?avs_as_string(avs_array_elt(args, 21)):edts2;
+				params->edits2 = edts2;
 
-char* bbs2 ="";
-bbs2 = ((avs_as_string(avs_array_elt(args, 23)))&&(avs_as_string(avs_array_elt(args, 23))!="NULL"))?avs_as_string(avs_array_elt(args, 23)):bbs2;
-params->bb2 = bbs2;
+				params->approxPow=  avs_defined(avs_array_elt(args,22))?avs_as_bool(avs_array_elt(args, 22)):true;
 
-params->bb_off=  avs_defined(avs_array_elt(args,24))?avs_as_int(avs_array_elt(args, 24)):0;
-params->bb_base=  avs_defined(avs_array_elt(args,25))?avs_as_int(avs_array_elt(args, 25)):-1;
+				char* bbs ="";
+				bbs = ((avs_as_string(avs_array_elt(args, 23)))&&(avs_as_string(avs_array_elt(args, 23))!="NULL"))?avs_as_string(avs_array_elt(args, 23)):bbs;
+				params->bb = bbs;
+
+				char* bbs2 ="";
+				bbs2 = ((avs_as_string(avs_array_elt(args, 24)))&&(avs_as_string(avs_array_elt(args, 24))!="NULL"))?avs_as_string(avs_array_elt(args, 24)):bbs2;
+				params->bb2 = bbs2;
+
+				params->bb_off=  avs_defined(avs_array_elt(args,25))?avs_as_int(avs_array_elt(args, 25)):0;
+				params->bb_base=  avs_defined(avs_array_elt(args,26))?avs_as_int(avs_array_elt(args, 26)):-1;
 
     if (params->ed_base<-1) {
     return avs_new_value_error ("'ed_base' must be >= -1");
     }else if (params->bb_base<-1) {
     return avs_new_value_error ("'bb_base' must be >= -1");
     }else{
-      if ((params->debug<0)||(params->debug>8)){
-            return avs_new_value_error ("Allowed debug settings are between 0 and 8!");
-            return avs_new_value_error ("Allowed debug settings are between 0 and 8!");
+      if ((params->debug<0)||(params->debug>9)){
+            return avs_new_value_error ("Allowed debug settings are between 0 and 9!");
+            return avs_new_value_error ("Allowed debug settings are between 0 and 9!");
           }else{
           if ((params->mode<0)||(params->mode>11)){
             return avs_new_value_error ("Allowed modes are between 0 and 11!");
@@ -954,8 +963,8 @@ params->bb_base=  avs_defined(avs_array_elt(args,25))?avs_as_int(avs_array_elt(a
         fclose(fptr);
    }
 
-     if(avs_defined(avs_array_elt(args, 9))){
-        params->sixtyFour =avs_as_bool(avs_array_elt(args, 9));
+     if(avs_defined(avs_array_elt(args, 10))){
+        params->sixtyFour =avs_as_bool(avs_array_elt(args, 10));
      }else{
        params->sixtyFour = (avs_is_rgb64(&fi->vi))?true:false;
      }
@@ -1612,6 +1621,6 @@ params->hueCount_wht_prp=(double*)malloc(sizeof(double)*361);
 
 const char * AVSC_CC avisynth_c_plugin_init(AVS_ScriptEnvironment * env)
 {
-   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s[approxPow]b[bb]s[bb2]s[bb_off]i[bb_base]i", create_Manual_WP, 0);
+   avs_add_function(env, "Manual_WP", "c[x]f[y]f[R]i[G]i[B]i[mode]i[debug]i[debug_val]f[debug_val2]f[sixtyFour]b[dst_x]f[dst_y]f[auto_WP]b[file]s[log_id]s[overwrite]b[linear]b[edits]s[ed_off]i[ed_base]i[edits2]s[approxPow]b[bb]s[bb2]s[bb_off]i[bb_base]i", create_Manual_WP, 0);
    return "Manual_WP C plugin";
 }
