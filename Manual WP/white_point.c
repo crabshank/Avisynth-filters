@@ -392,20 +392,23 @@ if(lnr==0){
 LinRGB2XYZ(OG_RGB_lin,rgbXYZ,mde);
 
 if(bb_curr_clip!=-1){
-params->bb_R[p_ix]=OG_RGB_lin[0];
-params->bb_G[p_ix]=OG_RGB_lin[1];
-params->bb_B[p_ix]=OG_RGB_lin[2];
-
-params->WP_R_lin[p_ix]=0;
-params->WP_G_lin[p_ix]=0;
-params->WP_B_lin[p_ix]=0;
-params->WP_Y_lin[p_ix]=0;
+	params->bb_R[p_ix]=OG_RGB_lin[0];
+	params->bb_G[p_ix]=OG_RGB_lin[1];
+	params->bb_B[p_ix]=OG_RGB_lin[2];
 }
 
 if(blackOG==1){
     WPchgRGB[0]=0;
     WPchgRGB[1]=0;
     WPchgRGB[2]=0;
+
+if(bb_curr_clip!=-1){
+	params->WP_R_lin[p_ix]=0;
+	params->WP_G_lin[p_ix]=0;
+	params->WP_B_lin[p_ix]=0;
+	params->WP_Y_lin[p_ix]=0;
+}
+
 }else{
       if(((eds!="")&&(eds!="NULL")) || ((eds2!="")&&(eds2!="NULL"))){
 
