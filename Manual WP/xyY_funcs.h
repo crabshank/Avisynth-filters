@@ -20,9 +20,9 @@
 #define euler_e 2.718281828459045
 #define third 1.0/3.0
 
-double D65XYZ[3]={0.95047,1,1.08883};
-double D65_x= 0.312727;
-double D65_y= 0.329023;
+const double D65XYZ[3]={0.95047,1,1.08883};
+const double D65_x= 0.312727;
+const double D65_y= 0.329023;
 
 inline double fastPrecisePow(double a, double b) {
 	//added support for negative exponents
