@@ -260,3 +260,13 @@ if (grey==0){
 }
 
 }
+
+void debug_9(double rgb[3], double rgb_out[3], double amp, double amp2)
+{
+    double mx=MAX(rgb[0],MAX(rgb[1],rgb[2]));
+    double sat=(mx==0)?0:(mx-MIN(rgb[0],MIN(rgb[1],rgb[2])))/mx;
+
+    rgb_out[0]=(sat>=amp2)?rgb[0]:((sat<amp)?0:0.5);
+    rgb_out[1]=(sat>=amp2)?rgb[1]:((sat<amp)?0:0.5);
+    rgb_out[2]=(sat>=amp2)?rgb[2]:((sat<amp)?0:0.5);
+}
