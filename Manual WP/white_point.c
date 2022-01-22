@@ -774,7 +774,7 @@ if(rgb_og_lin_blk==0){ //not black
             double out_sat=MIN(sat,lerp(mss,MIN(1,2*mxs-mss),lrp));
             double out_val=(chr==0)?mx:out_sat/chr;
 
-double rgb_WP_lin_adj_hsv[3]={h, out_sat, mx};
+double rgb_WP_lin_adj_hsv[3]={h, out_sat, out_val};
 
 hsv2rgb_360(rgb_WP_lin_adj_hsv,rgb_out_lin);
 
