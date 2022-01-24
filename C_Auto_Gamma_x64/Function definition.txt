@@ -5,7 +5,7 @@
 	float "h"=1.000 (0.00 to 1.00 by 0.001),
 	int "crush"=0 (0 to 2 by 1),
 	bool "limitedRange"=False,
-	int "mode"=0 (0 to 10 by 1),
+	int "mode"=0 (0 to 12 by 1),
 	int "linear"=0 (0 to 12 by 1),
 	bool "sixtyFour"=false
 )
