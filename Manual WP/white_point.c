@@ -944,8 +944,8 @@ if (!params){
             return avs_new_value_error ("Allowed debug settings are between 0 and 9!");
             return avs_new_value_error ("Allowed debug settings are between 0 and 9!");
           }else{
-          if ((params->mode<0)||(params->mode>11)){
-            return avs_new_value_error ("Allowed modes are between 0 and 11!");
+          if ((params->mode<0)||(params->mode>12)){
+            return avs_new_value_error ("Allowed modes are between 0 and 12!");
           }else{
   if (!((avs_is_rgb32(&fi->vi))||(avs_is_rgb64(&fi->vi)))) {
     return avs_new_value_error ("Input video must be in RGB32 OR RGB64 format!");
