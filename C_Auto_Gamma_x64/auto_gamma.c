@@ -191,6 +191,10 @@ bOG=lerp(lw,hi,bOG);
         runTot_r+=rOG*0.23762331020788;
         runTot_g+=gOG*0.689170669198985;
         runTot_b+=bOG*0.073206020593136;
+    }else if(mde==12){ //Original NTSC D65
+        runTot_r+=rOG*0.2896886;
+        runTot_g+=gOG*0.6056356;
+        runTot_b+=bOG*0.1046758;
     }else{
         runTot_r+=rOG*0.2126729;
         runTot_g+=gOG*0.7151522;
@@ -313,8 +317,8 @@ if (!params)
 
           if ((params->l>1 || params->l<0)||(params->h>1 || params->h<0)){
             return avs_new_value_error ("h and l must be between 0 and 1!");
-          }if ((params->mode<0)||(params->mode>11)){
-            return avs_new_value_error ("Allowed modes are between 0 and 11!");
+          }if ((params->mode<0)||(params->mode>12)){
+            return avs_new_value_error ("Allowed modes are between 0 and 12!");
           } else if ((params->linear<0)||(params->linear>12)){
             return avs_new_value_error ("Allowed linear values are between 0 and 12!");
           }else{
