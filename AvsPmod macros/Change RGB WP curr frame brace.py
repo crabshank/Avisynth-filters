@@ -33,7 +33,6 @@ R,G,B = rgb.Get()
 
 curr=avsp.GetFrameNumber()
 
-frms=avsp.GetVideoFramecount(index=None)
 sw=0
 cg=0
 txt=avsp.GetText(index=None, clean=False)

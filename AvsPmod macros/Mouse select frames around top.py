@@ -3,11 +3,11 @@ import wx
 import ctypes as ct
 
 Xstart = 0
-Xend = 1.0/3.0
+Xend = 1.0/2.0
 #Frames around top covers the first third of the output width
 
 Ystart = 0
-Yend = 1
+Yend = 0.5
 #Frames around top covers the whole output height
 
 class GetPoint(ct.Structure):
@@ -40,7 +40,7 @@ R,G,B = rgb.Get()
 # Source - https://gist.github.com/line0/11328940
 
 curr=avsp.GetFrameNumber()
-frms=avsp.GetVideoFramecount(index=None)
+frms=avsp.GetVideoFramecount(index=None)-1
 
 f_x=float(x)
 f_y=float(y)

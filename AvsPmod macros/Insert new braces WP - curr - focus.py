@@ -42,7 +42,7 @@ if bookmarks:
 				curr=bookmarks[k] #curr := last bookmark if there are any
 				break
 
-frms=avsp.GetVideoFramecount(index=None)
+frms=avsp.GetVideoFramecount(index=None)-1
 bookmarks = avsp.GetBookmarkList()
 cg=0
 txt=avsp.GetText(index=None, clean=False)

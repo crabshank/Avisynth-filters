@@ -40,7 +40,7 @@ R,G,B = rgb.Get()
 # Source - https://gist.github.com/line0/11328940
 
 curr=avsp.GetFrameNumber()
-frms=avsp.GetVideoFramecount(index=None)
+frms=avsp.GetVideoFramecount(index=None)-1
 
 f_x=float(x)
 f_y=float(y)
