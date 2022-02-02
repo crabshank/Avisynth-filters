@@ -12,7 +12,7 @@ if wx.TheClipboard.GetData(pasteText):
 
 curr=avsp.GetFrameNumber()
 bookmarks = avsp.GetBookmarkList()
-
+#wnd.zoomfactor = 1
 if bookmarks:
 		bookmarks = list(set(bookmarks))
 		bookmarks.sort(reverse=True) 
