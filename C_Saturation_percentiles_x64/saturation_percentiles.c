@@ -182,7 +182,7 @@ if (!params)
      }else{
        params->sixtyFour = (avs_is_rgb64(&fi->vi))?true:false;
      }
-     params->gOut=(params->sixtyFour==1)?round(gOtD*65535):round(gOtD*255);
+     params->gOut=round(gOtD*255);
      params->pxels=fi->vi.height*fi->vi.width;
      double d_pxels=(double)params->pxels;
     if(params->pxels==1){
