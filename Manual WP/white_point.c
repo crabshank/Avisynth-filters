@@ -267,28 +267,28 @@ x=(sxf==1)?x+7:x+3;
 	double hueSum=0;
 	double scoreSum=0;
 
-for (int i=0; i<361; i++){
+for (int i=0; i<360; i++){
     double hueCnt_dbl=(double)(hueCount[i]);
     hueCount_sat[i]=(hueCount[i]==0 || i==360)?0:hueCount_sat[i]/hueCnt_dbl;
     hueCount_val[i]=(hueCount[i]==0)?0:hueCount_val[i]/hueCnt_dbl;
 }
-for (int i=0; i<361; i++){
+for (int i=0; i<360; i++){
     scoreSum+=hueCount_wht[i];
 }
-for (int i=0; i<361; i++){
+for (int i=0; i<360; i++){
     hueCount_wht_prp[i]=hueCount_wht[i]/scoreSum;
 }
 for (int i=0; i<361; i++){
     hueSum+=hueCount[i];
 }
-for (int i=0; i<361; i++){
+for (int i=0; i<360; i++){
     hueCount_prp[i]=hueCount[i]/hueSum;
 }
 
       double maxHueScore=0.0;
       int maxHueScoreDeg=0;
 
-for (int i=0; i<361; i++){
+for (int i=0; i<360; i++){
             double currScore=(1-hueCount_prp[i])*hueCount_wht_prp[i];
       if(currScore>maxHueScore){
     maxHueScore=currScore;
@@ -296,13 +296,19 @@ for (int i=0; i<361; i++){
       }
 }
 
-double maxHueScoreDeg_dbl=(double)(maxHueScoreDeg);
 double greys_val=(double)(hueCount_val[maxHueScoreDeg]);
-double rgb_ato[3]={greys_val,greys_val,greys_val};
+double rgb_ato[3];
 
-if(maxHueScoreDeg!=360){ //not grey
-        double hsv_ato[3]={maxHueScoreDeg_dbl,hueCount_sat[maxHueScoreDeg],greys_val};
- hsv2rgb_360(hsv_ato,rgb_ato);
+if(hueSum!=hueCount[360]){ //If not all pixels are grey
+    double maxHueScoreDeg_dbl=(double)(maxHueScoreDeg);
+    double greys_val=(double)(hueCount_val[maxHueScoreDeg]);
+    double hsv_ato[3]={maxHueScoreDeg_dbl,hueCount_sat[maxHueScoreDeg],greys_val};
+    hsv2rgb_360(hsv_ato,rgb_ato);
+}else{
+    double greys_val=(double)(hueCount_val[360]);
+    rgb_ato[0]=greys_val;
+    rgb_ato[1]=greys_val;
+    rgb_ato[2]=greys_val;
 }
 
       double rgbLin[3];
