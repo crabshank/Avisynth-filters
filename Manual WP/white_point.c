@@ -278,7 +278,7 @@ for (int i=0; i<360; i++){
 for (int i=0; i<360; i++){
     hueCount_wht_prp[i]=hueCount_wht[i]/scoreSum;
 }
-for (int i=0; i<361; i++){
+for (int i=0; i<360; i++){
     hueSum+=hueCount[i];
 }
 for (int i=0; i<360; i++){
@@ -299,7 +299,7 @@ for (int i=0; i<360; i++){
 double greys_val=(double)(hueCount_val[maxHueScoreDeg]);
 double rgb_ato[3];
 
-if(hueSum!=hueCount[360]){ //If not all pixels are grey
+if(hueSum!=0){ //If not all pixels are grey
     double maxHueScoreDeg_dbl=(double)(maxHueScoreDeg);
     double greys_val=(double)(hueCount_val[maxHueScoreDeg]);
     double hsv_ato[3]={maxHueScoreDeg_dbl,hueCount_sat[maxHueScoreDeg],greys_val};
@@ -344,9 +344,9 @@ if ((nm!="")&&(nm!="NULL")&&(dbg!=6)){
    }
 
 if ((lid!="")&&(lid!="NULL")){
-    fprintf(fptr,"%s: %d, %d, %d - %d\n", lid,rfi, gfi, bfi,n );
+    fprintf(fptr,"%s - %d:\n%d, %d, %d\n\n", lid,n,rfi, gfi, bfi);
 }else{
-    fprintf(fptr,"%d, %d, %d - %d\n", rfi, gfi, bfi,n );
+    fprintf(fptr,"%d\n%d, %d, %d\n\n", n,rfi, gfi, bfi);
 }
 
    fclose(fptr);
@@ -854,9 +854,9 @@ srcp[x+5] =(sxf==1)? wp_r:srcp[x+5]; //red : self
    int blueInt=(sxf==1)?round(rgbs_dbg_six[2]*65535):round(rgbs_dbg_six[2]*255);
 
 if ((lid!="")&&(lid!="NULL")){
-    fprintf(fptr,"%s: %d, %d, %d, %.11f, %d\n", lid,redInt, greenInt, blueInt, rgbs_dbg_six[3],n);
+    fprintf(fptr,"%s - %d (%.11f):\n%d, %d, %d\n\n", lid,n,rgbs_dbg_six[3],redInt, greenInt, blueInt);
 }else{
-    fprintf(fptr,"%d, %d, %d, %.11f, %d\n",redInt, greenInt, blueInt, rgbs_dbg_six[3],n);
+    fprintf(fptr,"%d (%.11f):\n%d, %d, %d,\n\n", n,rgbs_dbg_six[3],redInt, greenInt, blueInt);
 }
    fclose(fptr);
 }
