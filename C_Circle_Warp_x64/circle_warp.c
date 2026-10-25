@@ -13,7 +13,7 @@ AVS_VideoFrame * AVSC_CC Circle_Warp_get_frame (AVS_FilterInfo * p, int n)
 {
   AVS_VideoFrame *src, *dst;
 double xp;
-BYTE* srcp;
+const BYTE* srcp;
 BYTE* dstp;
 Circle_Warp* params = (Circle_Warp*) p->user_data;
 xp=params->expn;
@@ -21,36 +21,36 @@ xp=params->expn;
 src = avs_get_frame(p->child, n);
 if(xp!=1){
 int row_size, height, src_pitch,dst_pitch,sxf,wdt;
-srcp = avs_get_read_ptr(src);
-src_pitch = avs_get_pitch(src);
-row_size = avs_get_row_size(src);
-height = avs_get_height(src);
+srcp = avs_get_read_ptr_p(src,AVS_DEFAULT_PLANE);
+src_pitch = avs_get_pitch_p(src,AVS_DEFAULT_PLANE);
+row_size = avs_get_row_size_p(src,AVS_DEFAULT_PLANE);
+height = avs_get_height_p(src,AVS_DEFAULT_PLANE);
 wdt=p->vi.width;
 
 
 dst = avs_new_video_frame(p->env, &p->vi);
-dst_pitch = avs_get_pitch(dst);
-dstp = avs_get_write_ptr(dst);
-dst->height=height;
-dst->row_size=row_size;
+dst_pitch = avs_get_pitch_p(dst,AVS_DEFAULT_PLANE);
+dstp = avs_get_write_ptr_p(dst,AVS_DEFAULT_PLANE);
+dst->_height=height;
+dst->_row_size=row_size;
 
 sxf=params->sixtyFour;
 
 
 
-int** rds  = malloc(wdt * sizeof(int*));    // rows
+int** rds  = (int**)malloc(wdt * sizeof(int*));    // rows
 for (int r = 0; r < wdt; ++r) {
-    rds[r] = malloc(height * sizeof(int)); // columns
+    rds[r] = (int*)malloc(height * sizeof(int)); // columns
 }
 
-int** grs  = malloc(wdt * sizeof(int*));    // rows
+int** grs  = (int**)malloc(wdt * sizeof(int*));    // rows
 for (int r = 0; r < wdt; ++r) {
-    grs[r] = malloc(height * sizeof(int)); // columns
+    grs[r] = (int*)malloc(height * sizeof(int)); // columns
 }
 
-int** bls  = malloc(wdt * sizeof(int*));    // rows
+int** bls  = (int**)malloc(wdt * sizeof(int*));    // rows
 for (int r = 0; r < wdt; ++r) {
-    bls[r] = malloc(height * sizeof(int)); // columns
+    bls[r] = (int*)malloc(height * sizeof(int)); // columns
 }
 
 
@@ -131,7 +131,7 @@ for (int n = 0; n < wdt; ++n){
 }
 free(bls);
 
- avs_release_frame(src);
+ avs_release_video_frame(src);
   return dst;
 }else{
 return src;

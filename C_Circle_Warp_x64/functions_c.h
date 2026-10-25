@@ -5,8 +5,8 @@ static inline double dist(double x1, double x2, double y1, double y2){
 return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 }
 
-void adjCenDist(int w, int h, double cd[2], double madr[3],double cen[2]){
-        double d_w=(double)(w);
+void adjCenDist(int w, int h, double cd[2], double madr[4],double cen[2]){
+    double d_w=(double)(w);
     double d_h=(double)(h);
     cen[0]=0.5*(d_w-1);
     cen[1]=0.5*(d_h-1);
